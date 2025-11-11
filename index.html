@@ -490,13 +490,6 @@ function saveInventory() {
 }
 
 // ========== ФУНКЦИИ УПРАВЛЕНИЯ ВКЛАДКАМИ ==========
-function openTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(tabName + '-tab').classList.add('active');
-    event.currentTarget.classList.add('active');
-}
-
 // ========== СИСТЕМА РАС ==========
 function generateRandomHeight(raceId) {
     const range = raceHeightRanges[raceId];
@@ -2702,6 +2695,7 @@ function checkSystem() {
 <script src="js/modules/ui-manager.js"></script>
 </body>
 </html>
+
 
 
 
