@@ -107,3 +107,9 @@ const raceHeightRanges = {
 };
 window.raceHeightRanges = raceHeightRanges;
 window.races = races;
+function onRaceChange() {
+    const raceId = document.getElementById('characterRace').value;
+    if (raceId) {
+        showRaceInfo(raceId);
+    }
+}
