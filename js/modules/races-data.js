@@ -91,3 +91,17 @@ const races = {
         }
     }
 };
+const raceHeightRanges = {
+    atski: { min: 140, max: 210 },
+    knofi: { min: 135, max: 205 },
+    vorki: { min: 150, max: 220 },
+    minci: { min: 130, max: 200 },
+    kaei: { min: 140, max: 225 },
+    forest_elf: { min: 150, max: 210 },
+    high_elf: { min: 170, max: 270 },
+    dark_elf: { min: 160, max: 230 },
+    dwarf: { min: 110, max: 160 },
+    gnome: { min: 40, max: 80 },
+    orc: { min: 200, max: 350 },
+    goblin: { min: 90, max: 150 }
+};
