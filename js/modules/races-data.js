@@ -105,3 +105,4 @@ const raceHeightRanges = {
     orc: { min: 200, max: 350 },
     goblin: { min: 90, max: 150 }
 };
+window.raceHeightRanges = raceHeightRanges;
