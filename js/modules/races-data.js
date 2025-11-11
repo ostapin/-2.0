@@ -114,3 +114,7 @@ function onRaceChange() {
     }
 }
 window.onRaceChange = onRaceChange;
+function generateRandomHeight(raceId) {
+    const range = raceHeightRanges[raceId];
+    return range ? Math.floor(Math.random() * (range.max - range.min + 1)) + range.min : 170;
+}
