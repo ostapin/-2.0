@@ -491,10 +491,6 @@ function saveInventory() {
 
 // ========== ФУНКЦИИ УПРАВЛЕНИЯ ВКЛАДКАМИ ==========
 // ========== СИСТЕМА РАС ==========
-function generateRandomHeight(raceId) {
-    const range = raceHeightRanges[raceId];
-    return range ? Math.floor(Math.random() * (range.max - range.min + 1)) + range.min : 170;
-}
 function showRaceInfo(raceId) {
     const race = races[raceId];
     if (!race) return;
@@ -2687,6 +2683,7 @@ function checkSystem() {
 <script src="js/modules/ui-manager.js"></script>
 </body>
 </html>
+
 
 
 
