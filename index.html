@@ -598,14 +598,6 @@ function applyRaceBonuses(raceId) {
     
     updateUI();
 }
-
-function generateHeightForSelectedRace() {
-    const selectedRace = document.getElementById('characterRace').value;
-    if (!selectedRace) {
-        alert('❌ Сначала выберите расу!');
-        return;
-    }
-    
     const randomHeight = generateRandomHeight(selectedRace);
     document.getElementById('characterHeight').value = randomHeight;
     document.getElementById('generateHeightBtn').disabled = true;
@@ -2683,6 +2675,7 @@ function checkSystem() {
 <script src="js/modules/ui-manager.js"></script>
 </body>
 </html>
+
 
 
 
