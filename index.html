@@ -495,14 +495,6 @@ function generateRandomHeight(raceId) {
     const range = raceHeightRanges[raceId];
     return range ? Math.floor(Math.random() * (range.max - range.min + 1)) + range.min : 170;
 }
-
-function onRaceChange() {
-    const raceId = document.getElementById('characterRace').value;
-    if (raceId) {
-        showRaceInfo(raceId);
-    }
-}
-
 function showRaceInfo(raceId) {
     const race = races[raceId];
     if (!race) return;
@@ -2695,6 +2687,7 @@ function checkSystem() {
 <script src="js/modules/ui-manager.js"></script>
 </body>
 </html>
+
 
 
 
