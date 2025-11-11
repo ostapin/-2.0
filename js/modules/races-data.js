@@ -113,3 +113,4 @@ function onRaceChange() {
         showRaceInfo(raceId);
     }
 }
+window.onRaceChange = onRaceChange;
