@@ -106,3 +106,4 @@ const raceHeightRanges = {
     goblin: { min: 90, max: 150 }
 };
 window.raceHeightRanges = raceHeightRanges;
+window.races = races;
