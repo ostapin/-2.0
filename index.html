@@ -491,45 +491,6 @@ function saveInventory() {
 
 // ========== ФУНКЦИИ УПРАВЛЕНИЯ ВКЛАДКАМИ ==========
 // ========== СИСТЕМА РАС ==========
-function showRaceInfo(raceId) {
-    const race = races[raceId];
-    if (!race) return;
-
-    const popup = document.createElement('div');
-    popup.className = 'popup';
-    popup.innerHTML = `
-        <div class="popup-content">
-            <h2 style="color: #d4af37; margin-bottom: 15px;">${race.name}</h2>
-            <p style="margin-bottom: 10px;"><strong>Описание:</strong> ${race.description}</p>
-            <p style="margin-bottom: 10px;"><strong>Продолжительность жизни:</strong> ${race.lifespan}</p>
-            
-            ${Object.keys(race.bonuses).length > 0 ? `
-                <p style="margin-bottom: 5px;"><strong>Бонусы:</strong></p>
-                <ul style="margin-bottom: 15px; margin-left: 20px;">
-                    ${Object.entries(race.bonuses).map(([skill, bonus]) => 
-                        `<li>${skill}: +${bonus}</li>`
-                    ).join('')}
-                </ul>
-            ` : ''}
-            
-            ${Object.keys(race.limitations).length > 0 ? `
-                <p style="margin-bottom: 5px;"><strong>Ограничения:</strong></p>
-                <ul style="margin-bottom: 15px; margin-left: 20px;">
-                    ${Object.entries(race.limitations).map(([skill, limit]) => 
-                        `<li>${skill}: максимум ${limit === 0 ? 'недоступно' : limit}</li>`
-                    ).join('')}
-                </ul>
-            ` : ''}
-            
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn btn-plus" onclick="setRace('${raceId}')">✅ Выбрать расу</button>
-                <button class="btn btn-roll" onclick="this.closest('.popup').remove()">Отмена</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(popup);
-}
-
 function setRace(raceId) {
     const race = races[raceId];
     if (!race) return;
@@ -2675,6 +2636,7 @@ function checkSystem() {
 <script src="js/modules/ui-manager.js"></script>
 </body>
 </html>
+
 
 
 
