@@ -163,4 +163,8 @@ function generateHeightForSelectedRace() {
         alert('❌ Сначала выберите расу!');
         return;
     }
-    window.generateHeightForSelectedRace = generateHeightForSelectedRace;
+    const height = generateRandomHeight(selectedRace);
+    document.getElementById('characterHeight').value = height;
+}
+
+window.generateHeightForSelectedRace = generateHeightForSelectedRace;
