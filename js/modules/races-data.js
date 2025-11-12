@@ -157,6 +157,7 @@ function generateRandomHeight(raceId) {
     return range ? Math.floor(Math.random() * (range.max - range.min + 1)) + range.min : 170;
 }
 window.showRaceInfo = showRaceInfo;
+window.generateRandomHeight = generateRandomHeight;
 function generateHeightForSelectedRace() {
     const selectedRace = document.getElementById('characterRace').value;
     if (!selectedRace) {
