@@ -165,7 +165,7 @@ function generateHeightForSelectedRace() {
         return;
     }
     const height = generateRandomHeight(selectedRace);
-    document.getElementById('characterHeight').value = height;
+    document.getElementById('characterHeight').value = randomHeight;
 }
 
 window.generateHeightForSelectedRace = generateHeightForSelectedRace;
