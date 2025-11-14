@@ -101,4 +101,4 @@ function increaseSkill(skillName) {
         saveCharacterData();
     }
 }
-export { renderSkills, skillsStructure };
+window.increaseSkill = increaseSkill;
