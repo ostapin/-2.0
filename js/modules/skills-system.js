@@ -101,4 +101,5 @@ function increaseSkill(skillName) {
         saveCharacterData();
     }
 }
+window.renderSkills = renderSkills;
 window.increaseSkill = increaseSkill;
