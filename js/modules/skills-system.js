@@ -67,4 +67,38 @@ function renderSkills() {
     }
     updateUI();
 }
+function increaseSkill(skillName) {
+    if (isSkillLocked(skillName)) {
+        alert('❌ Этот навык заблокирован!');
+        return;
+    }
+    
+    const isMagicSkill = skillsStructure["🔮 МАГИЯ"].includes(skillName);
+    if (isMagicSkill && !availableMagicSchools[skillName] && getSkillValue(skillName) <= 5) {
+        const masterPermission = confirm(
+            `🔮 Вы пытаетесь изучить недоступную магию!\n\n` +
+            `Навык "${skillName}" не доступен для вашей расы.\n` +
+            `Вы получили разрешение Мастера на разблокировку этой магии?\n\n` +
+            `Нажмите "ОК" для разблокировки (навык станет 5 уровня) или "Отмена" для отмены.`
+        );
+        
+        if (masterPermission) {
+            availableMagicSchools[skillName] = true;
+            setSkillValue(skillName, 5);
+            updateMagicSkillsDisplay();
+            updateUI();
+            saveCharacterData();
+        }
+        return;
+    }
+    
+    const freePoints = getFreePoints();
+    if (freePoints > 0) {
+        const skillValue = getSkillValue(skillName);
+        setSkillValue(skillName, skillValue + 1);
+        setFreePoints(freePoints - 1);
+        updateUI();
+        saveCharacterData();
+    }
+}
 export { renderSkills, skillsStructure };
