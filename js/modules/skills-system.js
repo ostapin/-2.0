@@ -119,4 +119,4 @@ function decreaseSkill(skillName) {
     }
 }
 window.decreaseSkill = decreaseSkill;
-window.generateRandomHeight = generateRandomHeight;
+
