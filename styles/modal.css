@@ -1,0 +1,23 @@
+.popup { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(26, 15, 11, 0.95); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+}
+.popup-content { 
+    background: #2c1810; 
+    padding: 25px; 
+    border-radius: 8px; 
+    max-width: 95%; 
+    width: 500px; 
+    max-height: 90vh; 
+    overflow-y: auto; 
+    border: 3px solid #8b4513;
+}
+.spells-content { width: 95%; text-align: left; }
