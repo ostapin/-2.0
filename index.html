@@ -499,7 +499,7 @@ function setRace(raceId) {
     document.getElementById('characterRace').value = raceId;
     
     const randomHeight = generateRandomHeight(raceId);
-    document.getElementById('characterHeight').value = randomHeight;
+   document.getElementById('characterHeight').value = height;
     
     const lifespan = parseInt(race.lifespan);
     document.getElementById('characterAge').value = Math.max(15, Math.floor(lifespan * 0.1));
@@ -2518,6 +2518,7 @@ function checkSystem() {
 <script src="js/modules/ui-manager.js"></script>
 </body>
 </html>
+
 
 
 
