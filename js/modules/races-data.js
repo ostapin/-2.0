@@ -169,3 +169,4 @@ function generateHeightForSelectedRace() {
 }
 
 window.generateHeightForSelectedRace = generateHeightForSelectedRace;
+window.generateRandomHeight = generateRandomHeight;
