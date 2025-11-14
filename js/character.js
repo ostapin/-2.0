@@ -181,3 +181,55 @@ function renderCharactersList() {
     
     container.innerHTML = html;
 }
+// Загрузка текущего персонажа
+function loadCurrentCharacter() {
+    if (!currentCharacterId || !characters[currentCharacterId]) {
+        // Если нет персонажей, создаем временного
+        if (Object.keys(characters).length === 0) {
+            showCreateCharacterPopup();
+            return;
+        }
+        // Или выбираем первого
+        currentCharacterId = Object.keys(characters)[0];
+    }
+
+    const character = characters[currentCharacterId];
+
+    // Загружаем основные данные
+    document.getElementById('characterName').value = character.info.name || '';
+    document.getElementById('characterSurname').value = character.info.surname || '';
+    document.getElementById('characterTitle').value = character.info.title || '';
+    document.getElementById('characterRace').value = character.info.race || '';
+    document.getElementById('characterHeritage').value = character.info.heritage || '';
+    document.getElementById('characterHeight').value = character.info.height || '';
+    document.getElementById('characterWeight').value = character.info.weight || '';
+    document.getElementById('characterAge').value = character.info.age || '';
+
+    // Загружаем уровни
+    setCurrentLevel(character.level.current || 0);
+    setCurrentExp(character.level.exp || 0);
+
+    // Загружаем характеристики
+    setHealth(character.stats.health || 100);
+    setMana(character.stats.mana || 100);
+    setStamina(character.stats.stamina || 100);
+    setFreePoints(character.stats.freePoints || 0);
+
+    // Загружаем навыки
+    Object.entries(character.skills || {}).forEach(([skill, value]) => {
+        setSkillValue(skill, value);
+    });
+
+    // Загружаем остальные данные
+    lockedSkills = character.lockedSkills || {};
+    availableMagicSchools = character.magic.availableSchools || {};
+    inventory = character.inventory || { weapons: [], armor: [], potions: [], scrolls: [], resources: [], valuables: [], tools: [], other: [] };
+    customCategories = character.customCategories || [];
+    notes = character.notes || [];
+
+    // Обновляем интерфейс
+    renderSkills();
+    renderInventory();
+    renderNotes();
+    updateCategoryManagement();
+}
