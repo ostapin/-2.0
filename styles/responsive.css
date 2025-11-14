@@ -1,0 +1,20 @@
+@media (max-width: 768px) {
+    .character-info, .stat-row, .skill-row { flex-direction: column; gap: 12px; }
+    .skill-controls { width: 100%; justify-content: space-between; }
+    .exp-display, .level-display { flex-direction: column; gap: 15px; }
+    .points-display { flex-direction: column; }
+    .tabs { flex-direction: column; }
+    .dice-container { flex-direction: column; }
+    .btn { min-height: 48px; font-size: 16px; }
+    .popup-content { padding: 20px; margin: 10px; }
+    .skill-name { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+    body { padding: 10px; }
+    .container { border-width: 2px; }
+    .tab-btn { padding: 12px 8px; font-size: 14px; }
+    .header { padding: 15px; }
+    .skills-section { padding: 15px; }
+    .dice { width: 45px; height: 45px; font-size: 1.3em; }
+}
