@@ -140,3 +140,44 @@ function editFreePoints() {
         saveCharacterData();
     }
 }
+// Рендер списка персонажей
+function renderCharactersList() {
+    const container = document.getElementById('charactersList');
+    if (Object.keys(characters).length === 0) {
+        container.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Персонажей пока нет</p>';
+        return;
+    }
+
+    let html = '';
+    Object.values(characters).forEach(character => {
+        const isCurrent = currentCharacterId === character.id;
+        const raceInfo = races[character.info.race] || { name: 'Неизвестно' };
+        
+        html += `
+            <div class="character-item ${isCurrent ? 'active' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: #d4af37; font-size: 1.1em;">${character.info.name}</div>
+                        <div style="color: #b8a28a; font-size: 0.9em; margin-top: 5px;">
+                            ${raceInfo.name} | Ур. ${character.level.current} | Опыт: ${character.level.exp}
+                        </div>
+                        <div style="color: #8b7d6b; font-size: 0.8em; margin-top: 5px;">
+                            Создан: ${new Date(character.createdAt).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px; margin-left: 10px;">
+                        ${!isCurrent ? 
+                            `<button class="btn btn-small" onclick="switchCharacter('${character.id}')" style="background: #27ae60;">🎯 Выбрать</button>` : 
+                            `<button class="btn btn-small" disabled style="background: #5a3928;">✅ Активен</button>`
+                        }
+                        <button class="btn btn-small" onclick="exportSingleCharacter('${character.id}')" style="background: #3498db;">💾 Экспорт</button>
+                        <button class="btn btn-small" onclick="showRenameCharacterPopup('${character.id}')" style="background: #f39c12;">✏️ Переименовать</button>
+                        <button class="btn btn-small" onclick="showDeleteCharacterPopup('${character.id}')" style="background: #c44536;">❌ Удалить</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
