@@ -192,3 +192,4 @@ function setRace(raceId) {
     document.querySelector('.popup').remove();
 alert(`✅ Раса "${race.name}" выбрана!\n📏 Рост: ${generateRandomHeight(raceId)} см`);
 }
+window.setRace = setRace;
