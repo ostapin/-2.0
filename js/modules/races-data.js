@@ -170,3 +170,25 @@ function generateHeightForSelectedRace() {
 
 window.generateHeightForSelectedRace = generateHeightForSelectedRace;
 window.generateRandomHeight = generateRandomHeight;
+function setRace(raceId) {
+    const race = races[raceId];
+    if (!race) return;
+    
+    availableMagicSchools = {};
+    document.getElementById('characterRace').value = raceId;
+    
+    const randomHeight = generateRandomHeight(raceId);
+   document.getElementById('characterHeight').value = height;
+    
+    const lifespan = parseInt(race.lifespan);
+    document.getElementById('characterAge').value = Math.max(15, Math.floor(lifespan * 0.1));
+    
+    document.getElementById('generateHeightBtn').disabled = true;
+    
+    determineAvailableMagicSchools(raceId);
+    applyRaceBonuses(raceId);
+    
+    saveCharacterData();
+    document.querySelector('.popup').remove();
+alert(`✅ Раса "${race.name}" выбрана!\n📏 Рост: ${generateRandomHeight(raceId)} см`);
+}
