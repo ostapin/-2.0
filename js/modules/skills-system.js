@@ -103,3 +103,19 @@ function increaseSkill(skillName) {
 }
 window.renderSkills = renderSkills;
 window.increaseSkill = increaseSkill;
+function decreaseSkill(skillName) {
+    if (isSkillLocked(skillName)) {
+        alert('❌ Этот навык заблокирован!');
+        return;
+    }
+    
+    const skillValue = getSkillValue(skillName);
+    if (skillValue > 5) {
+        const freePoints = getFreePoints();
+        setSkillValue(skillName, skillValue - 1);
+        setFreePoints(freePoints + 1);
+        updateUI();
+        saveCharacterData();
+    }
+}
+window.decreaseSkill = decreaseSkill;
