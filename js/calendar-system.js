@@ -50,10 +50,17 @@ function calculateSunTimes(month, day) {
         return `${hours}:${minutes.toString().padStart(2, '0')}`;
     };
     
+    // Форматирование длины дня
+    const formatDayLength = (decimalHours) => {
+        const hours = Math.floor(decimalHours);
+        const minutes = Math.round((decimalHours - hours) * 60);
+        return `${hours} часа ${minutes} минут`;
+    };
+    
     return {
         sunrise: formatTime(sunrise),
         sunset: formatTime(sunset),
-        dayLength: dayLength.toFixed(2) + ' часа'
+        dayLength: formatDayLength(dayLength)
     };
 }
 
