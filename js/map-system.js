@@ -11,7 +11,37 @@ class MapSystem {
         this.isDragging = false;
         this.dragStart = { x: 0, y: 0 };
     }
-
+ initializeDefaultMaps() {
+        if (Object.keys(this.maps).length > 0) return;
+        
+        const defaultMaps = [
+            {
+                id: 'world_map',
+                name: '🗺️ Карта мира', 
+                imageUrl: 'maps/world_map.jpg',
+                width: 1200,
+                height: 800
+            },
+            {
+                id: 'empire_ruda_right',
+                name: '🏛️ Империя Руда (правая)',
+                imageUrl: 'maps/empire_ruda_right.jpg',
+                width: 1000, 
+                height: 700
+            },
+            {
+                id: 'empire_ruda_left', 
+                name: '🏛️ Империя Руда (левая)',
+                imageUrl: 'maps/empire_ruda_left.jpg',
+                width: 1000,
+                height: 700
+            }
+        ];
+        
+        defaultMaps.forEach(map => {
+            this.addMap(map.id, map.name, map.imageUrl, map.width, map.height);
+        });
+    }
     // Добавление карты в систему
     addMap(mapId, name, imageUrl, width, height) {
         this.maps[mapId] = {
@@ -142,3 +172,12 @@ class MapSystem {
 
 // Создаем глобальный экземпляр системы карт
 const mapSystem = new MapSystem();
+// ========== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ==========
+
+// Загружаем данные при старте
+mapSystem.loadMaps();
+mapSystem.loadMapNotes();
+mapSystem.loadCurrentMap();
+mapSystem.initializeDefaultMaps(); // ← добавляем эту строку
+
+console.log('✅ Система карт загружена. Карт в системе:', Object.keys(mapSystem.maps).length);
