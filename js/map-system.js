@@ -11,37 +11,39 @@ class MapSystem {
         this.isDragging = false;
         this.dragStart = { x: 0, y: 0 };
     }
- initializeDefaultMaps() {
+
+    initializeDefaultMaps() {
         if (Object.keys(this.maps).length > 0) return;
         
-      const defaultMaps = [
-    {
-        id: 'world_map',
-        name: '🗺️ Карта мира', 
-        imageUrl: 'maps/world_map.jpg',
-        width: 4096,    // ← НОВЫЙ РАЗМЕР
-        height: 3072    // ← НОВЫЙ РАЗМЕР
-    },
-    {
-        id: 'empire_ruda_right',
-        name: '🏛️ Империя Руда (правая)',
-        imageUrl: 'maps/empire_ruda_right.jpg.jpeg',
-        width: 3841,    // ← НОВЫЙ РАЗМЕР
-        height: 4096    // ← НОВЫЙ РАЗМЕР
-    },
-    {
-        id: 'empire_ruda_left', 
-        name: '🏛️ Империя Руда (левая)',
-        imageUrl: 'maps/empire_ruda_left.jpg',
-        width: 3630,    // ← НОВЫЙ РАЗМЕР  
-        height: 4096    // ← НОВЫЙ РАЗМЕР
-    }
-];
+        const defaultMaps = [
+            {
+                id: 'world_map',
+                name: '🗺️ Карта мира', 
+                imageUrl: 'maps/world_map.jpg',
+                width: 4096,
+                height: 3072
+            },
+            {
+                id: 'empire_ruda_right',
+                name: '🏛️ Империя Руда (правая)',
+                imageUrl: 'maps/empire_ruda_right.jpg.jpeg',
+                width: 3841,
+                height: 4096
+            },
+            {
+                id: 'empire_ruda_left', 
+                name: '🏛️ Империя Руда (левая)',
+                imageUrl: 'maps/empire_ruda_left.jpg',
+                width: 3630,
+                height: 4096
+            }
+        ];
+        
         defaultMaps.forEach(map => {
             this.addMap(map.id, map.name, map.imageUrl, map.width, map.height);
         });
     }
-    // Добавление карты в систему
+
     addMap(mapId, name, imageUrl, width, height) {
         this.maps[mapId] = {
             id: mapId,
@@ -63,7 +65,6 @@ class MapSystem {
         this.saveMaps();
     }
 
-    // Удаление карты
     removeMap(mapId) {
         delete this.maps[mapId];
         delete this.mapNotes[mapId];
@@ -76,7 +77,6 @@ class MapSystem {
         this.saveMaps();
     }
 
-    // Переключение на другую карту
     switchMap(mapId) {
         if (this.maps[mapId]) {
             this.currentMapId = mapId;
@@ -89,7 +89,6 @@ class MapSystem {
         return false;
     }
 
-    // Добавление заметки на карту
     addMapNote(mapId, x, y, title, content, color = '#ffeb3b') {
         if (!this.mapNotes[mapId]) {
             this.mapNotes[mapId] = [];
@@ -111,7 +110,6 @@ class MapSystem {
         return note;
     }
 
-    // Управление масштабом
     zoomIn() {
         this.zoomLevel = Math.min(this.zoomLevel * 1.2, 5.0);
         this.renderCurrentMap();
@@ -127,71 +125,68 @@ class MapSystem {
         this.panOffset = { x: 0, y: 0 };
         this.renderCurrentMap();
     }
-// Включение/выключение перетаскивания
-enableDragging() {
-    const mapCanvas = document.getElementById('mapCanvas');
-    if (!mapCanvas) return;
 
-    mapCanvas.style.cursor = 'grab';
-    
-    mapCanvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
-    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-    
-    // Для мобильных устройств
-    mapCanvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
-    document.addEventListener('touchmove', this.handleTouchMove.bind(this));
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
-}
+    enableDragging() {
+        const mapCanvas = document.getElementById('mapCanvas');
+        if (!mapCanvas) return;
 
-// Обработчики мыши
-handleMouseDown(e) {
-    this.isDragging = true;
-    this.dragStart = { x: e.clientX - this.panOffset.x, y: e.clientY - this.panOffset.y };
-    document.getElementById('mapCanvas').style.cursor = 'grabbing';
-    e.preventDefault();
-}
+        mapCanvas.style.cursor = 'grab';
+        
+        mapCanvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        
+        mapCanvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
+        document.addEventListener('touchmove', this.handleTouchMove.bind(this));
+        document.addEventListener('touchend', this.handleTouchEnd.bind(this));
+    }
 
-handleMouseMove(e) {
-    if (!this.isDragging) return;
-    
-    this.panOffset.x = e.clientX - this.dragStart.x;
-    this.panOffset.y = e.clientY - this.dragStart.y;
-    
-    this.renderCurrentMap();
-}
-
-handleMouseUp() {
-    this.isDragging = false;
-    document.getElementById('mapCanvas').style.cursor = 'grab';
-}
-
-// Обработчики тач-событий
-handleTouchStart(e) {
-    if (e.touches.length === 1) {
+    handleMouseDown(e) {
         this.isDragging = true;
-        this.dragStart = { 
-            x: e.touches[0].clientX - this.panOffset.x, 
-            y: e.touches[0].clientY - this.panOffset.y 
-        };
+        this.dragStart = { x: e.clientX - this.panOffset.x, y: e.clientY - this.panOffset.y };
+        document.getElementById('mapCanvas').style.cursor = 'grabbing';
         e.preventDefault();
     }
-}
 
-handleTouchMove(e) {
-    if (!this.isDragging || e.touches.length !== 1) return;
-    
-    this.panOffset.x = e.touches[0].clientX - this.dragStart.x;
-    this.panOffset.y = e.touches[0].clientY - this.dragStart.y;
-    
-    this.renderCurrentMap();
-    e.preventDefault();
-}
+    handleMouseMove(e) {
+        if (!this.isDragging) return;
+        
+        this.panOffset.x = e.clientX - this.dragStart.x;
+        this.panOffset.y = e.clientY - this.dragStart.y;
+        
+        this.renderCurrentMap();
+    }
 
-handleTouchEnd() {
-    this.isDragging = false;
-}
-    // Сохранение/загрузка данных
+    handleMouseUp() {
+        this.isDragging = false;
+        document.getElementById('mapCanvas').style.cursor = 'grab';
+    }
+
+    handleTouchStart(e) {
+        if (e.touches.length === 1) {
+            this.isDragging = true;
+            this.dragStart = { 
+                x: e.touches[0].clientX - this.panOffset.x, 
+                y: e.touches[0].clientY - this.panOffset.y 
+            };
+            e.preventDefault();
+        }
+    }
+
+    handleTouchMove(e) {
+        if (!this.isDragging || e.touches.length !== 1) return;
+        
+        this.panOffset.x = e.touches[0].clientX - this.dragStart.x;
+        this.panOffset.y = e.touches[0].clientY - this.dragStart.y;
+        
+        this.renderCurrentMap();
+        e.preventDefault();
+    }
+
+    handleTouchEnd() {
+        this.isDragging = false;
+    }
+
     saveMaps() {
         localStorage.setItem('dnd_maps', JSON.stringify(this.maps));
     }
@@ -222,29 +217,62 @@ handleTouchEnd() {
         this.currentMapId = localStorage.getItem('current_map_id');
     }
 
-    // Рендер текущей карты (будет дополнен в следующих шагах)
     renderCurrentMap() {
+        const mapContainer = document.getElementById('mapContainer');
+        const mapCanvas = document.getElementById('mapCanvas');
+        const noMapMessage = document.getElementById('noMapMessage');
+        const mapControls = document.querySelector('.map-controls');
+        const zoomLevel = document.getElementById('zoomLevel');
+
         if (!this.currentMapId || !this.maps[this.currentMapId]) {
-            console.log('No map selected');
+            mapContainer.style.display = 'none';
+            noMapMessage.style.display = 'block';
+            mapControls.style.display = 'none';
             return;
         }
-        console.log('Rendering map:', this.maps[this.currentMapId].name);
-            // Включаем перетаскивание после рендера
-    setTimeout(() => mapSystem.enableDragging(), 100);
+
+        mapContainer.style.display = 'block';
+        noMapMessage.style.display = 'none';
+        mapControls.style.display = 'flex';
+        
+        const currentMap = this.maps[this.currentMapId];
+        zoomLevel.textContent = Math.round(this.zoomLevel * 100) + '%';
+
+        mapCanvas.innerHTML = '';
+
+        const img = document.createElement('img');
+        img.src = currentMap.imageUrl;
+        img.style.width = currentMap.width + 'px';
+        img.style.height = currentMap.height + 'px';
+        img.style.display = 'block';
+        
+        mapCanvas.style.transform = `translate(${this.panOffset.x}px, ${this.panOffset.y}px) scale(${this.zoomLevel})`;
+        mapCanvas.appendChild(img);
+
+        const info = document.createElement('div');
+        info.style.position = 'absolute';
+        info.style.top = '10px';
+        info.style.left = '10px';
+        info.style.background = 'rgba(42, 24, 16, 0.8)';
+        info.style.color = '#d4af37';
+        info.style.padding = '5px 10px';
+        info.style.borderRadius = '4px';
+        info.style.fontSize = '14px';
+        info.textContent = `${currentMap.name} | ${currentMap.width}x${currentMap.height}`;
+        mapCanvas.appendChild(info);
+
+        setTimeout(() => this.enableDragging(), 100);
     }
 }
-// Создаем глобальный экземпляр системы карт
-const mapSystem = new MapSystem();
-// ========== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ==========
 
-// Загружаем данные при старте
+const mapSystem = new MapSystem();
+
 mapSystem.loadMaps();
 mapSystem.loadMapNotes();
 mapSystem.loadCurrentMap();
-mapSystem.initializeDefaultMaps(); // ← добавляем эту строку
+mapSystem.initializeDefaultMaps();
 
 console.log('✅ Система карт загружена. Карт в системе:', Object.keys(mapSystem.maps).length);
-// ========== ИНТЕРФЕЙСНЫЕ ФУНКЦИИ ==========
 
 function showMapsList() {
     const popup = document.createElement('div');
@@ -283,7 +311,6 @@ function showMapsList() {
 
 function switchToMap(mapId) {
     if (mapSystem.switchMap(mapId)) {
-        renderCurrentMap();
         document.querySelector('.popup').remove();
     }
 }
@@ -292,67 +319,12 @@ function deleteMap(mapId) {
     if (confirm('Удалить эту карту?')) {
         mapSystem.removeMap(mapId);
         document.querySelector('.popup').remove();
-        showMapsList(); // Обновляем список
+        showMapsList();
     }
 }
 
-// Заглушки для остальных функций (добавим позже)
 function showAddMapPopup() {
     alert('Функция добавления карты будет в следующем шаге!');
-}
-
-function renderCurrentMap() {
-    const mapContainer = document.getElementById('mapContainer');
-    const mapCanvas = document.getElementById('mapCanvas');
-    const noMapMessage = document.getElementById('noMapMessage');
-    const mapControls = document.querySelector('.map-controls');
-    const zoomLevel = document.getElementById('zoomLevel');
-
-    if (!mapSystem.currentMapId || !mapSystem.maps[mapSystem.currentMapId]) {
-        // Нет карты - показываем сообщение
-        mapContainer.style.display = 'none';
-        noMapMessage.style.display = 'block';
-        mapControls.style.display = 'none';
-        return;
-    }
-
-    // Показываем карту и управление
-    mapContainer.style.display = 'block';
-    noMapMessage.style.display = 'none';
-    mapControls.style.display = 'flex';
-    
-    const currentMap = mapSystem.maps[mapSystem.currentMapId];
-    zoomLevel.textContent = Math.round(mapSystem.zoomLevel * 100) + '%';
-
-    // Очищаем canvas
-    mapCanvas.innerHTML = '';
-
-    // Создаем изображение карты
-    const img = document.createElement('img');
-    img.src = currentMap.imageUrl;
-    img.style.width = currentMap.width + 'px';
-    img.style.height = currentMap.height + 'px';
-    img.style.display = 'block';
-    
-    // Применяем трансформации (зум и панорамирование)
-    mapCanvas.style.transform = `translate(${mapSystem.panOffset.x}px, ${mapSystem.panOffset.y}px) scale(${mapSystem.zoomLevel})`;
-    
-    mapCanvas.appendChild(img);
-
-    // Показываем информацию о карте
-    const info = document.createElement('div');
-    info.style.position = 'absolute';
-    info.style.top = '10px';
-    info.style.left = '10px';
-    info.style.background = 'rgba(42, 24, 16, 0.8)';
-    info.style.color = '#d4af37';
-    info.style.padding = '5px 10px';
-    info.style.borderRadius = '4px';
-    info.style.fontSize = '14px';
-    info.textContent = `${currentMap.name} | ${currentMap.width}x${currentMap.height}`;
-    mapCanvas.appendChild(info);
-
-    console.log('✅ Карта отрендерена:', currentMap.name);
 }
 
 function toggleNoteMode() {
