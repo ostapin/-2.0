@@ -39,7 +39,7 @@ function calculateSunTimes(month, day) {
     // Длина светового дня (формула из твоего описания)
     const dayLength = 17.5 * Math.cos(2 * Math.PI * (dayOfYear - 20) / CALENDAR_CONSTANTS.YEAR_DAYS) + 17.5;
     
-    // Время восхода и заката
+    // Время восхода и закат
     const sunrise = (CALENDAR_CONSTANTS.HOURS_PER_DAY - dayLength) / 2;
     const sunset = sunrise + dayLength;
     
@@ -131,38 +131,6 @@ function loadCalendarState() {
     }
 }
 
-// Инициализация календаря
-function initCalendar() {
-    loadCalendarState();
-    updateCalendarDisplay(); 
-    console.log("Календарь инициализирован:", getCurrentDate());
-}
-
-// Проверка работы
-console.log("=== КАЛЕНДАРЬ ЗАГРУЖЕН ===");
-console.log("Месяцев:", MONTHS.length);
-console.log("Текущая дата:", getCurrentDate());
-console.log("Время для 20 Зимобора:", calculateSunTimes(10, 19));
-console.log("Время для 1 Солнцеворота:", calculateSunTimes(0, 0));
-// Обновление отображения календаря
-function updateCalendarDisplay() {
-    // Обновляем дату
-    const dateDisplay = document.getElementById('currentDateDisplay');
-    if (dateDisplay) {
-        dateDisplay.textContent = getCurrentDate();
-    }
-    
-    // Обновляем время восхода/заката
-    const sunDisplay = document.getElementById('sunTimesDisplay');
-    if (sunDisplay) {
-        const sunTimes = calculateSunTimes(currentDate.month, currentDate.day);
-        sunDisplay.innerHTML = `
-            <strong>🌅 Восход:</strong> ${sunTimes.sunrise} часа<br>
-            <strong>🌇 Закат:</strong> ${sunTimes.sunset} часа<br>
-            <strong>📏 День:</strong> ${sunTimes.dayLength} часа
-        `;
-    }
-}
 // Функция отрисовки визуального календаря
 function renderVisualCalendar() {
     const container = document.getElementById('visualCalendar');
@@ -212,5 +180,44 @@ function renderVisualCalendar() {
         </div>
     `;
 }
+
+// Обновление отображения календаря
+function updateCalendarDisplay() {
+    // Обновляем дату
+    const dateDisplay = document.getElementById('currentDateDisplay');
+    if (dateDisplay) {
+        dateDisplay.textContent = getCurrentDate();
+    }
+    
+    // Обновляем время восхода/заката
+    const sunDisplay = document.getElementById('sunTimesDisplay');
+    if (sunDisplay) {
+        const sunTimes = calculateSunTimes(currentDate.month, currentDate.day);
+        sunDisplay.innerHTML = `
+            <strong>🌅 Восход:</strong> ${sunTimes.sunrise} часа<br>
+            <strong>🌇 Закат:</strong> ${sunTimes.sunset} часа<br>
+            <strong>📏 День:</strong> ${sunTimes.dayLength} часа
+        `;
+    }
+    
+    // Обновляем визуальный календарь
+    renderVisualCalendar();
+}
+
+// Инициализация календаря
+function initCalendar() {
+    loadCalendarState();
+    updateCalendarDisplay(); 
+    renderVisualCalendar();
+    console.log("Календарь инициализирован:", getCurrentDate());
+}
+
+// Проверка работы
+console.log("=== КАЛЕНДАРЬ ЗАГРУЖЕН ===");
+console.log("Месяцев:", MONTHS.length);
+console.log("Текущая дата:", getCurrentDate());
+console.log("Время для 20 Зимобора:", calculateSunTimes(10, 19));
+console.log("Время для 1 Солнцеворота:", calculateSunTimes(0, 0));
+
 // Авто-инициализация при загрузке
 document.addEventListener('DOMContentLoaded', initCalendar);
