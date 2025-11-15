@@ -285,7 +285,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Загружаем текущего персонажа
     loadCurrentCharacter();
-    
+     // Применяем бонусы расы для загруженного персонажа
+    const currentRace = document.getElementById('characterRace').value;
+    if (currentRace) {
+        loadRaceBonuses(currentRace);
+    }
     // Загружаем остальные данные
     loadNotes();
     loadInventory();
