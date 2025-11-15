@@ -168,7 +168,72 @@ class MapSystem {
         console.log('Rendering map:', this.maps[this.currentMapId].name);
     }
 }
+// Добавь в класс MapSystem после существующих методов:
 
+// Включение/выключение перетаскивания
+enableDragging() {
+    const mapCanvas = document.getElementById('mapCanvas');
+    if (!mapCanvas) return;
+
+    mapCanvas.style.cursor = 'grab';
+    
+    mapCanvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    
+    // Для мобильных устройств
+    mapCanvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
+    document.addEventListener('touchmove', this.handleTouchMove.bind(this));
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
+}
+
+// Обработчики мыши
+handleMouseDown(e) {
+    this.isDragging = true;
+    this.dragStart = { x: e.clientX - this.panOffset.x, y: e.clientY - this.panOffset.y };
+    document.getElementById('mapCanvas').style.cursor = 'grabbing';
+    e.preventDefault();
+}
+
+handleMouseMove(e) {
+    if (!this.isDragging) return;
+    
+    this.panOffset.x = e.clientX - this.dragStart.x;
+    this.panOffset.y = e.clientY - this.dragStart.y;
+    
+    this.renderCurrentMap();
+}
+
+handleMouseUp() {
+    this.isDragging = false;
+    document.getElementById('mapCanvas').style.cursor = 'grab';
+}
+
+// Обработчики тач-событий
+handleTouchStart(e) {
+    if (e.touches.length === 1) {
+        this.isDragging = true;
+        this.dragStart = { 
+            x: e.touches[0].clientX - this.panOffset.x, 
+            y: e.touches[0].clientY - this.panOffset.y 
+        };
+        e.preventDefault();
+    }
+}
+
+handleTouchMove(e) {
+    if (!this.isDragging || e.touches.length !== 1) return;
+    
+    this.panOffset.x = e.touches[0].clientX - this.dragStart.x;
+    this.panOffset.y = e.touches[0].clientY - this.dragStart.y;
+    
+    this.renderCurrentMap();
+    e.preventDefault();
+}
+
+handleTouchEnd() {
+    this.isDragging = false;
+}
 // Создаем глобальный экземпляр системы карт
 const mapSystem = new MapSystem();
 // ========== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ==========
