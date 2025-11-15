@@ -25,7 +25,7 @@ class MapSystem {
     {
         id: 'empire_ruda_right',
         name: '🏛️ Империя Руда (правая)',
-        imageUrl: 'maps/empire_ruda_right.jpg',
+        imageUrl: 'maps/empire_ruda_right.jpg.jpeg',
         width: 1000, 
         height: 700
     },
