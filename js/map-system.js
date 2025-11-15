@@ -282,7 +282,7 @@ function renderCurrentMap() {
     info.style.top = '10px';
     info.style.left = '10px';
     info.style.background = 'rgba(42, 24, 16, 0.8)';
-    info.style.color: '#d4af37';
+    info.style.color = '#d4af37';
     info.style.padding = '5px 10px';
     info.style.borderRadius = '4px';
     info.style.fontSize = '14px';
