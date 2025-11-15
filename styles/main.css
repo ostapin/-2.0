@@ -504,3 +504,63 @@ body {
     background: transparent;
     transform: none;
 }
+/* Стили для меток на карте */
+.map-marker {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #ff4444;
+    border-radius: 50%;
+    border: 2px solid white;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.map-marker:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.7);
+}
+
+/* Типы меток через псевдоэлементы */
+.map-marker[data-type="location"]::after {
+    content: "📍";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: 12px;
+}
+
+.map-marker[data-type="quest"]::after {
+    content: "🎯";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: 12px;
+}
+
+.map-marker[data-type="danger"]::after {
+    content: "⚠️";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: 12px;
+}
+
+.map-marker[data-type="npc"]::after {
+    content: "👤";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: 12px;
+}
+
+.map-marker[data-type="treasure"]::after {
+    content: "💎";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: 12px;
+}
