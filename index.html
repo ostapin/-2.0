@@ -17,6 +17,7 @@
             <button class="tab-btn" onclick="openTab('notes')">✍️ Заметки</button>
             <button class="tab-btn" onclick="openTab('characters')">👥 Персонажи</button>
             <button class="tab-btn" onclick="openTab('calendar')">📅 Календарь</button>
+            <button class="tab-btn" onclick="openTab('maps')">🗺️ Карты</button>
         </div>
 
         <!-- Вкладка персонажа -->
@@ -276,7 +277,34 @@
             
             <div class="notes-container" id="notesContainer"></div>
         </div>
+<div id="maps-tab" class="tab-content">
+    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">🗺️ СИСТЕМА КАРТ</h2>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="btn btn-plus" onclick="showAddMapPopup()">➕ Добавить карту</button>
+        <button class="btn btn-roll" onclick="showMapsList()">📋 Список карт</button>
+    </div>
 
+    <!-- Панель управления картой -->
+    <div class="map-controls" style="display: none; text-align: center; margin-bottom: 15px; padding: 10px; background: #3d2418; border-radius: 6px;">
+        <button class="btn btn-small" onclick="mapSystem.zoomOut()">🔍➖</button>
+        <button class="btn btn-small" onclick="mapSystem.resetZoom()">🎯 Сброс</button>
+        <button class="btn btn-small" onclick="mapSystem.zoomIn()">🔍➕</button>
+        <span style="margin: 0 15px; color: #d4af37;">Масштаб: <span id="zoomLevel">100%</span></span>
+        <button class="btn btn-small" onclick="toggleNoteMode()">📌 Режим заметок</button>
+    </div>
+
+    <!-- Контейнер для карты -->
+    <div id="mapContainer" style="display: none; position: relative; overflow: hidden; border: 2px solid #8b4513; border-radius: 8px; background: #1a0f0b; min-height: 500px;">
+        <div id="mapCanvas" style="position: relative; transform-origin: 0 0;"></div>
+    </div>
+
+    <!-- Сообщение когда карта не выбрана -->
+    <div id="noMapMessage" style="text-align: center; padding: 50px; color: #8b7d6b;">
+        <p>🎯 Карта не выбрана</p>
+        <p>Добавьте новую карту или выберите существующую из списка</p>
+    </div>
+</div>
         <!-- Вкладка управления персонажами -->
         <div id="characters-tab" class="tab-content">
             <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">👥 МЕНЕДЖЕР ПЕРСОНАЖЕЙ</h2>
@@ -345,9 +373,10 @@
 <script src="js/magic-system.js"></script>
 <script src="js/main.js"></script>
 <script src="js/calendar-system.js"></script>
-<script src="js/map-system.js"></script>    
+<script src="js/map-system.js"></script>   
 </body>
 </html>
+
 
 
 
