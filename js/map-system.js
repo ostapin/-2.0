@@ -12,7 +12,7 @@ class MapSystem {
         this.dragStart = { x: 0, y: 0 };
         this.noteMode = false;
         this.markerMode = false;
-        this.markersVisible = true; // НОВОЕ: видимость меток
+        this.markersVisible = true;
     }
 
     initializeDefaultMaps() {
@@ -87,28 +87,23 @@ class MapSystem {
             this.panOffset = { x: 0, y: 0 };
             this.saveCurrentMap();
             this.renderCurrentMap();
-            this.updateMarkerButton(); // Обновляем кнопку
+            this.updateMarkerButton();
             return true;
         }
         return false;
     }
 
-    // НОВЫЙ МЕТОД: Проверка доступности текущей карты
     checkCurrentMapAvailability() {
         if (this.currentMapId && !this.maps[this.currentMapId]) {
-            // Карта была удалена или недоступна
             this.currentMapId = null;
             this.saveCurrentMap();
         }
         
-        // Сбрасываем режим меток если нет активной карты
         if (!this.currentMapId && this.markerMode) {
-            this.toggleMarkerMode();
-            this.updateMarkerButton();
+            this.cancelMarkerMode();
         }
     }
 
-    // НОВЫЙ МЕТОД: Обновление состояния кнопки меток
     updateMarkerButton() {
         const button = document.querySelector('button[onclick="toggleMarkerMode()"]');
         if (button) {
@@ -120,7 +115,6 @@ class MapSystem {
                 button.style.background = '#8b4513';
             }
             
-            // Блокируем кнопку если нет активной карты
             button.disabled = !this.currentMapId;
             if (!this.currentMapId) {
                 button.style.opacity = '0.6';
@@ -153,7 +147,6 @@ class MapSystem {
         return note;
     }
 
-    // НОВЫЙ МЕТОД: Добавление метки на карту
     addMapMarker(mapId, x, y, type, title, description, color = '#ff4444') {
         if (!this.mapMarkers[mapId]) {
             this.mapMarkers[mapId] = [];
@@ -163,7 +156,7 @@ class MapSystem {
             id: 'marker_' + Date.now(),
             x: x,
             y: y,
-            type: type, // 'location', 'quest', 'danger', 'npc', 'treasure'
+            type: type,
             title: title,
             description: description,
             color: color,
@@ -177,7 +170,6 @@ class MapSystem {
         return marker;
     }
 
-    // НОВЫЙ МЕТОД: Удаление метки
     removeMapMarker(mapId, markerId) {
         if (this.mapMarkers[mapId]) {
             this.mapMarkers[mapId] = this.mapMarkers[mapId].filter(m => m.id !== markerId);
@@ -186,12 +178,10 @@ class MapSystem {
         }
     }
 
-    // НОВЫЙ МЕТОД: Сохранение меток
     saveMapMarkers() {
         localStorage.setItem('dnd_map_markers', JSON.stringify(this.mapMarkers));
     }
 
-    // НОВЫЙ МЕТОД: Загрузка меток
     loadMapMarkers() {
         const saved = localStorage.getItem('dnd_map_markers');
         if (saved) {
@@ -199,7 +189,6 @@ class MapSystem {
         }
     }
 
-    // НОВЫЙ МЕТОД: Переключение видимости меток
     toggleMarkersVisibility() {
         this.markersVisible = !this.markersVisible;
         this.renderMapMarkers();
@@ -207,7 +196,6 @@ class MapSystem {
         return this.markersVisible;
     }
 
-    // НОВЫЙ МЕТОД: Обновление кнопки видимости
     updateVisibilityButton() {
         const button = document.querySelector('button[onclick="toggleMarkersVisibility()"]');
         if (button) {
@@ -221,16 +209,13 @@ class MapSystem {
         }
     }
 
-    // НОВЫЙ МЕТОД: Отрисовка меток
     renderMapMarkers() {
         const mapCanvas = document.getElementById('mapCanvas');
         if (!mapCanvas || !this.currentMapId) return;
 
-        // Удаляем старые метки
         const oldMarkers = mapCanvas.querySelectorAll('.map-marker');
         oldMarkers.forEach(marker => marker.remove());
 
-        // Добавляем новые метки только если они видимы
         const markers = this.mapMarkers[this.currentMapId] || [];
         markers.forEach(marker => {
             if (marker.visible) {
@@ -250,13 +235,11 @@ class MapSystem {
                 markerElement.title = marker.title;
                 markerElement.setAttribute('data-type', marker.type);
 
-                // Устанавливаем прозрачность если метки скрыты
                 if (!this.markersVisible) {
                     markerElement.style.opacity = '0.3';
                     markerElement.style.pointerEvents = 'none';
                 }
 
-                // Добавляем всплывающую подсказку
                 markerElement.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.showMarkerPopup(marker);
@@ -267,7 +250,6 @@ class MapSystem {
         });
     }
 
-    // НОВЫЙ МЕТОД: Всплывающее окно метки
     showMarkerPopup(marker) {
         const popup = document.createElement('div');
         popup.className = 'popup';
@@ -298,7 +280,6 @@ class MapSystem {
 
         document.body.appendChild(popup);
 
-        // Закрытие при клике вне попапа
         popup.addEventListener('click', (e) => {
             if (e.target === popup) {
                 popup.remove();
@@ -306,7 +287,6 @@ class MapSystem {
         });
     }
 
-    // НОВЫЙ МЕТОД: Названия типов меток
     getMarkerTypeName(type) {
         const typeNames = {
             'location': '📍 Локация',
@@ -318,8 +298,9 @@ class MapSystem {
         return typeNames[type] || type;
     }
 
-    // НОВЫЙ МЕТОД: Переключение режима меток
     toggleMarkerMode() {
+        if (!this.currentMapId) return false;
+        
         this.markerMode = !this.markerMode;
         this.noteMode = false;
         
@@ -337,7 +318,20 @@ class MapSystem {
         return this.markerMode;
     }
 
-    // НОВЫЙ МЕТОД: Помощь в режиме меток
+    cancelMarkerMode() {
+        this.markerMode = false;
+        const mapCanvas = document.getElementById('mapCanvas');
+        if (mapCanvas) {
+            mapCanvas.style.cursor = 'grab';
+        }
+        
+        const popups = document.querySelectorAll('.popup');
+        popups.forEach(popup => popup.remove());
+        
+        this.hideMarkerModeHelp();
+        this.updateMarkerButton();
+    }
+
     showMarkerModeHelp() {
         let help = document.getElementById('markerModeHelp');
         if (!help) {
@@ -358,7 +352,7 @@ class MapSystem {
         help.innerHTML = `
             <strong>🎯 Режим меток</strong><br>
             Кликните на карту чтобы добавить метку<br>
-            <button class="btn btn-small" onclick="mapSystem.toggleMarkerMode()" style="margin-top: 5px; background: #c44536;">Отмена</button>
+            <button class="btn btn-small" onclick="mapSystem.cancelMarkerMode()" style="margin-top: 5px; background: #c44536;">Отмена</button>
         `;
     }
 
@@ -369,9 +363,8 @@ class MapSystem {
         }
     }
 
-    // ОБНОВЛЕННЫЙ МЕТОД: Обработчик кликов для добавления меток
     handleMapClick(e) {
-        if (this.markerMode && this.currentMapId) {
+        if (this.markerMode && this.currentMapId && e.target.tagName === 'IMG') {
             const rect = e.target.getBoundingClientRect();
             const x = (e.clientX - rect.left - this.panOffset.x) / this.zoomLevel;
             const y = (e.clientY - rect.top - this.panOffset.y) / this.zoomLevel;
@@ -380,8 +373,11 @@ class MapSystem {
         }
     }
 
-    // НОВЫЙ МЕТОД: Попап добавления метки
     showAddMarkerPopup(x, y) {
+        // Закрываем предыдущие попапы
+        const oldPopups = document.querySelectorAll('.popup');
+        oldPopups.forEach(popup => popup.remove());
+
         const popup = document.createElement('div');
         popup.className = 'popup';
         popup.style.position = 'fixed';
@@ -414,7 +410,7 @@ class MapSystem {
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn btn-small" onclick="this.closest('.popup').remove()">Отмена</button>
+                    <button class="btn btn-small" onclick="mapSystem.cancelMarkerMode()">Отмена</button>
                     <button class="btn btn-small" onclick="mapSystem.createMarkerFromPopup(${x}, ${y})" style="background: #27ae60;">Добавить</button>
                 </div>
             </div>
@@ -422,14 +418,12 @@ class MapSystem {
 
         document.body.appendChild(popup);
 
-        // Автофокус на поле названия
         setTimeout(() => {
             const titleInput = document.getElementById('markerTitle');
             if (titleInput) titleInput.focus();
         }, 100);
     }
 
-    // НОВЫЙ МЕТОД: Создание метки из попапа
     createMarkerFromPopup(x, y) {
         const titleInput = document.getElementById('markerTitle');
         const typeInput = document.getElementById('markerType');
@@ -449,13 +443,7 @@ class MapSystem {
         }
 
         this.addMapMarker(this.currentMapId, x, y, type, title, description, color);
-        
-        // Закрываем попапы
-        const popup = document.querySelector('.popup');
-        if (popup) popup.remove();
-        
-        this.hideMarkerModeHelp();
-        this.toggleMarkerMode(); // Выключаем режим меток
+        this.cancelMarkerMode();
     }
 
     zoomIn() {
@@ -474,7 +462,6 @@ class MapSystem {
         this.updateMapTransform();
     }
 
-    // ОПТИМИЗИРОВАННЫЙ МЕТОД - только обновляет трансформацию
     updateMapTransform() {
         const mapCanvas = document.getElementById('mapCanvas');
         if (mapCanvas) {
@@ -500,7 +487,6 @@ class MapSystem {
         document.addEventListener('touchmove', this.handleTouchMove.bind(this));
         document.addEventListener('touchend', this.handleTouchEnd.bind(this));
         
-        // НОВЫЙ ОБРАБОТЧИК: клик для добавления меток
         mapCanvas.addEventListener('click', this.handleMapClick.bind(this));
     }
 
@@ -511,14 +497,13 @@ class MapSystem {
         e.preventDefault();
     }
 
-    // ОПТИМИЗИРОВАНО - не вызывает полный рендер
     handleMouseMove(e) {
         if (!this.isDragging) return;
         
         this.panOffset.x = e.clientX - this.dragStart.x;
         this.panOffset.y = e.clientY - this.dragStart.y;
         
-        this.updateMapTransform(); // Только обновление позиции
+        this.updateMapTransform();
     }
 
     handleMouseUp() {
@@ -537,14 +522,13 @@ class MapSystem {
         }
     }
 
-    // ОПТИМИЗИРОВАНО - не вызывает полный рендер
     handleTouchMove(e) {
         if (!this.isDragging || e.touches.length !== 1) return;
         
         this.panOffset.x = e.touches[0].clientX - this.dragStart.x;
         this.panOffset.y = e.touches[0].clientY - this.dragStart.y;
         
-        this.updateMapTransform(); // Только обновление позиции
+        this.updateMapTransform();
         e.preventDefault();
     }
 
@@ -623,10 +607,7 @@ class MapSystem {
         info.textContent = `${currentMap.name} | ${currentMap.width}x${currentMap.height}`;
         mapCanvas.appendChild(info);
 
-        // Обновляем трансформацию после рендера
         this.updateMapTransform();
-        
-        // Рендерим метки
         this.renderMapMarkers();
         
         setTimeout(() => this.enableDragging(), 100);
@@ -635,14 +616,12 @@ class MapSystem {
 
 const mapSystem = new MapSystem();
 
-// ОБНОВЛЕННАЯ ИНИЦИАЛИЗАЦИЯ: загружаем метки и проверяем доступность
 mapSystem.loadMaps();
 mapSystem.loadMapNotes();
 mapSystem.loadMapMarkers();
 mapSystem.loadCurrentMap();
 mapSystem.initializeDefaultMaps();
 
-// Проверяем доступность карты и обновляем кнопки
 setTimeout(() => {
     mapSystem.checkCurrentMapAvailability();
     mapSystem.updateMarkerButton();
@@ -652,7 +631,6 @@ setTimeout(() => {
 console.log('✅ Система карт загружена. Карт в системе:', Object.keys(mapSystem.maps).length);
 console.log('✅ Метки загружены для карт:', Object.keys(mapSystem.mapMarkers).length);
 
-// Глобальная функция для переключения режима меток
 function toggleMarkerMode() {
     if (!mapSystem.currentMapId) {
         alert('Сначала выберите карту!');
@@ -663,7 +641,6 @@ function toggleMarkerMode() {
     mapSystem.updateMarkerButton();
 }
 
-// НОВАЯ Глобальная функция для переключения видимости меток
 function toggleMarkersVisibility() {
     if (!mapSystem.currentMapId) {
         alert('Сначала выберите карту!');
@@ -726,7 +703,6 @@ function showAddMapPopup() {
     alert('Функция добавления карты будет в следующем шаге!');
 }
 
-// СТАРАЯ ФУНКЦИЯ: оставляем для совместимости
 function toggleNoteMode() {
     toggleMarkerMode();
 }
