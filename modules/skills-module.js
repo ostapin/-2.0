@@ -1,5 +1,22 @@
 // ========== МОДУЛЬ НАВЫКОВ ==========
+// ДОБАВИТЬ ЭТУ ФУНКЦИЮ ДЛЯ ПРАВИЛЬНОГО ОТОБРАЖЕНИЯ НАВЫКОВ
+function getSkillValue(skillName) {
+    if (!currentCharacterId || !characters[currentCharacterId]) return 5;
+    
+    const character = characters[currentCharacterId];
+    return character.skills?.[skillName] || 5;
+}
 
+function setSkillValue(skillName, value) {
+    if (!currentCharacterId || !characters[currentCharacterId]) return;
+    
+    if (!characters[currentCharacterId].skills) {
+        characters[currentCharacterId].skills = {};
+    }
+    
+    characters[currentCharacterId].skills[skillName] = Math.max(5, value);
+    saveCharacterData();
+}
 function renderSkills() {
     const container = document.getElementById('skillsContainer');
     if (!container) return;
@@ -29,7 +46,7 @@ function renderSkills() {
             const lockBtnText = isLocked ? '🔓' : '🔒';
             const lockBtnClass = isLocked ? 'btn-lock locked' : 'btn-lock';
             
-             const skillValue = getSkillValue(skill);
+             c const skillValue = getSkillValue(skill);
     skillRow.innerHTML = `
         <div class="skill-name">
             <span>🎯</span>
