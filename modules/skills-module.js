@@ -17,6 +17,7 @@ function setSkillValue(skillName, value) {
     characters[currentCharacterId].skills[skillName] = Math.max(5, value);
     saveCharacterData();
 }
+
 function renderSkills() {
     const container = document.getElementById('skillsContainer');
     if (!container) return;
@@ -32,7 +33,7 @@ function renderSkills() {
         title.innerHTML = groupName;
         section.appendChild(title);
 
-                skills.forEach(skill => {
+        skills.forEach(skill => {
             const skillRow = document.createElement('div');
             skillRow.className = 'skill-row';
             const isLocked = isSkillLocked(skill);
@@ -63,6 +64,40 @@ function renderSkills() {
             `;
             section.appendChild(skillRow);
         });
+        
+        container.appendChild(section);
+    }
+    
+    updateUI();
+}
+
+function isSkillLocked(skillName) {
+    return lockedSkills[skillName] || false;
+}
+
+function toggleSkillLock(skillName) {
+    const currentlyLocked = isSkillLocked(skillName);
+    
+    if (currentlyLocked) {
+        const unlock = confirm(`🔓 Разблокировать навык "${skillName}"?\n\nНавык станет доступным для использования и прокачки.`);
+        if (unlock) {
+            lockedSkills[skillName] = false;
+            saveLockedSkills();
+            renderSkills();
+            updateUI();
+            alert(`✅ Навык "${skillName}" разблокирован!`);
+        }
+    } else {
+        const lock = confirm(`🔒 Заблокировать навык "${skillName}"?\n\nНавык станет недоступным для использования и прокачки.`);
+        if (lock) {
+            lockedSkills[skillName] = true;
+            saveLockedSkills();
+            renderSkills();
+            updateUI();
+            alert(`✅ Навык "${skillName}" заблокирован!`);
+        }
+    }
+}
 
 function increaseSkill(skillName) {
     if (isSkillLocked(skillName)) {
