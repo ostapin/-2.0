@@ -19,22 +19,22 @@ class MapSystem {
         id: 'world_map',
         name: '🗺️ Карта мира', 
         imageUrl: 'maps/world_map.jpg',
-        width: 1200,
-        height: 800
+        width: 4096,    // ← НОВЫЙ РАЗМЕР
+        height: 3072    // ← НОВЫЙ РАЗМЕР
     },
     {
         id: 'empire_ruda_right',
         name: '🏛️ Империя Руда (правая)',
         imageUrl: 'maps/empire_ruda_right.jpg.jpeg',
-        width: 1000, 
-        height: 700
+        width: 3841,    // ← НОВЫЙ РАЗМЕР
+        height: 4096    // ← НОВЫЙ РАЗМЕР
     },
     {
         id: 'empire_ruda_left', 
         name: '🏛️ Империя Руда (левая)',
-        imageUrl: 'maps/empire_ruda_left.jpg', 
-        width: 1000,
-        height: 700
+        imageUrl: 'maps/empire_ruda_left.jpg',
+        width: 3630,    // ← НОВЫЙ РАЗМЕР  
+        height: 4096    // ← НОВЫЙ РАЗМЕР
     }
 ];
         defaultMaps.forEach(map => {
