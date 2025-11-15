@@ -30,4 +30,25 @@ let currentDate = {
     month: 0,  // 0-18
     day: 0     // 0-38
 };
+// Расчет времени восхода/заката для даты
+function calculateSunTimes(month, day) {
+    // Номер дня года (1-741)
+    const dayOfYear = (month * CALENDAR_CONSTANTS.DAYS_PER_MONTH) + day + 1;
+    
+    // Длина светового дня (формула из твоего описания)
+    const dayLength = 17.5 * Math.cos(2 * Math.PI * (dayOfYear - 20) / CALENDAR_CONSTANTS.YEAR_DAYS) + 17.5;
+    
+    // Время восхода и заката
+    const sunrise = (CALENDAR_CONSTANTS.HOURS_PER_DAY - dayLength) / 2;
+    const sunset = sunrise + dayLength;
+    
+    return {
+        sunrise: sunrise.toFixed(2),
+        sunset: sunset.toFixed(2),
+        dayLength: dayLength.toFixed(2)
+    };
+}
+
+// Проверка работы (добавь временно)
+console.log("Время для 20 Зимобора:", calculateSunTimes(10, 19)); // 10 месяц, 20 день
 console.log("Календарь загружен! Месяцев:", MONTHS.length);
