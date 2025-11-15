@@ -54,7 +54,13 @@ function calculateSunTimes(month, day) {
     const formatDayLength = (decimalHours) => {
         const hours = Math.floor(decimalHours);
         const minutes = Math.round((decimalHours - hours) * 60);
-        return `${hours} часа ${minutes} минут`;
+        
+        // Правильное склонение минут
+        let minutesText = 'минут';
+        if (minutes === 1) minutesText = 'минута';
+        else if (minutes >= 2 && minutes <= 4) minutesText = 'минуты';
+        
+        return `${hours} часов ${minutes} ${minutesText}`;
     };
     
     return {
@@ -203,9 +209,9 @@ function updateCalendarDisplay() {
     if (sunDisplay) {
         const sunTimes = calculateSunTimes(currentDate.month, currentDate.day);
         sunDisplay.innerHTML = `
-            <strong>🌅 Восход:</strong> ${sunTimes.sunrise} часа<br>
-            <strong>🌇 Закат:</strong> ${sunTimes.sunset} часа<br>
-            <strong>📏 День:</strong> ${sunTimes.dayLength} часа
+            <strong>🌅 Восход:</strong> ${sunTimes.sunrise}<br>
+            <strong>🌇 Закат:</strong> ${sunTimes.sunset}<br>
+            <strong>📏 День:</strong> ${sunTimes.dayLength}
         `;
     }
     
