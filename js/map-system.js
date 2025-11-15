@@ -127,8 +127,6 @@ class MapSystem {
         this.panOffset = { x: 0, y: 0 };
         this.renderCurrentMap();
     }
-// Добавь в класс MapSystem после существующих методов:
-
 // Включение/выключение перетаскивания
 enableDragging() {
     const mapCanvas = document.getElementById('mapCanvas');
@@ -231,6 +229,8 @@ handleTouchEnd() {
             return;
         }
         console.log('Rendering map:', this.maps[this.currentMapId].name);
+            // Включаем перетаскивание после рендера
+    setTimeout(() => mapSystem.enableDragging(), 100);
     }
 }
 // Создаем глобальный экземпляр системы карт
