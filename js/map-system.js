@@ -75,6 +75,7 @@ class MapSystem {
         
         if (this.currentMapId === mapId) {
             this.currentMapId = null;
+            this.saveCurrentMap();
         }
         
         this.saveMaps();
@@ -94,38 +95,43 @@ class MapSystem {
     }
 
     checkCurrentMapAvailability() {
-    let wasCurrentMapRemoved = false;
-    
-    if (this.currentMapId && !this.maps[this.currentMapId]) {
-        // Карта была удалена или недоступна
-        console.log(`🗑️ Карта ${this.currentMapId} была удалена, сбрасываем текущую карту`);
-        this.currentMapId = null;
-        this.saveCurrentMap();
-        wasCurrentMapRemoved = true;
-    }
-    
-    // Сбрасываем режим меток если нет активной карты
-    if (!this.currentMapId) {
-        if (this.markerMode) {
-            console.log('🔁 Сбрасываем режим меток - нет активной карты');
-            this.cancelMarkerMode();
-        }
-        // Также скрываем панель управления
-        const mapControls = document.querySelector('.map-controls');
-        const noMapMessage = document.getElementById('noMapMessage');
-        const mapContainer = document.getElementById('mapContainer');
+        let wasCurrentMapRemoved = false;
         
-        if (mapControls) mapControls.style.display = 'none';
-        if (noMapMessage) noMapMessage.style.display = 'block';
-        if (mapContainer) mapContainer.style.display = 'none';
+        if (this.currentMapId && !this.maps[this.currentMapId]) {
+            console.log(`🗑️ Карта ${this.currentMapId} была удалена!`);
+            this.currentMapId = null;
+            this.saveCurrentMap();
+            wasCurrentMapRemoved = true;
+            
+            // Принудительно скрываем всё
+            const mapContainer = document.getElementById('mapContainer');
+            const noMapMessage = document.getElementById('noMapMessage');
+            const mapControls = document.querySelector('.map-controls');
+            
+            if (mapContainer) mapContainer.style.display = 'none';
+            if (noMapMessage) noMapMessage.style.display = 'block';
+            if (mapControls) mapControls.style.display = 'none';
+        }
+        
+        // ВСЕГДА сбрасываем режим меток если нет карты
+        if (!this.currentMapId && this.markerMode) {
+            console.log('🔁 Выключаем режим меток - нет активной карты');
+            this.markerMode = false;
+            const mapCanvas = document.getElementById('mapCanvas');
+            if (mapCanvas) mapCanvas.style.cursor = 'grab';
+            
+            // Закрываем все попапы
+            const popups = document.querySelectorAll('.popup');
+            popups.forEach(popup => popup.remove());
+            this.hideMarkerModeHelp();
+        }
+        
+        // ВСЕГДА обновляем кнопки
+        this.updateMarkerButton();
+        this.updateVisibilityButton();
+        
+        return wasCurrentMapRemoved;
     }
-    
-    // Обновляем кнопки в любом случае
-    this.updateMarkerButton();
-    this.updateVisibilityButton();
-    
-    return wasCurrentMapRemoved;
-}
 
     updateMarkerButton() {
         const button = document.querySelector('button[onclick="toggleMarkerMode()"]');
@@ -228,6 +234,15 @@ class MapSystem {
             } else {
                 button.innerHTML = '🙈 Скрыть метки';
                 button.style.background = '#5a3928';
+            }
+            
+            button.disabled = !this.currentMapId;
+            if (!this.currentMapId) {
+                button.style.opacity = '0.6';
+                button.style.cursor = 'not-allowed';
+            } else {
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
             }
         }
     }
@@ -645,16 +660,20 @@ mapSystem.loadMapMarkers();
 mapSystem.loadCurrentMap();
 mapSystem.initializeDefaultMaps();
 
-setTimeout(() => {
-    mapSystem.checkCurrentMapAvailability();
-    mapSystem.updateMarkerButton();
-    mapSystem.updateVisibilityButton();
-}, 100);
+// Проверяем доступность карт при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        mapSystem.checkCurrentMapAvailability();
+    }, 100);
+});
 
 console.log('✅ Система карт загружена. Карт в системе:', Object.keys(mapSystem.maps).length);
 console.log('✅ Метки загружены для карт:', Object.keys(mapSystem.mapMarkers).length);
 
 function toggleMarkerMode() {
+    // Всегда проверяем перед включением режима
+    mapSystem.checkCurrentMapAvailability();
+    
     if (!mapSystem.currentMapId) {
         alert('Сначала выберите карту!');
         return;
@@ -665,6 +684,9 @@ function toggleMarkerMode() {
 }
 
 function toggleMarkersVisibility() {
+    // Всегда проверяем перед переключением видимости
+    mapSystem.checkCurrentMapAvailability();
+    
     if (!mapSystem.currentMapId) {
         alert('Сначала выберите карту!');
         return;
@@ -674,7 +696,7 @@ function toggleMarkersVisibility() {
 }
 
 function showMapsList() {
-    // Сначала проверяем доступность карт
+    // Всегда проверяем перед показом списка
     mapSystem.checkCurrentMapAvailability();
     
     const popup = document.createElement('div');
@@ -683,7 +705,6 @@ function showMapsList() {
     let mapsHTML = '';
     Object.values(mapSystem.maps).forEach(map => {
         const isCurrent = mapSystem.currentMapId === map.id;
-        // Двойная проверка - карта должна существовать И быть текущей
         const actuallyCurrent = isCurrent && mapSystem.maps[map.id];
         
         mapsHTML += `
