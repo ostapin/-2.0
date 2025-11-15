@@ -462,3 +462,34 @@ body {
     border-left-color: #27ae60;
     background: #2c4d2c;
 }
+/* Стили для визуального календаря */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.calendar-day {
+    padding: 8px;
+    background: #2a1a12;
+    border: 1px solid #8b4513;
+    border-radius: 4px;
+    text-align: center;
+    color: #e0d0c0;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-day:hover {
+    background: #3d2418;
+    transform: scale(1.05);
+}
+
+.calendar-day.current {
+    background: #d4af37;
+    color: #1a0f0b;
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
