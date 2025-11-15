@@ -116,6 +116,7 @@ function applyRaceBonuses(raceId) {
     
     updateUI();
 }
+
 // ДОБАВИТЬ ЭТУ ФУНКЦИЮ ДЛЯ ЗАГРУЗКИ СУЩЕСТВУЮЩЕГО ПЕРСОНАЖА
 function loadRaceBonuses(raceId) {
     const race = races[raceId];
