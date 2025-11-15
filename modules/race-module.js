@@ -103,14 +103,37 @@ function determineAvailableMagicSchools(raceId) {
     updateMagicSkillsDisplay();
 }
 
+javascript
 function applyRaceBonuses(raceId) {
     const race = races[raceId];
     if (!race || !race.bonuses) return;
     
     Object.entries(race.bonuses).forEach(([skill, bonus]) => {
         const currentValue = getSkillValue(skill);
-        setSkillValue(skill, currentValue + bonus);
+        // Убедимся, что бонус применяется только один раз
+        const baseValue = currentValue - (race.bonuses[skill] || 0);
+        setSkillValue(skill, baseValue + bonus);
     });
     
     updateUI();
+}
+// ДОБАВИТЬ ЭТУ ФУНКЦИЮ ДЛЯ ЗАГРУЗКИ СУЩЕСТВУЮЩЕГО ПЕРСОНАЖА
+function loadRaceBonuses(raceId) {
+    const race = races[raceId];
+    if (!race || !race.bonuses) return;
+    
+    // Сбрасываем все навыки к базовым значениям перед применением бонусов
+    Object.keys(skillsStructure).forEach(group => {
+        skillsStructure[group].forEach(skill => {
+            const currentValue = getSkillValue(skill);
+            // Если это навык с бонусом, сбрасываем его
+            if (race.bonuses[skill]) {
+                const baseValue = currentValue - race.bonuses[skill];
+                setSkillValue(skill, Math.max(5, baseValue)); // Минимум 5
+            }
+        });
+    });
+    
+    // Применяем бонусы
+    applyRaceBonuses(raceId);
 }
