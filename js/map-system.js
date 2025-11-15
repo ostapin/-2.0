@@ -181,3 +181,67 @@ mapSystem.loadCurrentMap();
 mapSystem.initializeDefaultMaps(); // ← добавляем эту строку
 
 console.log('✅ Система карт загружена. Карт в системе:', Object.keys(mapSystem.maps).length);
+// ========== ИНТЕРФЕЙСНЫЕ ФУНКЦИИ ==========
+
+function showMapsList() {
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    
+    let mapsHTML = '';
+    Object.values(mapSystem.maps).forEach(map => {
+        const isCurrent = mapSystem.currentMapId === map.id;
+        mapsHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #2c1810; margin: 5px 0; border-radius: 4px;">
+                <span>${map.name}</span>
+                <div>
+                    ${!isCurrent ? 
+                        `<button class="btn btn-small" onclick="switchToMap('${map.id}')" style="background: #27ae60;">🎯 Выбрать</button>` : 
+                        `<button class="btn btn-small" disabled style="background: #5a3928;">✅ Активна</button>`
+                    }
+                    <button class="btn btn-small" onclick="deleteMap('${map.id}')" style="background: #c44536;">❌ Удалить</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    popup.innerHTML = `
+        <div class="popup-content">
+            <h2 style="color: #d4af37;">📋 Список карт</h2>
+            <div style="max-height: 400px; overflow-y: auto;">
+                ${mapsHTML || '<p style="color: #8b7d6b; text-align: center;">Карт нет</p>'}
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-roll" onclick="this.closest('.popup').remove()">Закрыть</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+}
+
+function switchToMap(mapId) {
+    if (mapSystem.switchMap(mapId)) {
+        renderCurrentMap();
+        document.querySelector('.popup').remove();
+    }
+}
+
+function deleteMap(mapId) {
+    if (confirm('Удалить эту карту?')) {
+        mapSystem.removeMap(mapId);
+        document.querySelector('.popup').remove();
+        showMapsList(); // Обновляем список
+    }
+}
+
+// Заглушки для остальных функций (добавим позже)
+function showAddMapPopup() {
+    alert('Функция добавления карты будет в следующем шаге!');
+}
+
+function renderCurrentMap() {
+    alert('Рендер карты будет в следующем шаге!');
+}
+
+function toggleNoteMode() {
+    alert('Режим заметок будет в следующем шаге!');
+}
