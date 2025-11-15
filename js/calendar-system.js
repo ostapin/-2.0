@@ -43,10 +43,17 @@ function calculateSunTimes(month, day) {
     const sunrise = (CALENDAR_CONSTANTS.HOURS_PER_DAY - dayLength) / 2;
     const sunset = sunrise + dayLength;
     
+    // Форматирование в часы:минуты
+    const formatTime = (decimalHours) => {
+        const hours = Math.floor(decimalHours);
+        const minutes = Math.round((decimalHours - hours) * 60);
+        return `${hours}:${minutes.toString().padStart(2, '0')}`;
+    };
+    
     return {
-        sunrise: sunrise.toFixed(2),
-        sunset: sunset.toFixed(2),
-        dayLength: dayLength.toFixed(2)
+        sunrise: formatTime(sunrise),
+        sunset: formatTime(sunset),
+        dayLength: dayLength.toFixed(2) + ' часа'
     };
 }
 
