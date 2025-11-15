@@ -16,6 +16,7 @@
             <button class="tab-btn" onclick="openTab('dice')">🎲 Кубики</button>
             <button class="tab-btn" onclick="openTab('notes')">✍️ Заметки</button>
             <button class="tab-btn" onclick="openTab('characters')">👥 Персонажи</button>
+            <button class="tab-btn" onclick="openTab('calendar')">📅 Календарь</button>
         </div>
 
         <!-- Вкладка персонажа -->
@@ -301,7 +302,33 @@
             </div>
         </div>
     </div>
+<!-- Вкладка календаря -->
+<div id="calendar-tab" class="tab-content">
+    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📅 КАЛЕНДАРЬ "ТРЕХ ДЫХАНИЙ"</h2>
+    
+    <div class="skills-section">
+        <div class="section-title">🗓️ Текущая дата</div>
+        <div id="currentDateDisplay" style="text-align: center; font-size: 1.3em; padding: 15px; background: #3d2418; border-radius: 6px; margin-bottom: 20px;">
+            Загрузка...
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+            <button class="btn btn-roll" onclick="changeYear(-1)">⬅️ Год</button>
+            <button class="btn btn-roll" onclick="changeMonth(-1)">⬅️ Месяц</button>
+            <button class="btn btn-roll" onclick="changeDay(-1)">⬅️ День</button>
+            <button class="btn btn-roll" onclick="changeDay(1)">День ➡️</button>
+            <button class="btn btn-roll" onclick="changeMonth(1)">Месяц ➡️</button>
+            <button class="btn btn-roll" onclick="changeYear(1)">Год ➡️</button>
+        </div>
+    </div>
 
+    <div class="skills-section">
+        <div class="section-title">🌅 Время восхода/заката</div>
+        <div id="sunTimesDisplay" style="text-align: center; padding: 15px; background: #3d2418; border-radius: 6px;">
+            Расчет времени...
+        </div>
+    </div>
+</div>
     <!-- Подключение JavaScript файлов -->
     <script src="js/utils.js"></script>
 <script src="js/utils.js"></script>
@@ -320,6 +347,7 @@
 <script src="js/calendar-system.js"></script>
 </body>
 </html>
+
 
 
 
