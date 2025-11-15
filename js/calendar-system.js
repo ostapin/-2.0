@@ -163,5 +163,54 @@ function updateCalendarDisplay() {
         `;
     }
 }
+// Функция отрисовки визуального календаря
+function renderVisualCalendar() {
+    const container = document.getElementById('visualCalendar');
+    if (!container) return;
+    
+    const monthName = MONTHS[currentDate.month];
+    const dayNumber = currentDate.day + 1;
+    const year = currentDate.year;
+    const era = currentDate.era;
+    
+    // Определяем дыхание для цветового кодирования
+    let breath = '';
+    let breathColor = '#8b7d6b';
+    
+    if (currentDate.month < 6) {
+        breath = 'Дыхание Света';
+        breathColor = '#d4af37'; // золотой
+    } else if (currentDate.month < 12) {
+        breath = 'Дыхание Тьмы'; 
+        breathColor = '#6b8cff'; // синий
+    } else if (currentDate.month === 12) {
+        breath = 'Переход';
+        breathColor = '#a0a0a0'; // серый
+    } else {
+        breath = 'Дыхание Сталей';
+        breathColor = '#ff6b6b'; // красный
+    }
+    
+    // Создаем сетку дней (7x6 = 42 дня)
+    let daysGrid = '';
+    for (let i = 0; i < 42; i++) {
+        const day = i + 1;
+        const isCurrentDay = day === dayNumber;
+        const dayClass = isCurrentDay ? 'calendar-day current' : 'calendar-day';
+        
+        daysGrid += `<div class="${dayClass}">${day}</div>`;
+    }
+    
+    container.innerHTML = `
+        <div style="margin-bottom: 15px;">
+            <div style="font-size: 1.2em; color: ${breathColor}; margin-bottom: 5px;">${breath}</div>
+            <div style="font-size: 1.4em; font-weight: bold; color: #d4af37;">${monthName}</div>
+            <div style="color: #e0d0c0;">${year} год, ${era} эра</div>
+        </div>
+        <div class="calendar-grid">
+            ${daysGrid}
+        </div>
+    `;
+}
 // Авто-инициализация при загрузке
 document.addEventListener('DOMContentLoaded', initCalendar);
