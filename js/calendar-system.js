@@ -134,6 +134,7 @@ function loadCalendarState() {
 // Инициализация календаря
 function initCalendar() {
     loadCalendarState();
+    updateCalendarDisplay(); 
     console.log("Календарь инициализирован:", getCurrentDate());
 }
 
