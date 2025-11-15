@@ -12,6 +12,7 @@ class MapSystem {
         this.dragStart = { x: 0, y: 0 };
         this.noteMode = false;
         this.markerMode = false;
+        this.markersVisible = true; // НОВОЕ: видимость меток
     }
 
     initializeDefaultMaps() {
@@ -86,9 +87,49 @@ class MapSystem {
             this.panOffset = { x: 0, y: 0 };
             this.saveCurrentMap();
             this.renderCurrentMap();
+            this.updateMarkerButton(); // Обновляем кнопку
             return true;
         }
         return false;
+    }
+
+    // НОВЫЙ МЕТОД: Проверка доступности текущей карты
+    checkCurrentMapAvailability() {
+        if (this.currentMapId && !this.maps[this.currentMapId]) {
+            // Карта была удалена или недоступна
+            this.currentMapId = null;
+            this.saveCurrentMap();
+        }
+        
+        // Сбрасываем режим меток если нет активной карты
+        if (!this.currentMapId && this.markerMode) {
+            this.toggleMarkerMode();
+            this.updateMarkerButton();
+        }
+    }
+
+    // НОВЫЙ МЕТОД: Обновление состояния кнопки меток
+    updateMarkerButton() {
+        const button = document.querySelector('button[onclick="toggleMarkerMode()"]');
+        if (button) {
+            if (this.markerMode && this.currentMapId) {
+                button.innerHTML = '✅ Режим меток';
+                button.style.background = '#27ae60';
+            } else {
+                button.innerHTML = '📌 Режим меток';
+                button.style.background = '#8b4513';
+            }
+            
+            // Блокируем кнопку если нет активной карты
+            button.disabled = !this.currentMapId;
+            if (!this.currentMapId) {
+                button.style.opacity = '0.6';
+                button.style.cursor = 'not-allowed';
+            } else {
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+            }
+        }
     }
 
     addMapNote(mapId, x, y, title, content, color = '#ffeb3b') {
@@ -158,6 +199,28 @@ class MapSystem {
         }
     }
 
+    // НОВЫЙ МЕТОД: Переключение видимости меток
+    toggleMarkersVisibility() {
+        this.markersVisible = !this.markersVisible;
+        this.renderMapMarkers();
+        this.updateVisibilityButton();
+        return this.markersVisible;
+    }
+
+    // НОВЫЙ МЕТОД: Обновление кнопки видимости
+    updateVisibilityButton() {
+        const button = document.querySelector('button[onclick="toggleMarkersVisibility()"]');
+        if (button) {
+            if (this.markersVisible) {
+                button.innerHTML = '👁️ Показать метки';
+                button.style.background = '#27ae60';
+            } else {
+                button.innerHTML = '🙈 Скрыть метки';
+                button.style.background = '#5a3928';
+            }
+        }
+    }
+
     // НОВЫЙ МЕТОД: Отрисовка меток
     renderMapMarkers() {
         const mapCanvas = document.getElementById('mapCanvas');
@@ -167,7 +230,7 @@ class MapSystem {
         const oldMarkers = mapCanvas.querySelectorAll('.map-marker');
         oldMarkers.forEach(marker => marker.remove());
 
-        // Добавляем новые метки
+        // Добавляем новые метки только если они видимы
         const markers = this.mapMarkers[this.currentMapId] || [];
         markers.forEach(marker => {
             if (marker.visible) {
@@ -185,6 +248,13 @@ class MapSystem {
                 markerElement.style.transform = 'translate(-50%, -50%)';
                 markerElement.style.zIndex = '10';
                 markerElement.title = marker.title;
+                markerElement.setAttribute('data-type', marker.type);
+
+                // Устанавливаем прозрачность если метки скрыты
+                if (!this.markersVisible) {
+                    markerElement.style.opacity = '0.3';
+                    markerElement.style.pointerEvents = 'none';
+                }
 
                 // Добавляем всплывающую подсказку
                 markerElement.addEventListener('click', (e) => {
@@ -361,10 +431,17 @@ class MapSystem {
 
     // НОВЫЙ МЕТОД: Создание метки из попапа
     createMarkerFromPopup(x, y) {
-        const title = document.getElementById('markerTitle').value.trim();
-        const type = document.getElementById('markerType').value;
-        const description = document.getElementById('markerDescription').value.trim();
-        const color = document.getElementById('markerColor').value;
+        const titleInput = document.getElementById('markerTitle');
+        const typeInput = document.getElementById('markerType');
+        const descriptionInput = document.getElementById('markerDescription');
+        const colorInput = document.getElementById('markerColor');
+
+        if (!titleInput || !typeInput) return;
+
+        const title = titleInput.value.trim();
+        const type = typeInput.value;
+        const description = descriptionInput ? descriptionInput.value.trim() : '';
+        const color = colorInput ? colorInput.value : '#ff4444';
 
         if (!title) {
             alert('Введите название метки!');
@@ -374,7 +451,10 @@ class MapSystem {
         this.addMapMarker(this.currentMapId, x, y, type, title, description, color);
         
         // Закрываем попапы
-        document.querySelector('.popup').remove();
+        const popup = document.querySelector('.popup');
+        if (popup) popup.remove();
+        
+        this.hideMarkerModeHelp();
         this.toggleMarkerMode(); // Выключаем режим меток
     }
 
@@ -410,7 +490,7 @@ class MapSystem {
         const mapCanvas = document.getElementById('mapCanvas');
         if (!mapCanvas) return;
 
-        mapCanvas.style.cursor = 'grab';
+        mapCanvas.style.cursor = this.markerMode ? 'crosshair' : 'grab';
         
         mapCanvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
         document.addEventListener('mousemove', this.handleMouseMove.bind(this));
@@ -555,15 +635,43 @@ class MapSystem {
 
 const mapSystem = new MapSystem();
 
-// ОБНОВЛЕННАЯ ИНИЦИАЛИЗАЦИЯ: загружаем метки
+// ОБНОВЛЕННАЯ ИНИЦИАЛИЗАЦИЯ: загружаем метки и проверяем доступность
 mapSystem.loadMaps();
 mapSystem.loadMapNotes();
-mapSystem.loadMapMarkers(); // НОВОЕ: загружаем метки
+mapSystem.loadMapMarkers();
 mapSystem.loadCurrentMap();
 mapSystem.initializeDefaultMaps();
 
+// Проверяем доступность карты и обновляем кнопки
+setTimeout(() => {
+    mapSystem.checkCurrentMapAvailability();
+    mapSystem.updateMarkerButton();
+    mapSystem.updateVisibilityButton();
+}, 100);
+
 console.log('✅ Система карт загружена. Карт в системе:', Object.keys(mapSystem.maps).length);
 console.log('✅ Метки загружены для карт:', Object.keys(mapSystem.mapMarkers).length);
+
+// Глобальная функция для переключения режима меток
+function toggleMarkerMode() {
+    if (!mapSystem.currentMapId) {
+        alert('Сначала выберите карту!');
+        return;
+    }
+    
+    const isMarkerMode = mapSystem.toggleMarkerMode();
+    mapSystem.updateMarkerButton();
+}
+
+// НОВАЯ Глобальная функция для переключения видимости меток
+function toggleMarkersVisibility() {
+    if (!mapSystem.currentMapId) {
+        alert('Сначала выберите карту!');
+        return;
+    }
+    
+    const isVisible = mapSystem.toggleMarkersVisibility();
+}
 
 function showMapsList() {
     const popup = document.createElement('div');
@@ -618,16 +726,7 @@ function showAddMapPopup() {
     alert('Функция добавления карты будет в следующем шаге!');
 }
 
-// Глобальная функция для переключения режима меток
-function toggleMarkerMode() {
-    const isMarkerMode = mapSystem.toggleMarkerMode();
-    const button = document.querySelector('button[onclick="toggleMarkerMode()"]');
-    
-    if (isMarkerMode) {
-        button.innerHTML = '✅ Режим меток';
-        button.style.background = '#27ae60';
-    } else {
-        button.innerHTML = '📌 Режим меток';
-        button.style.background = '#8b4513';
-    }
+// СТАРАЯ ФУНКЦИЯ: оставляем для совместимости
+function toggleNoteMode() {
+    toggleMarkerMode();
 }
