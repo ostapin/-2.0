@@ -159,15 +159,24 @@ function renderVisualCalendar() {
         breathColor = '#ff6b6b'; // красный
     }
     
-    // Создаем сетку дней (7x6 = 42 дня)
-    let daysGrid = '';
-    for (let i = 0; i < 42; i++) {
-        const day = i + 1;
-        const isCurrentDay = day === dayNumber;
-        const dayClass = isCurrentDay ? 'calendar-day current' : 'calendar-day';
-        
+   // Создаем сетку дней (6x7 = 42 ячейки, но показываем только 39 дней)
+let daysGrid = '';
+const totalCells = 42; // 6 рядов по 7 дней
+const totalDays = 39;   // дней в месяце
+
+for (let i = 0; i < totalCells; i++) {
+    const day = i + 1;
+    const isCurrentDay = day === dayNumber;
+    const dayClass = isCurrentDay ? 'calendar-day current' : 'calendar-day';
+    
+    if (day <= totalDays) {
+        // Показываем только существующие дни (1-39)
         daysGrid += `<div class="${dayClass}">${day}</div>`;
+    } else {
+        // Пустые ячейки для оставшихся мест в сетке
+        daysGrid += `<div class="calendar-day empty"></div>`;
     }
+}
     
     container.innerHTML = `
         <div style="margin-bottom: 15px;">
