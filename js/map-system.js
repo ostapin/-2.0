@@ -127,47 +127,6 @@ class MapSystem {
         this.panOffset = { x: 0, y: 0 };
         this.renderCurrentMap();
     }
-
-    // Сохранение/загрузка данных
-    saveMaps() {
-        localStorage.setItem('dnd_maps', JSON.stringify(this.maps));
-    }
-
-    loadMaps() {
-        const saved = localStorage.getItem('dnd_maps');
-        if (saved) {
-            this.maps = JSON.parse(saved);
-        }
-    }
-
-    saveMapNotes() {
-        localStorage.setItem('dnd_map_notes', JSON.stringify(this.mapNotes));
-    }
-
-    loadMapNotes() {
-        const saved = localStorage.getItem('dnd_map_notes');
-        if (saved) {
-            this.mapNotes = JSON.parse(saved);
-        }
-    }
-
-    saveCurrentMap() {
-        localStorage.setItem('current_map_id', this.currentMapId);
-    }
-
-    loadCurrentMap() {
-        this.currentMapId = localStorage.getItem('current_map_id');
-    }
-
-    // Рендер текущей карты (будет дополнен в следующих шагах)
-    renderCurrentMap() {
-        if (!this.currentMapId || !this.maps[this.currentMapId]) {
-            console.log('No map selected');
-            return;
-        }
-        console.log('Rendering map:', this.maps[this.currentMapId].name);
-    }
-}
 // Добавь в класс MapSystem после существующих методов:
 
 // Включение/выключение перетаскивания
@@ -233,6 +192,46 @@ handleTouchMove(e) {
 
 handleTouchEnd() {
     this.isDragging = false;
+}
+    // Сохранение/загрузка данных
+    saveMaps() {
+        localStorage.setItem('dnd_maps', JSON.stringify(this.maps));
+    }
+
+    loadMaps() {
+        const saved = localStorage.getItem('dnd_maps');
+        if (saved) {
+            this.maps = JSON.parse(saved);
+        }
+    }
+
+    saveMapNotes() {
+        localStorage.setItem('dnd_map_notes', JSON.stringify(this.mapNotes));
+    }
+
+    loadMapNotes() {
+        const saved = localStorage.getItem('dnd_map_notes');
+        if (saved) {
+            this.mapNotes = JSON.parse(saved);
+        }
+    }
+
+    saveCurrentMap() {
+        localStorage.setItem('current_map_id', this.currentMapId);
+    }
+
+    loadCurrentMap() {
+        this.currentMapId = localStorage.getItem('current_map_id');
+    }
+
+    // Рендер текущей карты (будет дополнен в следующих шагах)
+    renderCurrentMap() {
+        if (!this.currentMapId || !this.maps[this.currentMapId]) {
+            console.log('No map selected');
+            return;
+        }
+        console.log('Rendering map:', this.maps[this.currentMapId].name);
+    }
 }
 // Создаем глобальный экземпляр системы карт
 const mapSystem = new MapSystem();
