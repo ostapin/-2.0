@@ -32,7 +32,7 @@ function renderSkills() {
         title.innerHTML = groupName;
         section.appendChild(title);
 
-        skills.forEach(skill => {
+                skills.forEach(skill => {
             const skillRow = document.createElement('div');
             skillRow.className = 'skill-row';
             const isLocked = isSkillLocked(skill);
@@ -46,49 +46,23 @@ function renderSkills() {
             const lockBtnText = isLocked ? '🔓' : '🔒';
             const lockBtnClass = isLocked ? 'btn-lock locked' : 'btn-lock';
             
-             c const skillValue = getSkillValue(skill);
-    skillRow.innerHTML = `
-        <div class="skill-name">
-            <span>🎯</span>
-            <span>${skill}</span>
-            ${spellIcon}
-        </div>
-        <div class="skill-controls">
-            <button class="btn btn-minus" onclick="decreaseSkill('${skill}')" ${isLocked ? 'disabled' : (skillValue <= 5 ? 'disabled' : '')}>-</button>
-            <span class="skill-value" id="skill-${skill}">${skillValue}</span>
-            <button class="btn btn-plus" onclick="increaseSkill('${skill}')" ${isLocked ? 'disabled' : (getFreePoints() <= 0 ? 'disabled' : '')}>+</button>
-            <button class="${lockBtnClass}" onclick="toggleSkillLock('${skill}')" title="${isLocked ? 'Разблокировать' : 'Заблокировать'}">${lockBtnText}</button>
-            <button class="btn btn-roll" onclick="rollSkill('${skill}')" ${isLocked ? 'disabled' : ''}>Бросок</button>
-        </div>
-    `;
-
-function isSkillLocked(skillName) {
-    return lockedSkills[skillName] || false;
-}
-
-function toggleSkillLock(skillName) {
-    const currentlyLocked = isSkillLocked(skillName);
-    
-    if (currentlyLocked) {
-        const unlock = confirm(`🔓 Разблокировать навык "${skillName}"?\n\nНавык станет доступным для использования и прокачки.`);
-        if (unlock) {
-            lockedSkills[skillName] = false;
-            saveLockedSkills();
-            renderSkills();
-            updateUI();
-            alert(`✅ Навык "${skillName}" разблокирован!`);
-        }
-    } else {
-        const lock = confirm(`🔒 Заблокировать навык "${skillName}"?\n\nНавык станет недоступным для использования и прокачки.`);
-        if (lock) {
-            lockedSkills[skillName] = true;
-            saveLockedSkills();
-            renderSkills();
-            updateUI();
-            alert(`✅ Навык "${skillName}" заблокирован!`);
-        }
-    }
-}
+            const skillValue = getSkillValue(skill);
+            skillRow.innerHTML = `
+                <div class="skill-name">
+                    <span>🎯</span>
+                    <span>${skill}</span>
+                    ${spellIcon}
+                </div>
+                <div class="skill-controls">
+                    <button class="btn btn-minus" onclick="decreaseSkill('${skill}')" ${isLocked ? 'disabled' : (skillValue <= 5 ? 'disabled' : '')}>-</button>
+                    <span class="skill-value" id="skill-${skill}">${skillValue}</span>
+                    <button class="btn btn-plus" onclick="increaseSkill('${skill}')" ${isLocked ? 'disabled' : (getFreePoints() <= 0 ? 'disabled' : '')}>+</button>
+                    <button class="${lockBtnClass}" onclick="toggleSkillLock('${skill}')" title="${isLocked ? 'Разблокировать' : 'Заблокировать'}">${lockBtnText}</button>
+                    <button class="btn btn-roll" onclick="rollSkill('${skill}')" ${isLocked ? 'disabled' : ''}>Бросок</button>
+                </div>
+            `;
+            section.appendChild(skillRow);
+        });
 
 function increaseSkill(skillName) {
     if (isSkillLocked(skillName)) {
