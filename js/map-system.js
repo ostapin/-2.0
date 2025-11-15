@@ -618,10 +618,10 @@ function showAddMapPopup() {
     alert('Функция добавления карты будет в следующем шаге!');
 }
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ: переключение режима заметок заменено на режим меток
-function toggleNoteMode() {
+// Глобальная функция для переключения режима меток
+function toggleMarkerMode() {
     const isMarkerMode = mapSystem.toggleMarkerMode();
-    const button = document.querySelector('button[onclick="toggleNoteMode()"]');
+    const button = document.querySelector('button[onclick="toggleMarkerMode()"]');
     
     if (isMarkerMode) {
         button.innerHTML = '✅ Режим меток';
