@@ -133,7 +133,7 @@ function loadCalendarState() {
 
 // Функция отрисовки визуального календаря
 function renderVisualCalendar() {
-    const container = document.getElementById('visualCalendar');
+   const container = document.getElementById('calendarVisual');
     if (!container) return;
     
     const monthName = MONTHS[currentDate.month];
