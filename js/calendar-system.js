@@ -30,6 +30,7 @@ let currentDate = {
     month: 0,  // 0-18
     day: 0     // 0-38
 };
+
 // Расчет времени восхода/заката для даты
 function calculateSunTimes(month, day) {
     // Номер дня года (1-741)
@@ -49,6 +50,84 @@ function calculateSunTimes(month, day) {
     };
 }
 
-// Проверка работы (добавь временно)
-console.log("Время для 20 Зимобора:", calculateSunTimes(10, 19)); // 10 месяц, 20 день
-console.log("Календарь загружен! Месяцев:", MONTHS.length);
+// Форматирование даты в красивый текст
+function formatDate(month, day, year, era) {
+    const monthName = MONTHS[month];
+    return `${day + 1} ${monthName} ${year} года, ${era} эра`;
+}
+
+// Функция получения текущей даты
+function getCurrentDate() {
+    return formatDate(
+        currentDate.month, 
+        currentDate.day, 
+        currentDate.year, 
+        currentDate.era
+    );
+}
+
+// Функции управления датой
+function changeYear(delta) {
+    currentDate.year += delta;
+    // Проверка смены эры
+    if (currentDate.year >= CALENDAR_CONSTANTS.YEARS_PER_ERA) {
+        currentDate.era++;
+        currentDate.year = 0;
+    } else if (currentDate.year < 0) {
+        currentDate.era--;
+        currentDate.year = CALENDAR_CONSTANTS.YEARS_PER_ERA - 1;
+    }
+    saveCalendarState();
+}
+
+function changeMonth(delta) {
+    currentDate.month += delta;
+    if (currentDate.month >= CALENDAR_CONSTANTS.MONTH_COUNT) {
+        changeYear(1);
+        currentDate.month = 0;
+    } else if (currentDate.month < 0) {
+        changeYear(-1);
+        currentDate.month = CALENDAR_CONSTANTS.MONTH_COUNT - 1;
+    }
+    saveCalendarState();
+}
+
+function changeDay(delta) {
+    currentDate.day += delta;
+    if (currentDate.day >= CALENDAR_CONSTANTS.DAYS_PER_MONTH) {
+        changeMonth(1);
+        currentDate.day = 0;
+    } else if (currentDate.day < 0) {
+        changeMonth(-1);
+        currentDate.day = CALENDAR_CONSTANTS.DAYS_PER_MONTH - 1;
+    }
+    saveCalendarState();
+}
+
+// Сохранение и загрузка состояния календаря
+function saveCalendarState() {
+    localStorage.setItem('fantasyCalendar', JSON.stringify(currentDate));
+}
+
+function loadCalendarState() {
+    const saved = localStorage.getItem('fantasyCalendar');
+    if (saved) {
+        currentDate = JSON.parse(saved);
+    }
+}
+
+// Инициализация календаря
+function initCalendar() {
+    loadCalendarState();
+    console.log("Календарь инициализирован:", getCurrentDate());
+}
+
+// Проверка работы
+console.log("=== КАЛЕНДАРЬ ЗАГРУЖЕН ===");
+console.log("Месяцев:", MONTHS.length);
+console.log("Текущая дата:", getCurrentDate());
+console.log("Время для 20 Зимобора:", calculateSunTimes(10, 19));
+console.log("Время для 1 Солнцеворота:", calculateSunTimes(0, 0));
+
+// Авто-инициализация при загрузке
+document.addEventListener('DOMContentLoaded', initCalendar);
