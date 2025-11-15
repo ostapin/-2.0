@@ -103,7 +103,6 @@ function determineAvailableMagicSchools(raceId) {
     updateMagicSkillsDisplay();
 }
 
-javascript
 function applyRaceBonuses(raceId) {
     const race = races[raceId];
     if (!race || !race.bonuses) return;
