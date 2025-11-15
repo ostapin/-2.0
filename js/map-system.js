@@ -112,18 +112,30 @@ class MapSystem {
 
     zoomIn() {
         this.zoomLevel = Math.min(this.zoomLevel * 1.2, 5.0);
-        this.renderCurrentMap();
+        this.updateMapTransform();
     }
 
     zoomOut() {
         this.zoomLevel = Math.max(this.zoomLevel / 1.2, 0.2);
-        this.renderCurrentMap();
+        this.updateMapTransform();
     }
 
     resetZoom() {
         this.zoomLevel = 1.0;
         this.panOffset = { x: 0, y: 0 };
-        this.renderCurrentMap();
+        this.updateMapTransform();
+    }
+
+    // ОПТИМИЗИРОВАННЫЙ МЕТОД - только обновляет трансформацию
+    updateMapTransform() {
+        const mapCanvas = document.getElementById('mapCanvas');
+        if (mapCanvas) {
+            mapCanvas.style.transform = `translate(${this.panOffset.x}px, ${this.panOffset.y}px) scale(${this.zoomLevel})`;
+        }
+        const zoomLevel = document.getElementById('zoomLevel');
+        if (zoomLevel) {
+            zoomLevel.textContent = Math.round(this.zoomLevel * 100) + '%';
+        }
     }
 
     enableDragging() {
@@ -148,13 +160,14 @@ class MapSystem {
         e.preventDefault();
     }
 
+    // ОПТИМИЗИРОВАНО - не вызывает полный рендер
     handleMouseMove(e) {
         if (!this.isDragging) return;
         
         this.panOffset.x = e.clientX - this.dragStart.x;
         this.panOffset.y = e.clientY - this.dragStart.y;
         
-        this.renderCurrentMap();
+        this.updateMapTransform(); // Только обновление позиции
     }
 
     handleMouseUp() {
@@ -173,13 +186,14 @@ class MapSystem {
         }
     }
 
+    // ОПТИМИЗИРОВАНО - не вызывает полный рендер
     handleTouchMove(e) {
         if (!this.isDragging || e.touches.length !== 1) return;
         
         this.panOffset.x = e.touches[0].clientX - this.dragStart.x;
         this.panOffset.y = e.touches[0].clientY - this.dragStart.y;
         
-        this.renderCurrentMap();
+        this.updateMapTransform(); // Только обновление позиции
         e.preventDefault();
     }
 
@@ -222,7 +236,6 @@ class MapSystem {
         const mapCanvas = document.getElementById('mapCanvas');
         const noMapMessage = document.getElementById('noMapMessage');
         const mapControls = document.querySelector('.map-controls');
-        const zoomLevel = document.getElementById('zoomLevel');
 
         if (!this.currentMapId || !this.maps[this.currentMapId]) {
             mapContainer.style.display = 'none';
@@ -236,7 +249,6 @@ class MapSystem {
         mapControls.style.display = 'flex';
         
         const currentMap = this.maps[this.currentMapId];
-        zoomLevel.textContent = Math.round(this.zoomLevel * 100) + '%';
 
         mapCanvas.innerHTML = '';
 
@@ -246,7 +258,6 @@ class MapSystem {
         img.style.height = currentMap.height + 'px';
         img.style.display = 'block';
         
-        mapCanvas.style.transform = `translate(${this.panOffset.x}px, ${this.panOffset.y}px) scale(${this.zoomLevel})`;
         mapCanvas.appendChild(img);
 
         const info = document.createElement('div');
@@ -261,6 +272,9 @@ class MapSystem {
         info.textContent = `${currentMap.name} | ${currentMap.width}x${currentMap.height}`;
         mapCanvas.appendChild(info);
 
+        // Обновляем трансформацию после рендера
+        this.updateMapTransform();
+        
         setTimeout(() => this.enableDragging(), 100);
     }
 }
