@@ -239,7 +239,57 @@ function showAddMapPopup() {
 }
 
 function renderCurrentMap() {
-    alert('Рендер карты будет в следующем шаге!');
+    const mapContainer = document.getElementById('mapContainer');
+    const mapCanvas = document.getElementById('mapCanvas');
+    const noMapMessage = document.getElementById('noMapMessage');
+    const mapControls = document.querySelector('.map-controls');
+    const zoomLevel = document.getElementById('zoomLevel');
+
+    if (!mapSystem.currentMapId || !mapSystem.maps[mapSystem.currentMapId]) {
+        // Нет карты - показываем сообщение
+        mapContainer.style.display = 'none';
+        noMapMessage.style.display = 'block';
+        mapControls.style.display = 'none';
+        return;
+    }
+
+    // Показываем карту и управление
+    mapContainer.style.display = 'block';
+    noMapMessage.style.display = 'none';
+    mapControls.style.display = 'flex';
+    
+    const currentMap = mapSystem.maps[mapSystem.currentMapId];
+    zoomLevel.textContent = Math.round(mapSystem.zoomLevel * 100) + '%';
+
+    // Очищаем canvas
+    mapCanvas.innerHTML = '';
+
+    // Создаем изображение карты
+    const img = document.createElement('img');
+    img.src = currentMap.imageUrl;
+    img.style.width = currentMap.width + 'px';
+    img.style.height = currentMap.height + 'px';
+    img.style.display = 'block';
+    
+    // Применяем трансформации (зум и панорамирование)
+    mapCanvas.style.transform = `translate(${mapSystem.panOffset.x}px, ${mapSystem.panOffset.y}px) scale(${mapSystem.zoomLevel})`;
+    
+    mapCanvas.appendChild(img);
+
+    // Показываем информацию о карте
+    const info = document.createElement('div');
+    info.style.position = 'absolute';
+    info.style.top = '10px';
+    info.style.left = '10px';
+    info.style.background = 'rgba(42, 24, 16, 0.8)';
+    info.style.color: '#d4af37';
+    info.style.padding = '5px 10px';
+    info.style.borderRadius = '4px';
+    info.style.fontSize = '14px';
+    info.textContent = `${currentMap.name} | ${currentMap.width}x${currentMap.height}`;
+    mapCanvas.appendChild(info);
+
+    console.log('✅ Карта отрендерена:', currentMap.name);
 }
 
 function toggleNoteMode() {
