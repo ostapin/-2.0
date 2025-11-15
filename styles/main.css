@@ -493,3 +493,14 @@ body {
     border-color: #ffd700;
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
+.calendar-day.empty {
+    background: transparent;
+    border: 1px dashed #5a4a3a;
+    color: #5a4a3a;
+    cursor: default;
+}
+
+.calendar-day.empty:hover {
+    background: transparent;
+    transform: none;
+}
