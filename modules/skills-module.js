@@ -29,26 +29,21 @@ function renderSkills() {
             const lockBtnText = isLocked ? '🔓' : '🔒';
             const lockBtnClass = isLocked ? 'btn-lock locked' : 'btn-lock';
             
-            skillRow.innerHTML = `
-                <div class="skill-name">
-                    <span>🎯</span>
-                    <span>${skill}</span>
-                    ${spellIcon}
-                </div>
-                <div class="skill-controls">
-                    <button class="btn btn-minus" onclick="decreaseSkill('${skill}')" ${isLocked ? 'disabled' : (getSkillValue(skill) <= 5 ? 'disabled' : '')}>-</button>
-                    <span class="skill-value" id="skill-${skill}">${getSkillValue(skill)}</span>
-                    <button class="btn btn-plus" onclick="increaseSkill('${skill}')" ${isLocked ? 'disabled' : (getFreePoints() <= 0 ? 'disabled' : '')}>+</button>
-                    <button class="${lockBtnClass}" onclick="toggleSkillLock('${skill}')" title="${isLocked ? 'Разблокировать' : 'Заблокировать'}">${lockBtnText}</button>
-                    <button class="btn btn-roll" onclick="rollSkill('${skill}')" ${isLocked ? 'disabled' : ''}>Бросок</button>
-                </div>
-            `;
-            section.appendChild(skillRow);
-        });
-        container.appendChild(section);
-    }
-    updateUI();
-}
+             const skillValue = getSkillValue(skill);
+    skillRow.innerHTML = `
+        <div class="skill-name">
+            <span>🎯</span>
+            <span>${skill}</span>
+            ${spellIcon}
+        </div>
+        <div class="skill-controls">
+            <button class="btn btn-minus" onclick="decreaseSkill('${skill}')" ${isLocked ? 'disabled' : (skillValue <= 5 ? 'disabled' : '')}>-</button>
+            <span class="skill-value" id="skill-${skill}">${skillValue}</span>
+            <button class="btn btn-plus" onclick="increaseSkill('${skill}')" ${isLocked ? 'disabled' : (getFreePoints() <= 0 ? 'disabled' : '')}>+</button>
+            <button class="${lockBtnClass}" onclick="toggleSkillLock('${skill}')" title="${isLocked ? 'Разблокировать' : 'Заблокировать'}">${lockBtnText}</button>
+            <button class="btn btn-roll" onclick="rollSkill('${skill}')" ${isLocked ? 'disabled' : ''}>Бросок</button>
+        </div>
+    `;
 
 function isSkillLocked(skillName) {
     return lockedSkills[skillName] || false;
