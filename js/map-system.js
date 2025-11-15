@@ -18,21 +18,21 @@ class MapSystem {
             {
                 id: 'world_map',
                 name: '🗺️ Карта мира', 
-                imageUrl: 'maps/world_map.jpg',
+                imageUrl: 'maps/world_map.jpeg',
                 width: 1200,
                 height: 800
             },
             {
                 id: 'empire_ruda_right',
                 name: '🏛️ Империя Руда (правая)',
-                imageUrl: 'maps/empire_ruda_right.jpg',
+                imageUrl: 'maps/empire_ruda_right.jpeg',
                 width: 1000, 
                 height: 700
             },
             {
                 id: 'empire_ruda_left', 
                 name: '🏛️ Империя Руда (левая)',
-                imageUrl: 'maps/empire_ruda_left.jpg',
+                imageUrl: 'maps/empire_ruda_left.jpeg',
                 width: 1000,
                 height: 700
             }
