@@ -107,6 +107,7 @@ function changeDay(delta) {
 // Сохранение и загрузка состояния календаря
 function saveCalendarState() {
     localStorage.setItem('fantasyCalendar', JSON.stringify(currentDate));
+    updateCalendarDisplay(); 
 }
 
 function loadCalendarState() {
@@ -128,6 +129,24 @@ console.log("Месяцев:", MONTHS.length);
 console.log("Текущая дата:", getCurrentDate());
 console.log("Время для 20 Зимобора:", calculateSunTimes(10, 19));
 console.log("Время для 1 Солнцеворота:", calculateSunTimes(0, 0));
-
+// Обновление отображения календаря
+function updateCalendarDisplay() {
+    // Обновляем дату
+    const dateDisplay = document.getElementById('currentDateDisplay');
+    if (dateDisplay) {
+        dateDisplay.textContent = getCurrentDate();
+    }
+    
+    // Обновляем время восхода/заката
+    const sunDisplay = document.getElementById('sunTimesDisplay');
+    if (sunDisplay) {
+        const sunTimes = calculateSunTimes(currentDate.month, currentDate.day);
+        sunDisplay.innerHTML = `
+            <strong>🌅 Восход:</strong> ${sunTimes.sunrise} часа<br>
+            <strong>🌇 Закат:</strong> ${sunTimes.sunset} часа<br>
+            <strong>📏 День:</strong> ${sunTimes.dayLength} часа
+        `;
+    }
+}
 // Авто-инициализация при загрузке
 document.addEventListener('DOMContentLoaded', initCalendar);
