@@ -94,15 +94,38 @@ class MapSystem {
     }
 
     checkCurrentMapAvailability() {
-        if (this.currentMapId && !this.maps[this.currentMapId]) {
-            this.currentMapId = null;
-            this.saveCurrentMap();
-        }
-        
-        if (!this.currentMapId && this.markerMode) {
+    let wasCurrentMapRemoved = false;
+    
+    if (this.currentMapId && !this.maps[this.currentMapId]) {
+        // Карта была удалена или недоступна
+        console.log(`🗑️ Карта ${this.currentMapId} была удалена, сбрасываем текущую карту`);
+        this.currentMapId = null;
+        this.saveCurrentMap();
+        wasCurrentMapRemoved = true;
+    }
+    
+    // Сбрасываем режим меток если нет активной карты
+    if (!this.currentMapId) {
+        if (this.markerMode) {
+            console.log('🔁 Сбрасываем режим меток - нет активной карты');
             this.cancelMarkerMode();
         }
+        // Также скрываем панель управления
+        const mapControls = document.querySelector('.map-controls');
+        const noMapMessage = document.getElementById('noMapMessage');
+        const mapContainer = document.getElementById('mapContainer');
+        
+        if (mapControls) mapControls.style.display = 'none';
+        if (noMapMessage) noMapMessage.style.display = 'block';
+        if (mapContainer) mapContainer.style.display = 'none';
     }
+    
+    // Обновляем кнопки в любом случае
+    this.updateMarkerButton();
+    this.updateVisibilityButton();
+    
+    return wasCurrentMapRemoved;
+}
 
     updateMarkerButton() {
         const button = document.querySelector('button[onclick="toggleMarkerMode()"]');
@@ -651,17 +674,23 @@ function toggleMarkersVisibility() {
 }
 
 function showMapsList() {
+    // Сначала проверяем доступность карт
+    mapSystem.checkCurrentMapAvailability();
+    
     const popup = document.createElement('div');
     popup.className = 'popup';
     
     let mapsHTML = '';
     Object.values(mapSystem.maps).forEach(map => {
         const isCurrent = mapSystem.currentMapId === map.id;
+        // Двойная проверка - карта должна существовать И быть текущей
+        const actuallyCurrent = isCurrent && mapSystem.maps[map.id];
+        
         mapsHTML += `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #2c1810; margin: 5px 0; border-radius: 4px;">
                 <span>${map.name}</span>
                 <div>
-                    ${!isCurrent ? 
+                    ${!actuallyCurrent ? 
                         `<button class="btn btn-small" onclick="switchToMap('${map.id}')" style="background: #27ae60;">🎯 Выбрать</button>` : 
                         `<button class="btn btn-small" disabled style="background: #5a3928;">✅ Активна</button>`
                     }
@@ -674,6 +703,7 @@ function showMapsList() {
     popup.innerHTML = `
         <div class="popup-content">
             <h2 style="color: #d4af37;">📋 Список карт</h2>
+            ${!mapSystem.currentMapId ? '<p style="color: #e74c3c; text-align: center; margin: 10px 0;">⚠️ Текущая карта недоступна</p>' : ''}
             <div style="max-height: 400px; overflow-y: auto;">
                 ${mapsHTML || '<p style="color: #8b7d6b; text-align: center;">Карт нет</p>'}
             </div>
