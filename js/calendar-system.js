@@ -181,7 +181,7 @@ for (let i = 0; i < totalCells; i++) {
     container.innerHTML = `
         <div style="margin-bottom: 15px;">
             <div style="font-size: 1.2em; color: ${breathColor}; margin-bottom: 5px;">${breath}</div>
-            <div style="font-size: 1.4em; font-weight: bold; color: #d4af37;">${monthName}</div>
+            <div style="font-size: 1.4em; font-weight: bold; color: #d4af37;">${monthName} (${currentDate.month + 1})</div>
             <div style="color: #e0d0c0;">${year} год, ${era} эра</div>
         </div>
         <div class="calendar-grid">
