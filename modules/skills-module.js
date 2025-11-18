@@ -293,7 +293,7 @@ function lockInitialSkills(character) {
     
     // Блокируем магию, которая не доступна расе
     const allMagicSchools = skillsStructure["🔮 МАГИЯ"];
-    const availableMagic = character.magic.availableSchools;
+   const availableMagic = availableMagicSchools;
     
     allMagicSchools.forEach(magicSchool => {
         // Если магия НЕ доступна расе - блокируем её
