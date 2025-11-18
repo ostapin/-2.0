@@ -15,7 +15,7 @@ function setSkillValue(skillName, value) {
     }
     
     characters[currentCharacterId].skills[skillName] = Math.max(5, value);
-    saveCharacterData();
+    saveCharacters();
 }
 
 // ДОБАВИТЬ ЭТИ ФУНКЦИИ ДЛЯ РАБОТЫ С ОЧКАМИ
