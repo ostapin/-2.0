@@ -296,11 +296,9 @@ function lockInitialSkills(character) {
   const availableMagic = character.magic.availableSchools;
     
     allMagicSchools.forEach(magicSchool => {
-        // Если магия НЕ доступна расе - блокируем её
-        if (!availableMagic[magicSchool]) {
-            lockedSkills[magicSchool] = true;
-        }
-    });
+    // Блокируем только НЕдоступную магию
+    lockedSkills[magicSchool] = !availableMagic[magicSchool];
+});
     
     saveLockedSkills();
 }
