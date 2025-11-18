@@ -98,6 +98,9 @@ function createNewCharacter() {
     // Определяем доступные школы магии
     determineAvailableMagicSchoolsForCharacter(newCharacter, race);
     
+    // Блокируем начальные навыки
+lockInitialSkills(newCharacter);
+    
     characters[characterId] = newCharacter;
     saveCharacters();
     
