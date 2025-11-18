@@ -269,3 +269,26 @@ function showRollResult(skillName, skillValue, dice, total, resultText, resultCl
     `;
     document.body.appendChild(popup);
 }
+// ========== БЛОКИРОВКА НАЧАЛЬНЫХ НАВЫКОВ ==========
+
+function lockInitialSkills(character) {
+    // Всегда блокируем эти навыки
+    const alwaysLockedSkills = ["Руны", "Формации", "Ремесло"];
+    
+    alwaysLockedSkills.forEach(skill => {
+        lockedSkills[skill] = true;
+    });
+    
+    // Блокируем магию, которая не доступна расе
+    const allMagicSchools = skillsStructure["🔮 МАГИЯ"];
+    const availableMagic = character.magic.availableSchools;
+    
+    allMagicSchools.forEach(magicSchool => {
+        // Если магия НЕ доступна расе - блокируем её
+        if (!availableMagic[magicSchool]) {
+            lockedSkills[magicSchool] = true;
+        }
+    });
+    
+    saveLockedSkills();
+}
