@@ -112,14 +112,16 @@ function applyRaceBonuses(raceId) {
     
     Object.entries(race.bonuses).forEach(([skill, bonus]) => {
         const currentValue = getSkillValue(skill);
-        // Убедимся, что бонус применяется только один раз
-        const baseValue = currentValue - (race.bonuses[skill] || 0);
-        setSkillValue(skill, baseValue + bonus);
+        // Если значение равно базовому (5), просто добавляем бонус
+        if (currentValue <= 5) {
+            setSkillValue(skill, 5 + bonus);
+        }
+        // Если значение уже было изменено, сохраняем его
+        // (бонус уже должен быть учтен)
     });
     
     updateUI();
 }
-
 // ДОБАВИТЬ ЭТУ ФУНКЦИЮ ДЛЯ ЗАГРУЗКИ СУЩЕСТВУЮЩЕГО ПЕРСОНАЖА
 function loadRaceBonuses(raceId) {
     const race = races[raceId];
