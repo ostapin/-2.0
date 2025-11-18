@@ -132,6 +132,7 @@ function increaseSkill(skillName) {
             updateMagicSkillsDisplay();
             updateUI();
             saveCharacterData();
+            renderSkills(); // ДОБАВЛЕНО
         }
         return;
     }
@@ -143,6 +144,7 @@ function increaseSkill(skillName) {
         setFreePoints(freePoints - 1);
         updateUI();
         saveCharacterData();
+        renderSkills(); // ДОБАВЛЕНО
     }
 }
 
@@ -159,6 +161,7 @@ function decreaseSkill(skillName) {
         setFreePoints(freePoints + 1);
         updateUI();
         saveCharacterData();
+        renderSkills(); // ДОБАВЛЕНО
     }
 }
 
