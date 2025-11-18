@@ -86,6 +86,9 @@ function determineAvailableMagicSchools(raceId) {
             break;
         case 'goblin':
             break;
+            case 'kaei':
+    character.magic.availableSchools["Магия металла"] = true;
+    break;
         default:
             const randomSchool = baseMagicSchools[Math.floor(Math.random() * baseMagicSchools.length)];
             availableMagicSchools[randomSchool] = true;
