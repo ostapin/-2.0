@@ -18,6 +18,18 @@ function setSkillValue(skillName, value) {
     saveCharacterData();
 }
 
+// ДОБАВИТЬ ЭТИ ФУНКЦИИ ДЛЯ РАБОТЫ С ОЧКАМИ
+function getFreePoints() {
+    if (!currentCharacterId || !characters[currentCharacterId]) return 0;
+    return characters[currentCharacterId].freePoints || 0;
+}
+
+function setFreePoints(value) {
+    if (!currentCharacterId || !characters[currentCharacterId]) return;
+    characters[currentCharacterId].freePoints = Math.max(0, value);
+    updateUI();
+} 
+
 function renderSkills() {
     const container = document.getElementById('skillsContainer');
     if (!container) return;
