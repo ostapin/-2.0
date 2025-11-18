@@ -127,6 +127,12 @@ function determineAvailableMagicSchoolsForCharacter(character, raceId) {
             case 'kaei':
     character.magic.availableSchools["Магия металла"] = true;
     break;
+case 'atski': // ДОБАВЬ ЭТОТ КЕЙС
+    character.magic.availableSchools["Магия огня"] = true;
+    break;
+case 'vorki': // ДОБАВЬ ЭТОТ КЕЙС
+    character.magic.availableSchools["Магия воды"] = true;
+    break;
         default:
             const randomSchool = baseMagicSchools[Math.floor(Math.random() * baseMagicSchools.length)];
             character.magic.availableSchools[randomSchool] = true;
