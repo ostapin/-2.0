@@ -81,16 +81,31 @@ class AuthSystem {
         document.body.insertAdjacentHTML('beforeend', popupHTML);
     }
 
-    // Надежное скрытие попапа
-    hideAuthPopup() {
-        const popup = document.getElementById('auth-popup');
-        if (popup) {
-            popup.remove();
+   // Надежное скрытие попапа
+hideAuthPopup() {
+    // Удаляем попап
+    const popup = document.getElementById('auth-popup');
+    if (popup) popup.remove();
+    
+    // Удаляем все возможные overlay
+    document.querySelectorAll('.auth-modal, .modal, [class*="overlay"]').forEach(el => el.remove());
+    
+    // Удаляем все fixed элементы с высоким z-index
+    document.querySelectorAll('*').forEach(el => {
+        const style = getComputedStyle(el);
+        if (style.position === 'fixed' && parseInt(style.zIndex) > 1000) {
+            el.remove();
         }
-        // Дополнительно ищем по классу
-        const authModals = document.querySelectorAll('.auth-modal');
-        authModals.forEach(modal => modal.remove());
+    });
+    
+    // Восстанавливаем интерфейс
+    document.body.style.pointerEvents = 'auto';
+    const container = document.querySelector('.container');
+    if (container) {
+        container.style.pointerEvents = 'auto';
+        container.style.opacity = '1';
     }
+}
 
     // Показываем форму входа
     showLoginForm() {
