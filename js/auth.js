@@ -104,11 +104,12 @@ class AuthSystem {
     }
 
     // Закрываем попап
-    closeAuthPopup() {
-        if (this.currentUser) {
-            document.getElementById('auth-popup').style.display = 'none';
-        }
+closeAuthPopup() {
+    const authPopup = document.getElementById('auth-popup');
+    if (authPopup) {
+        authPopup.style.display = 'none';
     }
+}
 
     // Вход в систему
     login() {
