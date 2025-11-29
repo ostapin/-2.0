@@ -155,7 +155,7 @@ function openTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(tabName + '-tab').classList.add('active');
-    event.currentTarget.classList.add('active');
+    document.querySelector(`.tab-btn[onclick*="${tabName}"]`).classList.add('active');
 }
 
 // Функции для работы с буфером обмена
