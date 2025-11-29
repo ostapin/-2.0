@@ -18,7 +18,7 @@ class AuthSystem {
         
         if (savedUser) {
             this.currentUser = JSON.parse(savedUser);
-            document.body.classList.add('user-authenticated');
+            this.hideAuthPopup();
             this.onLoginSuccess(this.currentUser);
         } else {
             this.showAuthPopup();
@@ -27,22 +27,15 @@ class AuthSystem {
 
     // Показываем попап авторизации
     showAuthPopup() {
-        // Создаем попап если его нет
-        if (!document.getElementById('auth-popup')) {
-            this.createAuthPopup();
-        }
-        document.getElementById('auth-popup').style.display = 'flex';
-        document.body.classList.remove('user-authenticated');
-    }
-
-    // Создаем HTML для попапа авторизации
-    createAuthPopup() {
+        // Удаляем старый попап если есть
+        this.hideAuthPopup();
+        
         const popupHTML = `
             <div id="auth-popup" class="auth-modal">
                 <div class="auth-container">
                     <div class="auth-header">
                         <h2>🔐 Авторизация</h2>
-                        <button class="close-btn" onclick="authSystem.forceClosePopup()">×</button>
+                        <button class="close-btn" onclick="authSystem.hideAuthPopup()">×</button>
                     </div>
                     
                     <!-- Форма входа -->
@@ -88,6 +81,17 @@ class AuthSystem {
         document.body.insertAdjacentHTML('beforeend', popupHTML);
     }
 
+    // Надежное скрытие попапа
+    hideAuthPopup() {
+        const popup = document.getElementById('auth-popup');
+        if (popup) {
+            popup.remove();
+        }
+        // Дополнительно ищем по классу
+        const authModals = document.querySelectorAll('.auth-modal');
+        authModals.forEach(modal => modal.remove());
+    }
+
     // Показываем форму входа
     showLoginForm() {
         document.getElementById('login-form').style.display = 'block';
@@ -104,25 +108,9 @@ class AuthSystem {
     toggleMasterPassword() {
         const userType = document.getElementById('user-type').value;
         const masterField = document.getElementById('master-password-field');
-        masterField.style.display = userType === 'master' ? 'block' : 'none';
-    }
-
-    // Закрываем попап
-    closeAuthPopup() {
-        const authPopup = document.getElementById('auth-popup');
-        if (authPopup) {
-            authPopup.style.display = 'none';
+        if (masterField) {
+            masterField.style.display = userType === 'master' ? 'block' : 'none';
         }
-    }
-
-    // Принудительное закрытие попапа
-    forceClosePopup() {
-        const authPopup = document.getElementById('auth-popup');
-        if (authPopup) {
-            authPopup.style.display = 'none';
-            authPopup.remove();
-        }
-        document.body.classList.add('user-authenticated');
     }
 
     // Вход в систему
@@ -221,13 +209,12 @@ class AuthSystem {
     completeLogin(user) {
         this.currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(user));
-        this.onLoginSuccess(user);
         
-        // Небольшая задержка для гарантированного закрытия
-        setTimeout(() => {
-            this.forceClosePopup();
-            this.showMessage(`Добро пожаловать, ${user.login}! (${user.role === 'master' ? '👑 Мастер' : '🎮 Игрок'})`, 'success');
-        }, 50);
+        // Надежно закрываем попап
+        this.hideAuthPopup();
+        
+        this.onLoginSuccess(user);
+        this.showMessage(`Добро пожаловать, ${user.login}! (${user.role === 'master' ? '👑 Мастер' : '🎮 Игрок'})`, 'success');
     }
 
     // Выход из системы
@@ -242,6 +229,9 @@ class AuthSystem {
     onLoginSuccess(user) {
         console.log('Пользователь вошел:', user);
         this.updateUI();
+        
+        // Перезагружаем основные системы
+        this.reloadSystems();
     }
 
     // Выход
@@ -252,13 +242,40 @@ class AuthSystem {
 
     // Обновление интерфейса
     updateUI() {
+        // Показываем/скрываем кнопку аккаунта
+        this.showAccountButton();
+        
         // Показываем/скрываем основной интерфейс
         const mainInterface = document.querySelector('.container');
         if (mainInterface) {
-            mainInterface.style.display = this.currentUser ? 'block' : 'none';
+            mainInterface.style.opacity = this.currentUser ? '1' : '0.3';
+            mainInterface.style.pointerEvents = this.currentUser ? 'auto' : 'none';
         }
-        
-        console.log('Обновляем интерфейс для пользователя:', this.currentUser);
+    }
+
+    // Показываем кнопку аккаунта
+    showAccountButton() {
+        // Удаляем старую кнопку если есть
+        const oldBtn = document.getElementById('account-btn');
+        if (oldBtn) oldBtn.remove();
+
+        if (this.currentUser) {
+            const btn = document.createElement('button');
+            btn.id = 'account-btn';
+            btn.className = 'account-btn';
+            btn.innerHTML = '👤';
+            btn.onclick = () => accountManager.toggleAccountDrawer();
+            
+            document.body.appendChild(btn);
+        }
+    }
+
+    // Перезагрузка систем
+    reloadSystems() {
+        // Перезагружаем вкладки чтобы они инициализировались для нового пользователя
+        if (typeof openTab === 'function') {
+            setTimeout(() => openTab('character'), 100);
+        }
     }
 
     // Показ сообщений
@@ -276,7 +293,14 @@ class AuthSystem {
         // Закрытие по ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                this.forceClosePopup();
+                this.hideAuthPopup();
+            }
+        });
+
+        // При клике вне попапа
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('auth-modal')) {
+                this.hideAuthPopup();
             }
         });
     }
