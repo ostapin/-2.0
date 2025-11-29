@@ -2,6 +2,7 @@
 class AuthSystem {
     constructor() {
         this.currentUser = null;
+        this.MASTER_PASSWORD = "20011997Ostapin3";
         this.init();
     }
 
@@ -17,6 +18,7 @@ class AuthSystem {
         
         if (savedUser) {
             this.currentUser = JSON.parse(savedUser);
+            document.body.classList.add('user-authenticated');
             this.onLoginSuccess(this.currentUser);
         } else {
             this.showAuthPopup();
@@ -30,6 +32,7 @@ class AuthSystem {
             this.createAuthPopup();
         }
         document.getElementById('auth-popup').style.display = 'flex';
+        document.body.classList.remove('user-authenticated');
     }
 
     // Создаем HTML для попапа авторизации
@@ -39,7 +42,7 @@ class AuthSystem {
                 <div class="auth-container">
                     <div class="auth-header">
                         <h2>🔐 Авторизация</h2>
-                        <button class="close-btn" onclick="authSystem.closeAuthPopup()">×</button>
+                        <button class="close-btn" onclick="authSystem.forceClosePopup()">×</button>
                     </div>
                     
                     <!-- Форма входа -->
@@ -73,6 +76,7 @@ class AuthSystem {
                         </div>
                         <div id="master-password-field" class="input-group" style="display: none;">
                             <input type="password" id="master-password" placeholder="Пароль мастера" class="auth-input">
+                            <small>Требуется специальный пароль</small>
                         </div>
                         <button class="auth-btn primary" onclick="authSystem.register()">Создать аккаунт</button>
                         <button class="auth-btn secondary" onclick="authSystem.showLoginForm()">Назад к входу</button>
@@ -104,12 +108,22 @@ class AuthSystem {
     }
 
     // Закрываем попап
-closeAuthPopup() {
-    const authPopup = document.getElementById('auth-popup');
-    if (authPopup) {
-        authPopup.style.display = 'none';
+    closeAuthPopup() {
+        const authPopup = document.getElementById('auth-popup');
+        if (authPopup) {
+            authPopup.style.display = 'none';
+        }
     }
-}
+
+    // Принудительное закрытие попапа
+    forceClosePopup() {
+        const authPopup = document.getElementById('auth-popup');
+        if (authPopup) {
+            authPopup.style.display = 'none';
+            authPopup.remove();
+        }
+        document.body.classList.add('user-authenticated');
+    }
 
     // Вход в систему
     login() {
@@ -121,7 +135,6 @@ closeAuthPopup() {
             return;
         }
 
-        // ВРЕМЕННАЯ ЗАГЛУШКА - потом заменим на реальную авторизацию
         const user = {
             id: this.generateId(),
             login: login,
@@ -145,7 +158,14 @@ closeAuthPopup() {
             return;
         }
 
-        // ВРЕМЕННАЯ ЗАГЛУШКА
+        // Проверяем пароль мастера если выбран режим мастера
+        if (userType === 'master') {
+            if (!this.validateMasterPassword(masterPassword)) {
+                this.showMessage('Неверный пароль мастера', 'error');
+                return;
+            }
+        }
+
         const user = {
             id: this.generateId(),
             login: login,
@@ -155,6 +175,11 @@ closeAuthPopup() {
         };
 
         this.completeLogin(user);
+    }
+
+    // Валидация пароля мастера
+    validateMasterPassword(password) {
+        return password === this.MASTER_PASSWORD;
     }
 
     // Валидация входа
@@ -197,8 +222,12 @@ closeAuthPopup() {
         this.currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(user));
         this.onLoginSuccess(user);
-        this.closeAuthPopup();
-        this.showMessage(`Добро пожаловать, ${user.login}!`, 'success');
+        
+        // Небольшая задержка для гарантированного закрытия
+        setTimeout(() => {
+            this.forceClosePopup();
+            this.showMessage(`Добро пожаловать, ${user.login}! (${user.role === 'master' ? '👑 Мастер' : '🎮 Игрок'})`, 'success');
+        }, 50);
     }
 
     // Выход из системы
@@ -212,20 +241,23 @@ closeAuthPopup() {
     // Успешный вход
     onLoginSuccess(user) {
         console.log('Пользователь вошел:', user);
-        // Здесь будем обновлять интерфейс
         this.updateUI();
     }
 
     // Выход
     onLogout() {
         console.log('Пользователь вышел');
-        // Сбрасываем интерфейс
         this.updateUI();
     }
 
     // Обновление интерфейса
     updateUI() {
-        // Здесь будем показывать/скрывать кнопку аккаунта
+        // Показываем/скрываем основной интерфейс
+        const mainInterface = document.querySelector('.container');
+        if (mainInterface) {
+            mainInterface.style.display = this.currentUser ? 'block' : 'none';
+        }
+        
         console.log('Обновляем интерфейс для пользователя:', this.currentUser);
     }
 
@@ -241,7 +273,12 @@ closeAuthPopup() {
 
     // Настройка обработчиков событий
     setupEventListeners() {
-        // Добавим позже
+        // Закрытие по ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.forceClosePopup();
+            }
+        });
     }
 }
 
