@@ -94,38 +94,51 @@ class AuthSystem {
 
     // Показываем форму входа
     showLoginForm() {
-        document.getElementById('login-form').style.display = 'block';
-        document.getElementById('register-form').style.display = 'none';
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        if (loginForm && registerForm) {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+        }
     }
 
     // Показываем форму регистрации
     showRegisterForm() {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('register-form').style.display = 'block';
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        if (loginForm && registerForm) {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        }
     }
 
     // Переключаем поле пароля мастера
     toggleMasterPassword() {
-        const userType = document.getElementById('user-type').value;
+        const userType = document.getElementById('user-type');
         const masterField = document.getElementById('master-password-field');
-        if (masterField) {
-            masterField.style.display = userType === 'master' ? 'block' : 'none';
+        if (userType && masterField) {
+            masterField.style.display = userType.value === 'master' ? 'block' : 'none';
         }
     }
 
     // Вход в систему
     login() {
-        const login = document.getElementById('login-input').value;
-        const password = document.getElementById('password-input').value;
+        const login = document.getElementById('login-input');
+        const password = document.getElementById('password-input');
+        
+        if (!login || !password) {
+            this.showMessage('Заполните все поля', 'error');
+            return;
+        }
 
-        if (!this.validateCredentials(login, password)) {
+        if (!this.validateCredentials(login.value, password.value)) {
             this.showMessage('Заполните все поля', 'error');
             return;
         }
 
         const user = {
             id: this.generateId(),
-            login: login,
+            login: login.value,
             role: 'player',
             isAuthenticated: true,
             lastLogin: new Date().toISOString()
@@ -136,19 +149,26 @@ class AuthSystem {
 
     // Регистрация
     register() {
-        const login = document.getElementById('reg-login').value;
-        const password = document.getElementById('reg-password').value;
-        const passwordConfirm = document.getElementById('reg-password-confirm').value;
-        const userType = document.getElementById('user-type').value;
-        const masterPassword = document.getElementById('master-password').value;
+        const login = document.getElementById('reg-login');
+        const password = document.getElementById('reg-password');
+        const passwordConfirm = document.getElementById('reg-password-confirm');
+        const userType = document.getElementById('user-type');
+        const masterPassword = document.getElementById('master-password');
 
-        if (!this.validateRegistration(login, password, passwordConfirm, userType, masterPassword)) {
+        if (!login || !password || !passwordConfirm || !userType) {
+            this.showMessage('Заполните все поля', 'error');
+            return;
+        }
+
+        const masterPwdValue = masterPassword ? masterPassword.value : '';
+
+        if (!this.validateRegistration(login.value, password.value, passwordConfirm.value, userType.value, masterPwdValue)) {
             return;
         }
 
         // Проверяем пароль мастера если выбран режим мастера
-        if (userType === 'master') {
-            if (!this.validateMasterPassword(masterPassword)) {
+        if (userType.value === 'master') {
+            if (!this.validateMasterPassword(masterPwdValue)) {
                 this.showMessage('Неверный пароль мастера', 'error');
                 return;
             }
@@ -156,8 +176,8 @@ class AuthSystem {
 
         const user = {
             id: this.generateId(),
-            login: login,
-            role: userType,
+            login: login.value,
+            role: userType.value,
             isAuthenticated: true,
             createdAt: new Date().toISOString()
         };
@@ -229,9 +249,6 @@ class AuthSystem {
     onLoginSuccess(user) {
         console.log('Пользователь вошел:', user);
         this.updateUI();
-        
-        // Перезагружаем основные системы
-        this.reloadSystems();
     }
 
     // Выход
@@ -264,17 +281,13 @@ class AuthSystem {
             btn.id = 'account-btn';
             btn.className = 'account-btn';
             btn.innerHTML = '👤';
-            btn.onclick = () => accountManager.toggleAccountDrawer();
+            btn.onclick = () => {
+                if (typeof accountManager !== 'undefined' && accountManager.toggleAccountDrawer) {
+                    accountManager.toggleAccountDrawer();
+                }
+            };
             
             document.body.appendChild(btn);
-        }
-    }
-
-    // Перезагрузка систем
-    reloadSystems() {
-        // Перезагружаем вкладки чтобы они инициализировались для нового пользователя
-        if (typeof openTab === 'function') {
-            setTimeout(() => openTab('character'), 100);
         }
     }
 
