@@ -564,3 +564,317 @@ body {
     left: -5px;
     font-size: 12px;
 }
+/* ===== СИСТЕМА АВТОРИЗАЦИИ ===== */
+
+/* Стили для модального окна */
+.auth-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.auth-container {
+    background: #2a1a0f;
+    border: 2px solid #8b4513;
+    border-radius: 8px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+}
+
+.auth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #8b4513;
+    padding-bottom: 10px;
+}
+
+.auth-header h2 {
+    color: #d4af37;
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #8b7d6b;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.close-btn:hover {
+    color: #d4af37;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 2px solid #8b4513;
+    border-radius: 4px;
+    background: #1a0f0b;
+    color: #e0d0c0;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.auth-input:focus {
+    border-color: #d4af37;
+    outline: none;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-btn.primary {
+    background: #8b4513;
+    color: white;
+}
+
+.auth-btn.primary:hover {
+    background: #a0522d;
+}
+
+.auth-btn.secondary {
+    background: #5d4037;
+    color: white;
+}
+
+.auth-btn.secondary:hover {
+    background: #795548;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group small {
+    display: block;
+    margin-top: 5px;
+    color: #8b7d6b;
+    font-size: 12px;
+}
+
+.auth-form {
+    transition: all 0.3s ease;
+}
+
+/* Стили для кнопки аккаунта */
+.account-btn {
+    background: #8b4513;
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+.account-btn:hover {
+    background: #a0522d;
+    transform: scale(1.1);
+}
+
+/* Шторка аккаунта */
+.account-drawer {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 350px;
+    height: 100%;
+    background: #2a1a0f;
+    border-left: 2px solid #8b4513;
+    z-index: 1002;
+    transition: right 0.3s ease;
+}
+
+.account-drawer.open {
+    right: 0;
+}
+
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+}
+
+.drawer-content {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #8b4513;
+    padding-bottom: 15px;
+}
+
+.drawer-header h3 {
+    color: #d4af37;
+    margin: 0;
+}
+
+.close-drawer-btn {
+    background: none;
+    border: none;
+    color: #8b7d6b;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.close-drawer-btn:hover {
+    color: #d4af37;
+}
+
+/* Информация о пользователе */
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 15px;
+    background: #3d2418;
+    border-radius: 8px;
+}
+
+.user-avatar {
+    font-size: 40px;
+    margin-right: 15px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    color: #e0d0c0;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.user-role {
+    color: #8b7d6b;
+    font-size: 14px;
+}
+
+/* Меню шторки */
+.drawer-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.drawer-menu-item {
+    background: #3d2418;
+    border: 1px solid #8b4513;
+    border-radius: 6px;
+    padding: 15px;
+    color: #e0d0c0;
+    cursor: pointer;
+    text-align: left;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.drawer-menu-item:hover {
+    background: #8b4513;
+    border-color: #d4af37;
+    transform: translateX(5px);
+}
+
+.logout-btn {
+    background: #5d1a1a;
+    border-color: #8b0000;
+    margin-top: 20px;
+}
+
+.logout-btn:hover {
+    background: #8b0000;
+}
+
+/* Стили для настроек */
+.settings-form {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.settings-form h3 {
+    color: #d4af37;
+    margin: 20px 0 10px 0;
+    border-bottom: 1px solid #8b4513;
+    padding-bottom: 5px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .account-drawer {
+        width: 300px;
+    }
+    
+    .account-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+    
+    .auth-container {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .account-drawer {
+        width: 280px;
+    }
+    
+    .drawer-content {
+        padding: 15px;
+    }
+    
+    .auth-container {
+        padding: 15px;
+    }
+}
