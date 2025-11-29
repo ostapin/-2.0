@@ -2,10 +2,10 @@
 class AccountManager {
     constructor() {
         this.accountDrawer = null;
-        this.init();
+        // Не инициализируем сразу - ждем загрузки authSystem
     }
 
-    // Инициализация
+    // Инициализация (вызывается после загрузки authSystem)
     init() {
         this.createAccountButton();
         this.createAccountDrawer();
@@ -14,6 +14,10 @@ class AccountManager {
 
     // Создаем кнопку аккаунта в верхнем правом углу
     createAccountButton() {
+        // Удаляем старую кнопку если есть
+        const oldBtn = document.getElementById('account-btn');
+        if (oldBtn) oldBtn.remove();
+
         const accountBtn = document.createElement('button');
         accountBtn.id = 'account-btn';
         accountBtn.className = 'account-btn';
@@ -40,6 +44,10 @@ class AccountManager {
 
     // Создаем шторку аккаунта
     createAccountDrawer() {
+        // Удаляем старую шторку если есть
+        const oldDrawer = document.getElementById('account-drawer');
+        if (oldDrawer) oldDrawer.remove();
+
         const drawerHTML = `
             <div id="account-drawer" class="account-drawer">
                 <div class="drawer-overlay" onclick="accountManager.closeAccountDrawer()"></div>
@@ -84,6 +92,10 @@ class AccountManager {
 
     // Открываем/закрываем шторку
     toggleAccountDrawer() {
+        if (!this.accountDrawer) {
+            this.createAccountDrawer();
+        }
+        
         if (this.accountDrawer.classList.contains('open')) {
             this.closeAccountDrawer();
         } else {
@@ -93,43 +105,61 @@ class AccountManager {
 
     // Открываем шторку
     openAccountDrawer() {
+        if (!this.accountDrawer) {
+            this.createAccountDrawer();
+        }
         this.updateUserInfo();
         this.accountDrawer.classList.add('open');
-        document.body.style.overflow = 'hidden'; // Блокируем скролл
+        document.body.style.overflow = 'hidden';
     }
 
     // Закрываем шторку
     closeAccountDrawer() {
-        this.accountDrawer.classList.remove('open');
-        document.body.style.overflow = ''; // Разблокируем скролл
+        if (this.accountDrawer) {
+            this.accountDrawer.classList.remove('open');
+            document.body.style.overflow = '';
+        }
     }
 
     // Обновляем информацию о пользователе
     updateUserInfo() {
+        // Проверяем что authSystem загружен
+        if (typeof authSystem === 'undefined' || !authSystem) {
+            console.warn('authSystem не загружен');
+            return;
+        }
+
         const currentUser = authSystem.currentUser;
+        const userNameElement = document.getElementById('drawer-user-name');
+        const userRoleElement = document.getElementById('drawer-user-role');
+        
+        if (!userNameElement || !userRoleElement) {
+            console.warn('Элементы шторки не найдены');
+            return;
+        }
         
         if (currentUser) {
-            document.getElementById('drawer-user-name').textContent = currentUser.login;
-            document.getElementById('drawer-user-role').textContent = 
+            userNameElement.textContent = currentUser.login || 'Гость';
+            userRoleElement.textContent = 
                 currentUser.role === 'master' ? '👑 Мастер' : '🎮 Игрок';
             
             // Показываем/скрываем панель мастера
             const masterBtn = document.getElementById('master-panel-btn');
-            masterBtn.style.display = currentUser.role === 'master' ? 'block' : 'none';
+            if (masterBtn) {
+                masterBtn.style.display = currentUser.role === 'master' ? 'block' : 'none';
+            }
         } else {
-            document.getElementById('drawer-user-name').textContent = 'Гость';
-            document.getElementById('drawer-user-role').textContent = 'Не авторизован';
+            userNameElement.textContent = 'Гость';
+            userRoleElement.textContent = 'Не авторизован';
         }
     }
 
     // Показываем персонажей пользователя
     showCharacters() {
         this.closeAccountDrawer();
-        // Переключаемся на вкладку персонажей
         if (typeof openTab === 'function') {
             openTab('characters');
         }
-        alert('Переход к управлению персонажами');
     }
 
     // Показываем настройки
@@ -140,6 +170,7 @@ class AccountManager {
 
     // Модальное окно настроек
     showSettingsModal() {
+        const currentUser = authSystem?.currentUser;
         const modalHTML = `
             <div class="modal" id="settings-modal">
                 <div class="auth-container">
@@ -163,7 +194,7 @@ class AccountManager {
 
                         <h3>Смена имени</h3>
                         <div class="input-group">
-                            <input type="text" id="new-name" placeholder="Новое имя" class="auth-input" value="${authSystem.currentUser?.login || ''}">
+                            <input type="text" id="new-name" placeholder="Новое имя" class="auth-input" value="${currentUser?.login || ''}">
                         </div>
                         <button class="auth-btn secondary" onclick="accountManager.changeName()">Сменить имя</button>
                     </div>
@@ -171,7 +202,6 @@ class AccountManager {
             </div>
         `;
 
-        // Удаляем старую модалку если есть
         const oldModal = document.getElementById('settings-modal');
         if (oldModal) oldModal.remove();
 
@@ -186,9 +216,9 @@ class AccountManager {
 
     // Смена пароля
     changePassword() {
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
+        const currentPassword = document.getElementById('current-password')?.value;
+        const newPassword = document.getElementById('new-password')?.value;
+        const confirmPassword = document.getElementById('confirm-password')?.value;
 
         if (!currentPassword || !newPassword || !confirmPassword) {
             alert('Заполните все поля');
@@ -205,22 +235,19 @@ class AccountManager {
             return;
         }
 
-        // ВРЕМЕННАЯ ЗАГЛУШКА
         alert('Пароль изменен (временная заглушка)');
         this.closeSettingsModal();
     }
 
     // Смена имени
     changeName() {
-        const newName = document.getElementById('new-name').value;
-
+        const newName = document.getElementById('new-name')?.value;
         if (!newName || newName.length < 3) {
             alert('Имя должно быть не менее 3 символов');
             return;
         }
 
-        // ВРЕМЕННАЯ ЗАГЛУШКА
-        if (authSystem.currentUser) {
+        if (authSystem?.currentUser) {
             authSystem.currentUser.login = newName;
             localStorage.setItem('currentUser', JSON.stringify(authSystem.currentUser));
             this.updateUserInfo();
@@ -281,16 +308,18 @@ class AccountManager {
     // Загружаем список игроков (заглушка)
     loadPlayersList() {
         const playersList = document.getElementById('players-list');
-        playersList.innerHTML = `
-            <div class="player-card">
-                <span class="player-name">Пример игрока</span>
-                <span class="player-status online">🟢 Онлайн</span>
-                <button class="btn-small">👀 Персонажи</button>
-            </div>
-            <p style="color: #8b7d6b; text-align: center; margin-top: 20px;">
-                Реальный список игроков появится после подключения Firebase
-            </p>
-        `;
+        if (playersList) {
+            playersList.innerHTML = `
+                <div class="player-card">
+                    <span class="player-name">Пример игрока</span>
+                    <span class="player-status online">🟢 Онлайн</span>
+                    <button class="btn-small">👀 Персонажи</button>
+                </div>
+                <p style="color: #8b7d6b; text-align: center; margin-top: 20px;">
+                    Реальный список игроков появится после подключения Firebase
+                </p>
+            `;
+        }
     }
 
     // Закрываем панель мастера
@@ -302,33 +331,46 @@ class AccountManager {
     // Показываем статус синхронизации
     showSyncStatus() {
         this.closeAccountDrawer();
-        const stats = syncManager.getStats();
-        
-        alert(`Статус синхронизации:
+        if (typeof syncManager !== 'undefined') {
+            const stats = syncManager.getStats();
+            alert(`Статус синхронизации:
 📊 Всего изменений: ${stats.total}
 ✅ Синхронизировано: ${stats.synced}
 ⏳ В очереди: ${stats.pending}
 🌐 Статус: ${stats.isOnline ? 'ОНЛАЙН' : 'ОФФЛАЙН'}`);
+        } else {
+            alert('Менеджер синхронизации не загружен');
+        }
     }
 
     // Выход из системы
     logout() {
         if (confirm('Вы уверены, что хотите выйти?')) {
-            authSystem.logout();
+            if (authSystem) {
+                authSystem.logout();
+            }
             this.closeAccountDrawer();
         }
     }
 
     // Настройка обработчиков событий
     setupEventListeners() {
-        // Закрытие шторки по ESC
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.accountDrawer.classList.contains('open')) {
+            if (e.key === 'Escape' && this.accountDrawer?.classList.contains('open')) {
                 this.closeAccountDrawer();
             }
         });
     }
 }
 
-// Создаем глобальный экземпляр менеджера аккаунтов
+// Создаем глобальный экземпляр, но не инициализируем сразу
 const accountManager = new AccountManager();
+
+// Инициализируем после загрузки страницы и authSystem
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        if (typeof authSystem !== 'undefined') {
+            accountManager.init();
+        }
+    }, 100);
+});
