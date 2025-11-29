@@ -96,6 +96,11 @@ class AccountManager {
             this.createAccountDrawer();
         }
         
+        if (!this.accountDrawer) {
+            console.error('Шторка не создана');
+            return;
+        }
+        
         if (this.accountDrawer.classList.contains('open')) {
             this.closeAccountDrawer();
         } else {
@@ -108,6 +113,13 @@ class AccountManager {
         if (!this.accountDrawer) {
             this.createAccountDrawer();
         }
+        
+        // Проверяем что шторка создана
+        if (!this.accountDrawer) {
+            console.error('Шторка не создана');
+            return;
+        }
+        
         this.updateUserInfo();
         this.accountDrawer.classList.add('open');
         document.body.style.overflow = 'hidden';
