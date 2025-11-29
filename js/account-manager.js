@@ -50,7 +50,6 @@ class AccountManager {
 
         const drawerHTML = `
             <div id="account-drawer" class="account-drawer">
-                <div class="drawer-overlay" onclick="accountManager.closeAccountDrawer()"></div>
                 <div class="drawer-content">
                     <div class="drawer-header">
                         <h3>👤 Аккаунт</h3>
