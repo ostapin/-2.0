@@ -1,24 +1,21 @@
-// Конфигурация Firebase (пока заглушка)
+// Конфигурация Firebase
 class FirebaseConfig {
     constructor() {
         this.initialized = false;
         this.config = {
-            // Эти данные мы получим позже при создании проекта Firebase
-            apiKey: "будет_позже",
-            authDomain: "будет_позже",
-            projectId: "будет_позже",
-            storageBucket: "будет_позже",
-            messagingSenderId: "будет_позже",
-            appId: "будет_позже"
+            apiKey: "AIzaSyB4dwuKayRlendiLcRvLxuuJ5ksELXYk70",
+            authDomain: "ostapin-games.firebaseapp.com",
+            projectId: "ostapin-games",
+            storageBucket: "ostapin-games.firebasestorage.app",
+            messagingSenderId: "868166452130",
+            appId: "1:868166452130:web:b968aab55adec1264ea8fb"
         };
     }
 
-    // Инициализация Firebase
     async initialize() {
         if (this.initialized) return true;
         
         try {
-            // Проверяем доступность Firebase
             if (typeof firebase === 'undefined') {
                 console.warn('Firebase не подключен. Работаем в офлайн-режиме.');
                 return false;
@@ -31,38 +28,30 @@ class FirebaseConfig {
             this.db = firebase.firestore();
             this.auth = firebase.auth();
             
+            // Включаем офлайн-поддержку
+            this.db.enablePersistence().catch((err) => {
+                console.warn('Офлайн-режим не доступен:', err);
+            });
+            
             this.initialized = true;
-            console.log('Firebase инициализирован');
+            console.log('✅ Firebase инициализирован');
             return true;
         } catch (error) {
-            console.error('Ошибка инициализации Firebase:', error);
+            console.error('❌ Ошибка Firebase:', error);
             return false;
         }
     }
 
-    // Получаем экземпляр базы данных
     getDatabase() {
         return this.db;
     }
 
-    // Получаем экземпляр аутентификации
     getAuth() {
         return this.auth;
     }
 
-    // Проверяем онлайн статус
     isOnline() {
         return navigator.onLine && this.initialized;
-    }
-
-    // Настройка офлайн-персистентности
-    enableOfflinePersistence() {
-        if (this.db) {
-            this.db.enablePersistence()
-                .catch((err) => {
-                    console.warn('Офлайн-персистентность не доступна:', err);
-                });
-        }
     }
 }
 
