@@ -241,21 +241,36 @@ hideAuthPopup() {
     }
 
      // Завершение входа
-    completeLogin(user) {
-        this.currentUser = user;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        
-        // Надежно закрываем попап
-        this.hideAuthPopup();
-        
-        // Инициализируем accountManager после входа
-        if (typeof accountManager !== 'undefined') {
-            accountManager.init();
-        }
-        
-        this.onLoginSuccess(user);
-        this.showMessage(`Добро пожаловать, ${user.login}! (${user.role === 'master' ? '👑 Мастер' : '🎮 Игрок'})`, 'success');
+async completeLogin(user) {
+    this.currentUser = user;
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    
+    // Надежно закрываем попап
+    this.hideAuthPopup();
+    
+    // Инициализируем accountManager после входа
+    if (typeof accountManager !== 'undefined') {
+        accountManager.init();
     }
+    
+    // ✅ ДОБАВЛЯЕМ: Сохраняем пользователя в Firestore
+    if (firebaseConfig.isOnline()) {
+        try {
+            const db = firebaseConfig.getDatabase();
+            await db.collection('users').doc(user.id).set({
+                login: user.login,
+                role: user.role,
+                lastLogin: new Date().toISOString()
+            }, { merge: true }); // merge: true - обновляет только указанные поля
+            console.log('✅ Пользователь сохранен в Firestore');
+        } catch (error) {
+            console.error('❌ Ошибка сохранения пользователя:', error);
+        }
+    }
+    
+    this.onLoginSuccess(user);
+    this.showMessage(`Добро пожаловать, ${user.login}! (${user.role === 'master' ? '👑 Мастер' : '🎮 Игрок'})`, 'success');
+}
 
     // Выход из системы
     logout() {
