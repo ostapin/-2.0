@@ -33,24 +33,6 @@ createAccountButton() {
     document.body.appendChild(accountBtn);
 }
         
-        // Добавляем кнопку в интерфейс
-        const header = document.querySelector('.header');
-        if (header) {
-            header.style.position = 'relative';
-            accountBtn.style.position = 'absolute';
-            accountBtn.style.top = '20px';
-            accountBtn.style.right = '20px';
-            header.appendChild(accountBtn);
-        } else {
-            // Если нет хедера, добавляем в body
-            accountBtn.style.position = 'fixed';
-            accountBtn.style.top = '20px';
-            accountBtn.style.right = '20px';
-            accountBtn.style.zIndex = '1000';
-            document.body.appendChild(accountBtn);
-        }
-    }
-
     // Создаем шторку аккаунта
     createAccountDrawer() {
         // Удаляем старую шторку если есть
