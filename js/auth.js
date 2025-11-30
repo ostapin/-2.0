@@ -240,13 +240,18 @@ hideAuthPopup() {
         return true;
     }
 
-    // Завершение входа
+     // Завершение входа
     completeLogin(user) {
         this.currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(user));
         
         // Надежно закрываем попап
         this.hideAuthPopup();
+        
+        // Инициализируем accountManager после входа
+        if (typeof accountManager !== 'undefined') {
+            accountManager.init();
+        }
         
         this.onLoginSuccess(user);
         this.showMessage(`Добро пожаловать, ${user.login}! (${user.role === 'master' ? '👑 Мастер' : '🎮 Игрок'})`, 'success');
