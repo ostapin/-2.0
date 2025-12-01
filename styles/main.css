@@ -1311,3 +1311,17 @@ body.no-scroll {
     gap: 10px;
     margin-top: 20px;
 }
+/* Кнопка профиля всегда поверх всего */
+.account-btn {
+    z-index: 1100 !important; /* Выше настроек (1000) и шторки (1000) */
+}
+
+/* Настройки и шторка */
+.settings-container, .account-drawer {
+    z-index: 1000;
+}
+
+/* Оверлей шторки */
+.account-drawer::before {
+    z-index: 999;
+}
