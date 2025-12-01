@@ -878,3 +878,115 @@ body {
         padding: 15px;
     }
 }
+/* Стили для панели мастера */
+.player-card {
+    background: #2a1a0f;
+    border: 1px solid #8b4513;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-info {
+    flex: 1;
+}
+
+.player-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.player-name {
+    font-weight: bold;
+    color: #d4af37;
+}
+
+.player-status {
+    font-size: 0.9em;
+}
+
+.player-status.online {
+    color: #4caf50;
+}
+
+.player-status.offline {
+    color: #757575;
+}
+
+.player-details {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85em;
+    color: #b0a18e;
+}
+
+.player-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 4px 10px;
+    font-size: 0.8em;
+    background: #5d4037;
+    border: 1px solid #8b4513;
+    color: #e0d0c0;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.btn-small:hover {
+    background: #8b4513;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    background: #3d2418;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    color: #b0a18e;
+    font-size: 0.9em;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #d4af37;
+}
+
+.search-box {
+    margin: 15px 0;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px;
+    background: #2a1a0f;
+    border: 1px solid #8b4513;
+    color: #e0d0c0;
+    border-radius: 4px;
+}
+
+.impersonate-section {
+    background: #3d2418;
+    padding: 15px;
+    border-radius: 6px;
+    border: 2px solid #d4af37;
+}
