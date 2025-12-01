@@ -137,30 +137,46 @@ hideAuthPopup() {
     }
 
     // Вход в систему
-    login() {
-        const login = document.getElementById('login-input');
-        const password = document.getElementById('password-input');
+   // Вход в систему
+async login() {
+    const login = document.getElementById('login-input').value;
+    const password = document.getElementById('password-input').value;
+
+    if (!login || !password) {
+        this.showMessage('Заполните все поля', 'error');
+        return;
+    }
+
+    try {
+        // 🔐 Настоящая аутентификация через Firebase
+        const auth = firebaseConfig.getAuth();
+        const userCredential = await auth.signInWithEmailAndPassword(login + '@ostapin-games.com', password);
+        const firebaseUser = userCredential.user;
         
-        if (!login || !password) {
-            this.showMessage('Заполните все поля', 'error');
+        // Загружаем данные пользователя из Firestore
+        const db = firebaseConfig.getDatabase();
+        const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+        
+        if (!userDoc.exists) {
+            this.showMessage('Пользователь не найден', 'error');
             return;
         }
 
-        if (!this.validateCredentials(login.value, password.value)) {
-            this.showMessage('Заполните все поля', 'error');
-            return;
-        }
-
+        const userData = userDoc.data();
         const user = {
-            id: this.generateId(),
-            login: login.value,
-            role: 'player',
+            id: firebaseUser.uid,
+            login: userData.login,
+            role: userData.role,
             isAuthenticated: true,
             lastLogin: new Date().toISOString()
         };
 
         this.completeLogin(user);
+    } catch (error) {
+        console.error('Ошибка входа:', error);
+        this.showMessage('Неверный логин или пароль', 'error');
     }
+}
 
     // Регистрация
     register() {
