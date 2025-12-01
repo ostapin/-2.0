@@ -2,7 +2,7 @@
 class AccountManager {
     constructor() {
         this.accountDrawer = null;
-        // Не инициализируем сразу - ждем загрузки authSystem
+        this.currentImpersonation = null;
     }
 
     // Инициализация (вызывается после загрузки authSystem)
@@ -12,30 +12,27 @@ class AccountManager {
         this.setupEventListeners();
     }
 
-  // Создаем кнопку аккаунта в верхнем правом углу
-createAccountButton() {
-    // Удаляем старую кнопку если есть
-    const oldBtn = document.getElementById('account-btn');
-    if (oldBtn) oldBtn.remove();
+    // Создаем кнопку аккаунта в верхнем правом углу
+    createAccountButton() {
+        const oldBtn = document.getElementById('account-btn');
+        if (oldBtn) oldBtn.remove();
 
-    const accountBtn = document.createElement('button');
-    accountBtn.id = 'account-btn';
-    accountBtn.className = 'account-btn';
-    accountBtn.innerHTML = '👤';
-    accountBtn.onclick = () => this.toggleAccountDrawer();
-    
-    // ВСЕГДА добавляем в body, фиксированно в правом верхнем углу
-    accountBtn.style.position = 'fixed';
-    accountBtn.style.top = '25px';
-    accountBtn.style.right = '25px';
-    accountBtn.style.zIndex = '1001';
-    
-    document.body.appendChild(accountBtn);
-}
+        const accountBtn = document.createElement('button');
+        accountBtn.id = 'account-btn';
+        accountBtn.className = 'account-btn';
+        accountBtn.innerHTML = '👤';
+        accountBtn.onclick = () => this.toggleAccountDrawer();
+        
+        accountBtn.style.position = 'fixed';
+        accountBtn.style.top = '25px';
+        accountBtn.style.right = '25px';
+        accountBtn.style.zIndex = '1001';
+        
+        document.body.appendChild(accountBtn);
+    }
         
     // Создаем шторку аккаунта
     createAccountDrawer() {
-        // Удаляем старую шторку если есть
         const oldDrawer = document.getElementById('account-drawer');
         if (oldDrawer) oldDrawer.remove();
 
@@ -86,11 +83,6 @@ createAccountButton() {
             this.createAccountDrawer();
         }
         
-        if (!this.accountDrawer) {
-            console.error('Шторка не создана');
-            return;
-        }
-        
         if (this.accountDrawer.classList.contains('open')) {
             this.closeAccountDrawer();
         } else {
@@ -100,16 +92,7 @@ createAccountButton() {
 
     // Открываем шторку
     openAccountDrawer() {
-        if (!this.accountDrawer) {
-            this.createAccountDrawer();
-        }
-        
-        // Проверяем что шторка создана
-        if (!this.accountDrawer) {
-            console.error('Шторка не создана');
-            return;
-        }
-        
+        if (!this.accountDrawer) this.createAccountDrawer();
         this.updateUserInfo();
         this.accountDrawer.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -125,27 +108,18 @@ createAccountButton() {
 
     // Обновляем информацию о пользователе
     updateUserInfo() {
-        // Проверяем что authSystem загружен
-        if (typeof authSystem === 'undefined' || !authSystem) {
-            console.warn('authSystem не загружен');
-            return;
-        }
+        if (typeof authSystem === 'undefined') return;
 
         const currentUser = authSystem.currentUser;
         const userNameElement = document.getElementById('drawer-user-name');
         const userRoleElement = document.getElementById('drawer-user-role');
         
-        if (!userNameElement || !userRoleElement) {
-            console.warn('Элементы шторки не найдены');
-            return;
-        }
+        if (!userNameElement || !userRoleElement) return;
         
         if (currentUser) {
             userNameElement.textContent = currentUser.login || 'Гость';
-            userRoleElement.textContent = 
-                currentUser.role === 'master' ? '👑 Мастер' : '🎮 Игрок';
+            userRoleElement.textContent = currentUser.role === 'master' ? '👑 Мастер' : '🎮 Игрок';
             
-            // Показываем/скрываем панель мастера
             const masterBtn = document.getElementById('master-panel-btn');
             if (masterBtn) {
                 masterBtn.style.display = currentUser.role === 'master' ? 'block' : 'none';
@@ -159,9 +133,7 @@ createAccountButton() {
     // Показываем персонажей пользователя
     showCharacters() {
         this.closeAccountDrawer();
-        if (typeof openTab === 'function') {
-            openTab('characters');
-        }
+        if (typeof openTab === 'function') openTab('characters');
     }
 
     // Показываем настройки
@@ -206,7 +178,6 @@ createAccountButton() {
 
         const oldModal = document.getElementById('settings-modal');
         if (oldModal) oldModal.remove();
-
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
@@ -265,38 +236,50 @@ createAccountButton() {
         this.showMasterPanelModal();
     }
 
-    // Модальное окно панели мастера
+    // Модальное окно панели мастера (ОБНОВЛЕННЫЙ!)
     showMasterPanelModal() {
         const modalHTML = `
             <div class="modal" id="master-modal">
-                <div class="auth-container" style="max-width: 600px;">
+                <div class="auth-container" style="max-width: 800px;">
                     <div class="auth-header">
                         <h2>👑 Панель мастера</h2>
                         <button class="close-btn" onclick="accountManager.closeMasterPanel()">×</button>
                     </div>
                     
                     <div class="master-panel">
-                        <h3>Управление игроками</h3>
-                        <div id="players-list" class="players-list">
-                            <p style="color: #8b7d6b; text-align: center;">Загрузка списка игроков...</p>
-                        </div>
-                        
                         <div class="master-stats">
-                            <h3>Статистика</h3>
                             <div class="stats-grid">
                                 <div class="stat-item">
                                     <span class="stat-label">Всего игроков:</span>
-                                    <span class="stat-value">0</span>
+                                    <span class="stat-value" id="total-players">0</span>
                                 </div>
                                 <div class="stat-item">
                                     <span class="stat-label">Онлайн:</span>
-                                    <span class="stat-value">0</span>
+                                    <span class="stat-value" id="online-players">0</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-label">Активных игр:</span>
-                                    <span class="stat-value">0</span>
+                                    <span class="stat-label">Персонажей:</span>
+                                    <span class="stat-value" id="total-characters">0</span>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="players-section">
+                            <h3>👥 Игроки</h3>
+                            <div class="search-box">
+                                <input type="text" id="search-players" placeholder="🔍 Поиск игрока..." 
+                                       oninput="accountManager.searchPlayers(this.value)">
+                            </div>
+                            <div id="players-list" class="players-list">
+                                <p style="color: #8b7d6b; text-align: center;">Загрузка...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="impersonate-section" style="display: none; margin-top: 20px;">
+                            <h3>🔁 Переключение на игрока</h3>
+                            <div id="impersonate-info"></div>
+                            <button class="btn btn-roll" onclick="accountManager.switchToPlayer()">🔄 Войти как этот игрок</button>
+                            <button class="btn btn-minus" onclick="accountManager.stopImpersonating()">🚪 Вернуться в свой аккаунт</button>
                         </div>
                     </div>
                 </div>
@@ -307,21 +290,187 @@ createAccountButton() {
         this.loadPlayersList();
     }
 
-    // Загружаем список игроков (заглушка)
-    loadPlayersList() {
-        const playersList = document.getElementById('players-list');
-        if (playersList) {
-            playersList.innerHTML = `
-                <div class="player-card">
-                    <span class="player-name">Пример игрока</span>
-                    <span class="player-status online">🟢 Онлайн</span>
-                    <button class="btn-small">👀 Персонажи</button>
-                </div>
-                <p style="color: #8b7d6b; text-align: center; margin-top: 20px;">
-                    Реальный список игроков появится после подключения Firebase
-                </p>
-            `;
+    // Загружаем список игроков (ОБНОВЛЕННЫЙ!)
+    async loadPlayersList() {
+        try {
+            const db = firebaseConfig.getDatabase();
+            const usersSnapshot = await db.collection('users').get();
+            const charactersSnapshot = await db.collection('characters').get();
+            
+            const players = [];
+            usersSnapshot.forEach(doc => {
+                if (doc.data().role !== 'master') {
+                    players.push({
+                        id: doc.id,
+                        ...doc.data(),
+                        charactersCount: 0,
+                        lastSeen: null
+                    });
+                }
+            });
+            
+            players.forEach(player => {
+                player.charactersCount = charactersSnapshot.docs
+                    .filter(char => char.data().userId === player.id).length;
+            });
+            
+            this.renderPlayersList(players);
+            this.updateStats(players, charactersSnapshot.size);
+        } catch (error) {
+            console.error('Ошибка загрузки игроков:', error);
+            const container = document.getElementById('players-list');
+            if (container) {
+                container.innerHTML = '<p style="color: #ff6b6b;">Ошибка загрузки</p>';
+            }
         }
+    }
+
+    // Рендер списка игроков
+    renderPlayersList(players) {
+        const container = document.getElementById('players-list');
+        if (!container) return;
+        
+        if (players.length === 0) {
+            container.innerHTML = '<p style="color: #8b7d6b;">Игроков нет</p>';
+            return;
+        }
+        
+        container.innerHTML = players.map(player => `
+            <div class="player-card" data-user-id="${player.id}">
+                <div class="player-info">
+                    <div class="player-name-row">
+                        <span class="player-name">${player.login}</span>
+                        <span class="player-status ${this.getPlayerStatus(player)}">
+                            ${this.getPlayerStatus(player) === 'online' ? '🟢' : '⚫'}
+                        </span>
+                    </div>
+                    <div class="player-details">
+                        <span class="player-role">🎮 Игрок</span>
+                        <span class="player-characters">🧙 ${player.charactersCount} перс.</span>
+                        <span class="player-last-seen">🕒 ${this.formatLastSeen(player.lastLogin)}</span>
+                    </div>
+                </div>
+                <div class="player-actions">
+                    <button class="btn-small" onclick="accountManager.viewPlayerCharacters('${player.id}', '${player.login}')">
+                        👀 Персонажи
+                    </button>
+                    <button class="btn-small" onclick="accountManager.impersonatePlayer('${player.id}', '${player.login}')">
+                        🔄 Переключиться
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Просмотр персонажей игрока
+    viewPlayerCharacters(userId, userName) {
+        if (typeof openTab === 'function') openTab('characters');
+        console.log(`👀 Просмотр персонажей игрока ${userName}`);
+        // TODO: Реализовать фильтрацию персонажей по userId
+    }
+
+    // Переключение на аккаунт игрока
+    impersonatePlayer(userId, userName) {
+        this.currentImpersonation = { userId, userName };
+        
+        const infoDiv = document.getElementById('impersonate-info');
+        const section = document.querySelector('.impersonate-section');
+        
+        if (infoDiv && section) {
+            infoDiv.innerHTML = `
+                <p>Вы переключаетесь на аккаунт: <strong>${userName}</strong></p>
+                <p>Вы сможете видеть и редактировать его персонажей</p>
+            `;
+            section.style.display = 'block';
+        }
+    }
+
+    // Реальное переключение на игрока
+    async switchToPlayer() {
+        if (!this.currentImpersonation) return;
+        
+        const originalUser = authSystem.currentUser;
+        localStorage.setItem('originalUser', JSON.stringify(originalUser));
+        
+        const db = firebaseConfig.getDatabase();
+        const userDoc = await db.collection('users').doc(this.currentImpersonation.userId).get();
+        
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            const impersonatedUser = {
+                id: this.currentImpersonation.userId,
+                login: userData.login,
+                role: userData.role,
+                isAuthenticated: true,
+                isImpersonated: true
+            };
+            
+            authSystem.currentUser = impersonatedUser;
+            localStorage.setItem('currentUser', JSON.stringify(impersonatedUser));
+            
+            accountManager.updateUserInfo();
+            authSystem.updateUI();
+            
+            alert(`✅ Теперь вы вошли как: ${userData.login}`);
+            this.closeMasterPanel();
+        }
+    }
+
+    // Выход из режима переключения
+    stopImpersonating() {
+        const originalUser = JSON.parse(localStorage.getItem('originalUser'));
+        
+        if (originalUser) {
+            authSystem.currentUser = originalUser;
+            localStorage.setItem('currentUser', JSON.stringify(originalUser));
+            localStorage.removeItem('originalUser');
+            
+            accountManager.updateUserInfo();
+            authSystem.updateUI();
+            
+            alert('✅ Вы вернулись в свой аккаунт');
+        }
+        
+        this.currentImpersonation = null;
+        const section = document.querySelector('.impersonate-section');
+        if (section) section.style.display = 'none';
+    }
+
+    // Определяем статус онлайн/оффлайн
+    getPlayerStatus(player) {
+        return player.lastLogin && 
+               (Date.now() - new Date(player.lastLogin).getTime() < 5 * 60 * 1000) 
+               ? 'online' : 'offline';
+    }
+
+    // Форматируем время последнего входа
+    formatLastSeen(timestamp) {
+        if (!timestamp) return 'никогда';
+        
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+        
+        if (diffHours < 1) return 'только что';
+        if (diffHours < 24) return `${diffHours} ч назад`;
+        return date.toLocaleDateString();
+    }
+
+    // Обновление статистики
+    updateStats(players, totalCharacters) {
+        const totalEl = document.getElementById('total-players');
+        const onlineEl = document.getElementById('online-players');
+        const charsEl = document.getElementById('total-characters');
+        
+        if (totalEl) totalEl.textContent = players.length;
+        if (onlineEl) onlineEl.textContent = players.filter(p => this.getPlayerStatus(p) === 'online').length;
+        if (charsEl) charsEl.textContent = totalCharacters;
+    }
+
+    // Поиск игроков
+    searchPlayers(query) {
+        console.log('Поиск:', query);
+        // TODO: Реализовать поиск
     }
 
     // Закрываем панель мастера
@@ -348,9 +497,7 @@ createAccountButton() {
     // Выход из системы
     logout() {
         if (confirm('Вы уверены, что хотите выйти?')) {
-            if (authSystem) {
-                authSystem.logout();
-            }
+            if (authSystem) authSystem.logout();
             this.closeAccountDrawer();
         }
     }
@@ -365,10 +512,10 @@ createAccountButton() {
     }
 }
 
-// Создаем глобальный экземпляр, но не инициализируем сразу
+// Создаем глобальный экземпляр
 const accountManager = new AccountManager();
 
-// Инициализируем после загрузки страницы и authSystem
+// Инициализируем после загрузки
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         if (typeof authSystem !== 'undefined') {
