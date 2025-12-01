@@ -12,17 +12,8 @@ class SettingsModule {
     init() {
         if (this.initialized) return;
         
-        // Загружаем зависимости
-        this.loadDependencies();
-        
         this.initialized = true;
         console.log('✅ Модуль настроек инициализирован');
-    }
-
-    // Загружаем другие модули
-    loadDependencies() {
-        // UI будет создан динамически
-        // Остальные модули подгружаются когда нужны
     }
 
     // Открыть страницу настроек
@@ -32,13 +23,16 @@ class SettingsModule {
         // 1. Закрываем текущие модалки
         this.closeAllModals();
         
-        // 2. Создаём контейнер для настроек
+        // 2. Блокируем скролл
+        document.body.classList.add('no-scroll');
+        
+        // 3. Создаём контейнер для настроек
         this.createSettingsContainer();
         
-        // 3. Загружаем и показываем страницу
+        // 4. Загружаем и показываем страницу
         this.loadPage(page);
         
-        // 4. Показываем кнопку профиля
+        // 5. Показываем кнопку профиля
         this.showProfileButton();
     }
 
@@ -135,7 +129,7 @@ class SettingsModule {
                     <div class="settings-item-arrow">→</div>
                 </div>
                 
-                <div class="settings-item" onclick="accountManager.showSyncStatus()">
+                <div class="settings-item" onclick="settingsModule.openSyncSettings()">
                     <div class="settings-item-icon">🔄</div>
                     <div class="settings-item-text">
                         <h3>Данные и синхронизация</h3>
@@ -217,6 +211,56 @@ class SettingsModule {
         `;
     }
 
+    // Настройки синхронизации
+    openSyncSettings() {
+        const container = document.getElementById('settings-content');
+        const title = document.getElementById('settings-title');
+        
+        if (!container || !title) return;
+        
+        title.textContent = 'Синхронизация';
+        
+        if (typeof syncManager !== 'undefined') {
+            const stats = syncManager.getStats();
+            container.innerHTML = `
+                <div class="sync-settings">
+                    <h3>Статус синхронизации</h3>
+                    <div class="sync-stats">
+                        <div class="sync-stat">
+                            <span class="sync-label">Всего изменений:</span>
+                            <span class="sync-value">${stats.total}</span>
+                        </div>
+                        <div class="sync-stat">
+                            <span class="sync-label">Синхронизировано:</span>
+                            <span class="sync-value">${stats.synced}</span>
+                        </div>
+                        <div class="sync-stat">
+                            <span class="sync-label">В очереди:</span>
+                            <span class="sync-value">${stats.pending}</span>
+                        </div>
+                        <div class="sync-stat">
+                            <span class="sync-label">Статус:</span>
+                            <span class="sync-value ${stats.isOnline ? 'online' : 'offline'}">
+                                ${stats.isOnline ? 'ОНЛАЙН 🟢' : 'ОФФЛАЙН 🔴'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="sync-controls">
+                        <button class="btn btn-roll" onclick="syncManager.forceSync()">🔄 Принудительная синхронизация</button>
+                        <button class="btn btn-minus" onclick="syncManager.clearQueue()">🗑️ Очистить очередь</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="sync-settings">
+                    <p style="color: #ff6b6b;">Менеджер синхронизации не загружен</p>
+                </div>
+            `;
+        }
+    }
+
     // Назад
     goBack() {
         if (this.currentPage === 'main') {
@@ -231,8 +275,13 @@ class SettingsModule {
         const container = document.getElementById('settings-container');
         if (container) container.remove();
         
-        // Скрываем кнопку профиля если нужно
-        this.hideProfileButton();
+        // Разблокируем скролл
+        document.body.classList.remove('no-scroll');
+        
+        // Восстанавливаем кнопку профиля
+        if (typeof accountManager !== 'undefined') {
+            accountManager.createAccountButton();
+        }
     }
 
     // Закрыть все модалки
@@ -245,12 +294,6 @@ class SettingsModule {
         if (!document.getElementById('account-btn')) {
             accountManager.createAccountButton();
         }
-    }
-
-    // Скрыть кнопку профиля
-    hideProfileButton() {
-        const btn = document.getElementById('account-btn');
-        if (btn) btn.style.display = 'none';
     }
 
     // Заглушки для будущих функций
