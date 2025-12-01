@@ -178,43 +178,55 @@ async login() {
     }
 }
 
-    // Регистрация
-    register() {
-        const login = document.getElementById('reg-login');
-        const password = document.getElementById('reg-password');
-        const passwordConfirm = document.getElementById('reg-password-confirm');
-        const userType = document.getElementById('user-type');
-        const masterPassword = document.getElementById('master-password');
+   // Регистрация  
+async register() {
+    const login = document.getElementById('reg-login').value;
+    const password = document.getElementById('reg-password').value;
+    const passwordConfirm = document.getElementById('reg-password-confirm').value;
+    const userType = document.getElementById('user-type').value;
+    const masterPassword = document.getElementById('master-password').value;
 
-        if (!login || !password || !passwordConfirm || !userType) {
-            this.showMessage('Заполните все поля', 'error');
+    if (!this.validateRegistration(login, password, passwordConfirm, userType, masterPassword)) {
+        return;
+    }
+
+    // Проверяем пароль мастера если выбран режим мастера
+    if (userType === 'master') {
+        if (!this.validateMasterPassword(masterPassword)) {
+            this.showMessage('Неверный пароль мастера', 'error');
             return;
         }
+    }
 
-        const masterPwdValue = masterPassword ? masterPassword.value : '';
-
-        if (!this.validateRegistration(login.value, password.value, passwordConfirm.value, userType.value, masterPwdValue)) {
-            return;
-        }
-
-        // Проверяем пароль мастера если выбран режим мастера
-        if (userType.value === 'master') {
-            if (!this.validateMasterPassword(masterPwdValue)) {
-                this.showMessage('Неверный пароль мастера', 'error');
-                return;
-            }
-        }
-
+    try {
+        // 🔐 Настоящая регистрация через Firebase
+        const auth = firebaseConfig.getAuth();
+        const userCredential = await auth.createUserWithEmailAndPassword(login + '@ostapin-games.com', password);
+        const firebaseUser = userCredential.user;
+        
+        // ✅ СОХРАНЯЕМ пользователя в Firestore
+        const db = firebaseConfig.getDatabase();
+        await db.collection('users').doc(firebaseUser.uid).set({
+            login: login,
+            role: userType,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString()
+        });
+        
         const user = {
-            id: this.generateId(),
-            login: login.value,
-            role: userType.value,
+            id: firebaseUser.uid,
+            login: login,
+            role: userType,
             isAuthenticated: true,
             createdAt: new Date().toISOString()
         };
 
         this.completeLogin(user);
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        this.showMessage('Ошибка регистрации: ' + error.message, 'error');
     }
+}
 
     // Валидация пароля мастера
     validateMasterPassword(password) {
