@@ -271,6 +271,12 @@ async register() {
      // Завершение входа
 async completeLogin(user) {
     this.currentUser = user;
+    
+    // 🔥 ДОБАВИЛ: Сохраняем originalRole для мастера
+    if (user.role === 'master') {
+        user.originalRole = 'master';
+    }
+    
     localStorage.setItem('currentUser', JSON.stringify(user));
     
     // Надежно закрываем попап
