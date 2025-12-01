@@ -68,9 +68,6 @@ class AccountManager {
                             '<button class="drawer-menu-item" id="master-panel-btn" onclick="accountManager.showMasterPanel()">👑 Панель мастера</button>' : 
                             ''
                         }
-                        <button class="drawer-menu-item" onclick="accountManager.showSyncStatus()">
-                            🔄 Статус синхронизации
-                        </button>
                         <button class="drawer-menu-item logout-btn" onclick="accountManager.logout()">
                             🚪 Выйти
                         </button>
@@ -151,15 +148,15 @@ class AccountManager {
         if (typeof openTab === 'function') openTab('characters');
     }
 
+    // Показываем настройки
     showSettings() {
-    this.closeAccountDrawer();
-    if (typeof settingsModule !== 'undefined') {
-        settingsModule.openSettingsPage();
-    } else {
-        // Если модуль настроек не загружен, показываем старое окно
-        this.showSettingsModal();
+        this.closeAccountDrawer();
+        if (typeof settingsModule !== 'undefined') {
+            settingsModule.openSettingsPage();
+        } else {
+            this.showSettingsModal();
+        }
     }
-}
 
     // Модальное окно настроек
     showSettingsModal() {
@@ -385,7 +382,6 @@ class AccountManager {
     viewPlayerCharacters(userId, userName) {
         if (typeof openTab === 'function') openTab('characters');
         console.log(`👀 Просмотр персонажей игрока ${userName}`);
-        // TODO: Реализовать фильтрацию персонажей по userId
     }
 
     // Переключение на аккаунт игрока
@@ -409,7 +405,6 @@ class AccountManager {
         if (!this.currentImpersonation) return;
         
         const originalUser = authSystem.currentUser;
-        // Сохраняем оригинальные данные мастера
         if (originalUser.role === 'master') {
             originalUser.originalRole = 'master';
         }
@@ -432,7 +427,6 @@ class AccountManager {
             authSystem.currentUser = impersonatedUser;
             localStorage.setItem('currentUser', JSON.stringify(impersonatedUser));
             
-            // Обновляем интерфейс
             accountManager.updateUserInfo();
             authSystem.updateUI();
             
@@ -495,28 +489,12 @@ class AccountManager {
     // Поиск игроков
     searchPlayers(query) {
         console.log('Поиск:', query);
-        // TODO: Реализовать поиск
     }
 
     // Закрываем панель мастера
     closeMasterPanel() {
         const modal = document.getElementById('master-modal');
         if (modal) modal.remove();
-    }
-
-    // Показываем статус синхронизации
-    showSyncStatus() {
-        this.closeAccountDrawer();
-        if (typeof syncManager !== 'undefined') {
-            const stats = syncManager.getStats();
-            alert(`Статус синхронизации:
-📊 Всего изменений: ${stats.total}
-✅ Синхронизировано: ${stats.synced}
-⏳ В очереди: ${stats.pending}
-🌐 Статус: ${stats.isOnline ? 'ОНЛАЙН' : 'ОФФЛАЙН'}`);
-        } else {
-            alert('Менеджер синхронизации не загружен');
-        }
     }
 
     // Выход из системы
