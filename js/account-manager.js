@@ -36,6 +36,10 @@ class AccountManager {
         const oldDrawer = document.getElementById('account-drawer');
         if (oldDrawer) oldDrawer.remove();
 
+        const currentUser = authSystem?.currentUser;
+        const isImpersonated = currentUser?.isImpersonated;
+        const isMaster = currentUser?.role === 'master' || currentUser?.originalRole === 'master';
+
         const drawerHTML = `
             <div id="account-drawer" class="account-drawer">
                 <div class="drawer-content">
@@ -54,14 +58,16 @@ class AccountManager {
 
                     <div class="drawer-menu">
                         <button class="drawer-menu-item" onclick="accountManager.showCharacters()">
-                            👥 Мои персонажи
+                            👥 ${isImpersonated ? 'Персонажи игрока' : 'Мои персонажи'}
                         </button>
-                        <button class="drawer-menu-item" onclick="accountManager.showSettings()">
-                            ⚙️ Настройки
-                        </button>
-                        <button class="drawer-menu-item" id="master-panel-btn" style="display: none;" onclick="accountManager.showMasterPanel()">
-                            👑 Панель мастера
-                        </button>
+                        ${isImpersonated ? 
+                            '<button class="drawer-menu-item" onclick="accountManager.stopImpersonating()">🚪 Вернуться в свой аккаунт</button>' : 
+                            '<button class="drawer-menu-item" onclick="accountManager.showSettings()">⚙️ Настройки</button>'
+                        }
+                        ${isMaster ? 
+                            '<button class="drawer-menu-item" id="master-panel-btn" onclick="accountManager.showMasterPanel()">👑 Панель мастера</button>' : 
+                            ''
+                        }
                         <button class="drawer-menu-item" onclick="accountManager.showSyncStatus()">
                             🔄 Статус синхронизации
                         </button>
@@ -117,12 +123,21 @@ class AccountManager {
         if (!userNameElement || !userRoleElement) return;
         
         if (currentUser) {
-            userNameElement.textContent = currentUser.login || 'Гость';
-            userRoleElement.textContent = currentUser.role === 'master' ? '👑 Мастер' : '🎮 Игрок';
+            if (currentUser.isImpersonated) {
+                userNameElement.textContent = `🔁 ${currentUser.login}`;
+                userRoleElement.textContent = '🎮 Игрок (режим мастера)';
+            } else {
+                userNameElement.textContent = currentUser.login || 'Гость';
+                userRoleElement.textContent = currentUser.role === 'master' ? '👑 Мастер' : '🎮 Игрок';
+            }
             
+            // Всегда показываем панель мастера если пользователь мастер или в режиме переключения
             const masterBtn = document.getElementById('master-panel-btn');
             if (masterBtn) {
-                masterBtn.style.display = currentUser.role === 'master' ? 'block' : 'none';
+                const showMasterBtn = currentUser.role === 'master' || 
+                                      currentUser.originalRole === 'master' ||
+                                      currentUser.isImpersonated;
+                masterBtn.style.display = showMasterBtn ? 'block' : 'none';
             }
         } else {
             userNameElement.textContent = 'Гость';
@@ -236,7 +251,7 @@ class AccountManager {
         this.showMasterPanelModal();
     }
 
-    // Модальное окно панели мастера (ОБНОВЛЕННЫЙ!)
+    // Модальное окно панели мастера
     showMasterPanelModal() {
         const modalHTML = `
             <div class="modal" id="master-modal">
@@ -290,7 +305,7 @@ class AccountManager {
         this.loadPlayersList();
     }
 
-    // Загружаем список игроков (ОБНОВЛЕННЫЙ!)
+    // Загружаем список игроков
     async loadPlayersList() {
         try {
             const db = firebaseConfig.getDatabase();
@@ -390,6 +405,10 @@ class AccountManager {
         if (!this.currentImpersonation) return;
         
         const originalUser = authSystem.currentUser;
+        // Сохраняем оригинальные данные мастера
+        if (originalUser.role === 'master') {
+            originalUser.originalRole = 'master';
+        }
         localStorage.setItem('originalUser', JSON.stringify(originalUser));
         
         const db = firebaseConfig.getDatabase();
@@ -402,12 +421,14 @@ class AccountManager {
                 login: userData.login,
                 role: userData.role,
                 isAuthenticated: true,
-                isImpersonated: true
+                isImpersonated: true,
+                originalRole: originalUser.role === 'master' ? 'master' : null
             };
             
             authSystem.currentUser = impersonatedUser;
             localStorage.setItem('currentUser', JSON.stringify(impersonatedUser));
             
+            // Обновляем интерфейс
             accountManager.updateUserInfo();
             authSystem.updateUI();
             
