@@ -151,11 +151,15 @@ class AccountManager {
         if (typeof openTab === 'function') openTab('characters');
     }
 
-    // Показываем настройки
     showSettings() {
-        this.closeAccountDrawer();
+    this.closeAccountDrawer();
+    if (typeof settingsModule !== 'undefined') {
+        settingsModule.openSettingsPage();
+    } else {
+        // Если модуль настроек не загружен, показываем старое окно
         this.showSettingsModal();
     }
+}
 
     // Модальное окно настроек
     showSettingsModal() {
