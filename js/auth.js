@@ -270,6 +270,8 @@ async register() {
 
      // Завершение входа
 async completeLogin(user) {
+    console.log('🔍 completeLogin user.role:', user.role);
+    console.log('🔍 completeLogin весь user:', user);
     this.currentUser = user;
     
     // 🔥 ДОБАВИЛ: Сохраняем originalRole для мастера
