@@ -1594,3 +1594,198 @@ body.no-scroll {
         justify-content: flex-end;
     }
 }
+/* ===== УПРАВЛЕНИЕ АККАУНТАМИ ===== */
+.accounts-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a0f0b;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.accounts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #8b4513;
+}
+
+.accounts-back-btn {
+    background: #8b4513;
+    border: none;
+    color: #e0d0c0;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    min-width: 80px;
+}
+
+.accounts-back-btn:hover {
+    background: #a0522d;
+}
+
+.accounts-title {
+    color: #d4af37;
+    margin: 0;
+    text-align: center;
+    flex: 1;
+    font-size: 1.4em;
+}
+
+.accounts-header-spacer {
+    width: 80px;
+}
+
+.accounts-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.current-account-section,
+.saved-accounts-section,
+.add-account-section {
+    background: #2a1a0f;
+    border: 1px solid #8b4513;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.current-account-section h3,
+.saved-accounts-section h3,
+.add-account-section h3 {
+    color: #d4af37;
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #8b4513;
+    padding-bottom: 5px;
+}
+
+.account-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.account-card.current {
+    background: #3d2418;
+    border: 2px solid #d4af37;
+}
+
+.account-card.saved {
+    background: #3d2418;
+    border: 1px solid #8b4513;
+}
+
+.account-card.saved:hover {
+    background: #4d2e1f;
+    border-color: #d4af37;
+    transform: translateX(5px);
+}
+
+.account-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.account-avatar {
+    font-size: 2em;
+    width: 50px;
+    height: 50px;
+    background: #5d4037;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-details {
+    flex: 1;
+}
+
+.account-name {
+    color: #e0d0c0;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.account-role {
+    color: #8b7d6b;
+    font-size: 0.9em;
+}
+
+.account-meta {
+    display: flex;
+    gap: 15px;
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #b0a18e;
+}
+
+.account-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-danger {
+    background: #5d1a1a !important;
+    border-color: #8b0000 !important;
+}
+
+.btn-danger:hover {
+    background: #8b0000 !important;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.empty-message {
+    color: #8b7d6b;
+    text-align: center;
+    padding: 30px;
+    font-style: italic;
+}
+
+.auth-form {
+    background: #3d2418;
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.auth-form .auth-input {
+    margin-bottom: 15px;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.form-note {
+    color: #8b7d6b;
+    font-size: 0.9em;
+    margin-top: 15px;
+    text-align: center;
+}
