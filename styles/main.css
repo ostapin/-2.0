@@ -1325,3 +1325,16 @@ body.no-scroll {
 .account-drawer::before {
     z-index: 999;
 }
+/* В main.css добавь в самый конец: */
+#account-btn {
+    z-index: 1100 !important;
+    pointer-events: auto !important;
+}
+
+.settings-container, .master-container {
+    pointer-events: auto;
+}
+
+.settings-container *, .master-container * {
+    pointer-events: auto;
+}
