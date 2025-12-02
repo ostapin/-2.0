@@ -251,11 +251,15 @@ class AccountManager {
         this.closeSettingsModal();
     }
 
-    // Показываем панель мастера
     showMasterPanel() {
-        this.closeAccountDrawer();
+    this.closeAccountDrawer();
+    if (typeof masterPanel !== 'undefined') {
+        masterPanel.openMasterPanel();
+    } else {
+        // Запасной вариант (старое окно)
         this.showMasterPanelModal();
     }
+}
 
     // Модальное окно панели мастера
     showMasterPanelModal() {
