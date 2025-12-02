@@ -92,28 +92,53 @@ class AvatarSystem {
         return true;
     }
 
+    // Определяет тип аватара
+    getAvatarType(avatar) {
+        if (!avatar) return 'emoji';
+        
+        // Проверяем base64 картинку
+        if (avatar.startsWith('data:image/')) {
+            return 'image';
+        }
+        
+        // Проверяем URL картинки
+        if (avatar.startsWith('http') && 
+            (avatar.includes('.jpg') || avatar.includes('.png') || 
+             avatar.includes('.jpeg') || avatar.includes('.gif') ||
+             avatar.includes('.webp'))) {
+            return 'image';
+        }
+        
+        // Проверяем эмодзи (простая проверка)
+        if (avatar.length <= 3 || this.isEmoji(avatar)) {
+            return 'emoji';
+        }
+        
+        // По умолчанию считаем текстом
+        return 'text';
+    }
+
     updateAvatarPreview() {
         const preview = document.getElementById('avatar-preview');
         if (!preview || !this.avatar) return;
         
-        // Очищаем превью
         preview.innerHTML = '';
+        const type = this.getAvatarType(this.avatar);
         
-        // Проверяем что это: эмодзи или base64 картинка
-        if (this.isEmoji(this.avatar)) {
-            // Это эмодзи - показываем как текст
-            const emojiEl = document.createElement('div');
-            emojiEl.className = 'avatar-emoji';
-            emojiEl.textContent = this.avatar;
-            preview.appendChild(emojiEl);
-        } 
-        else if (this.avatar.startsWith('data:image') || this.avatar.startsWith('http')) {
+        if (type === 'image') {
             // Это картинка - создаем img элемент
             const imgEl = document.createElement('img');
             imgEl.className = 'avatar-image';
             imgEl.src = this.avatar;
             imgEl.alt = 'Аватар';
             preview.appendChild(imgEl);
+        } 
+        else if (type === 'emoji') {
+            // Это эмодзи - показываем как текст
+            const emojiEl = document.createElement('div');
+            emojiEl.className = 'avatar-emoji';
+            emojiEl.textContent = this.avatar;
+            preview.appendChild(emojiEl);
         }
         else {
             // Простой текст (первая буква)
@@ -136,36 +161,38 @@ class AvatarSystem {
     updateAllAvatars() {
         if (!this.avatar) return;
         
+        const type = this.getAvatarType(this.avatar);
+        
         // Обновляем превью в настройках
         this.updateAvatarPreview();
         
         // Обновляем кнопку аккаунта
         const accountBtn = document.getElementById('account-btn');
         if (accountBtn) {
-            if (this.isEmoji(this.avatar)) {
-                accountBtn.innerHTML = this.avatar;
-            } else {
+            if (type === 'image') {
                 accountBtn.innerHTML = '🖼️'; // Иконка для картинки
+            } else {
+                accountBtn.innerHTML = this.avatar;
             }
         }
         
         // Обновляем аватар в шторке
         const drawerAvatar = document.querySelector('.user-avatar');
         if (drawerAvatar) {
-            if (this.isEmoji(this.avatar)) {
-                drawerAvatar.textContent = this.avatar;
-            } else {
+            if (type === 'image') {
                 drawerAvatar.innerHTML = '<span style="font-size:0.8em;">🖼️</span>';
+            } else {
+                drawerAvatar.textContent = this.avatar;
             }
         }
         
         // Обновляем все элементы с классом .account-avatar
         const accountAvatars = document.querySelectorAll('.account-avatar');
         accountAvatars.forEach(el => {
-            if (this.isEmoji(this.avatar)) {
-                el.textContent = this.avatar;
-            } else {
+            if (type === 'image') {
                 el.innerHTML = '<span style="font-size:0.8em;">🖼️</span>';
+            } else {
+                el.textContent = this.avatar;
             }
         });
     }
