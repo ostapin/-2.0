@@ -12,14 +12,24 @@ class AccountManager {
         this.setupEventListeners();
     }
 
+    // Создаем кнопку аккаунта в верхнем правом углу
     createAccountButton() {
-    const oldBtn = document.getElementById('account-btn');
-    if (oldBtn) oldBtn.remove();
+        const oldBtn = document.getElementById('account-btn');
+        if (oldBtn) oldBtn.remove();
 
-    const accountBtn = document.createElement('button');
-    accountBtn.id = 'account-btn';
-    accountBtn.className = 'account-btn';
-    accountBtn.innerHTML = '👤';
+        const accountBtn = document.createElement('button');
+        accountBtn.id = 'account-btn';
+        accountBtn.className = 'account-btn';
+        accountBtn.innerHTML = '👤';
+        accountBtn.onclick = () => this.toggleAccountDrawer();
+        
+        accountBtn.style.position = 'fixed';
+        accountBtn.style.top = '25px';
+        accountBtn.style.right = '25px';
+        accountBtn.style.zIndex = '1001';
+        
+        document.body.appendChild(accountBtn);
+    }
     
     // 🔥 ИСПРАВЛЕННЫЙ ОБРАБОТЧИК:
     accountBtn.onclick = () => {
