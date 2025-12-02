@@ -277,11 +277,6 @@ class SettingsModule {
         
         // Разблокируем скролл
         document.body.classList.remove('no-scroll');
-        
-        // Восстанавливаем кнопку профиля
-        if (typeof accountManager !== 'undefined') {
-            accountManager.createAccountButton();
-        }
     }
 
     // Закрыть все модалки
