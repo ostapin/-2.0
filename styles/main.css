@@ -1889,4 +1889,36 @@ changeAvatar() {
     align-items: center;
     z-index: 10000;
 }
-    
+/* Исправление для модалки аватарок */
+#avatar-selector-modal .auth-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    max-width: 800px !important;
+}
+
+.avatar-selector-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Горизонтальная сетка для аватарок */
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .avatar-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}    
