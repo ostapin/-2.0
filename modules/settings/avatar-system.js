@@ -35,7 +35,7 @@ class AvatarSystem {
         const localAvatar = localStorage.getItem(`avatar_${authSystem.currentUser.id}`);
         if (localAvatar) {
             this.avatar = localAvatar;
-            this.updateAvatarPreview();
+            this.updateAllAvatars();
             return;
         }
         
@@ -55,7 +55,7 @@ class AvatarSystem {
             if (userDoc.exists && userDoc.data().avatar) {
                 this.avatar = userDoc.data().avatar;
                 localStorage.setItem(`avatar_${authSystem.currentUser.id}`, this.avatar);
-                this.updateAvatarPreview();
+                this.updateAllAvatars();
             }
         } catch (error) {
             console.error('Ошибка загрузки аватарки:', error);
@@ -69,7 +69,6 @@ class AvatarSystem {
         
         // Сохраняем локально
         localStorage.setItem(`avatar_${authSystem.currentUser.id}`, avatar);
-        this.updateAvatarPreview();
         
         // Сохраняем в Firestore если онлайн
         if (firebaseConfig.isOnline()) {
@@ -97,24 +96,84 @@ class AvatarSystem {
         const preview = document.getElementById('avatar-preview');
         if (!preview || !this.avatar) return;
         
-        // Если это эмодзи
-        if (this.avatar.length === 2 || (this.avatar.length === 1 && this.avatar.charCodeAt(0) > 127)) {
-            preview.innerHTML = `<div class="avatar-emoji">${this.avatar}</div>`;
+        // Очищаем превью
+        preview.innerHTML = '';
+        
+        // Проверяем что это: эмодзи или base64 картинка
+        if (this.isEmoji(this.avatar)) {
+            // Это эмодзи - показываем как текст
+            const emojiEl = document.createElement('div');
+            emojiEl.className = 'avatar-emoji';
+            emojiEl.textContent = this.avatar;
+            preview.appendChild(emojiEl);
         } 
-        // Если это URL или base64
-        else if (this.avatar.startsWith('http') || this.avatar.startsWith('data:')) {
-            preview.innerHTML = `<img src="${this.avatar}" class="avatar-image" alt="Аватар">`;
+        else if (this.avatar.startsWith('data:image') || this.avatar.startsWith('http')) {
+            // Это картинка - создаем img элемент
+            const imgEl = document.createElement('img');
+            imgEl.className = 'avatar-image';
+            imgEl.src = this.avatar;
+            imgEl.alt = 'Аватар';
+            preview.appendChild(imgEl);
         }
-        // Если это просто текст
         else {
-            preview.innerHTML = `<div class="avatar-text">${this.avatar.charAt(0).toUpperCase()}</div>`;
+            // Простой текст (первая буква)
+            const textEl = document.createElement('div');
+            textEl.className = 'avatar-text';
+            textEl.textContent = this.avatar.charAt(0).toUpperCase();
+            preview.appendChild(textEl);
         }
+    }
+
+    // Проверка является ли строка эмодзи
+    isEmoji(str) {
+        // Простая проверка: эмодзи обычно 2 символа или 1 символ с высоким кодом
+        return str.length === 2 || 
+               (str.length === 1 && str.charCodeAt(0) > 127) ||
+               str.includes('️'); // Символ вариационного селектора
+    }
+
+    // Обновление всех аватаров на странице
+    updateAllAvatars() {
+        if (!this.avatar) return;
+        
+        // Обновляем превью в настройках
+        this.updateAvatarPreview();
+        
+        // Обновляем кнопку аккаунта
+        const accountBtn = document.getElementById('account-btn');
+        if (accountBtn) {
+            if (this.isEmoji(this.avatar)) {
+                accountBtn.innerHTML = this.avatar;
+            } else {
+                accountBtn.innerHTML = '🖼️'; // Иконка для картинки
+            }
+        }
+        
+        // Обновляем аватар в шторке
+        const drawerAvatar = document.querySelector('.user-avatar');
+        if (drawerAvatar) {
+            if (this.isEmoji(this.avatar)) {
+                drawerAvatar.textContent = this.avatar;
+            } else {
+                drawerAvatar.innerHTML = '<span style="font-size:0.8em;">🖼️</span>';
+            }
+        }
+        
+        // Обновляем все элементы с классом .account-avatar
+        const accountAvatars = document.querySelectorAll('.account-avatar');
+        accountAvatars.forEach(el => {
+            if (this.isEmoji(this.avatar)) {
+                el.textContent = this.avatar;
+            } else {
+                el.innerHTML = '<span style="font-size:0.8em;">🖼️</span>';
+            }
+        });
     }
 
     showAvatarSelector() {
         const modalHTML = `
             <div class="modal" id="avatar-selector-modal">
-                <div class="auth-container" style="max-width: 600px;">
+                <div class="auth-container">
                     <div class="auth-header">
                         <h2>🖼️ Выберите аватарку</h2>
                         <button class="close-btn" onclick="avatarSystem.closeSelector()">×</button>
@@ -173,12 +232,7 @@ class AvatarSystem {
     selectAvatar(avatar) {
         this.saveAvatar(avatar);
         this.closeSelector();
-        
-        // Обновляем везде где может быть аватар
-        const avatarElements = document.querySelectorAll('.user-avatar, .account-avatar, .avatar-preview');
-        avatarElements.forEach(el => {
-            el.textContent = avatar;
-        });
+        this.updateAllAvatars();
     }
 
     async handleImageUpload(event) {
