@@ -694,10 +694,10 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    z-index: 1001;
+    z-index: 1002;
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 25px;
+    right: 25px;
 }
 
 .account-btn:hover {
@@ -714,7 +714,7 @@ body {
     height: 100%;
     background: #2a1a0f;
     border-left: 2px solid #8b4513;
-    z-index: 1002;
+    z-index: 1001;
     transition: right 0.3s ease;
 }
 
@@ -878,6 +878,7 @@ body {
         padding: 15px;
     }
 }
+
 /* Стили для панели мастера */
 .player-card {
     background: #2a1a0f;
@@ -990,6 +991,7 @@ body {
     border-radius: 6px;
     border: 2px solid #d4af37;
 }
+
 /* ===== НАСТРОЙКИ ===== */
 .settings-container {
     position: fixed;
@@ -1222,7 +1224,7 @@ body {
     margin-bottom: 10px;
 }
 
-/* Адаптивность */
+/* Адаптивность настроек */
 @media (max-width: 768px) {
     .settings-container {
         padding: 10px;
@@ -1241,6 +1243,7 @@ body {
         margin-right: 12px;
     }
 }
+
 /* Отключаем скролл при открытых модалках */
 body.no-scroll {
     overflow: hidden;
@@ -1266,6 +1269,7 @@ body.no-scroll {
 ::-webkit-scrollbar-thumb:hover {
     background: #a0522d;
 }
+
 /* Синхронизация */
 .sync-settings {
     padding: 20px;
@@ -1310,45 +1314,4 @@ body.no-scroll {
     display: flex;
     gap: 10px;
     margin-top: 20px;
-}
-/* Кнопка профиля всегда поверх всего */
-.account-btn {
-    z-index: 1100 !important; /* Выше настроек (1000) и шторки (1000) */
-}
-
-/* Настройки и шторка */
-.settings-container, .account-drawer {
-    z-index: 1000;
-}
-
-/* Оверлей шторки */
-.account-drawer::before {
-    z-index: 999;
-}
-/* В main.css добавь в самый конец: */
-#account-btn {
-    z-index: 1100 !important;
-    pointer-events: auto !important;
-}
-
-.settings-container, .master-container {
-    pointer-events: auto;
-}
-
-.settings-container *, .master-container * {
-    pointer-events: auto;
-}
-/* Шторка поверх всего */
-.account-drawer {
-    z-index: 1001 !important;
-}
-
-/* Настройки под шторкой */
-.settings-container {
-    z-index: 1000 !important;
-}
-
-/* Кнопка профиля поверх всего */
-#account-btn {
-    z-index: 1002 !important;
 }
