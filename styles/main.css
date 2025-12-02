@@ -1338,3 +1338,17 @@ body.no-scroll {
 .settings-container *, .master-container * {
     pointer-events: auto;
 }
+/* Шторка поверх всего */
+.account-drawer {
+    z-index: 1001 !important;
+}
+
+/* Настройки под шторкой */
+.settings-container {
+    z-index: 1000 !important;
+}
+
+/* Кнопка профиля поверх всего */
+#account-btn {
+    z-index: 1002 !important;
+}
