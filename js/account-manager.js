@@ -12,7 +12,7 @@ class AccountManager {
         this.setupEventListeners();
     }
 
-    // Создаем кнопку аккаунта в верхнем правом углу
+        // Создаем кнопку аккаунта в верхнем правом углу
     createAccountButton() {
         const oldBtn = document.getElementById('account-btn');
         if (oldBtn) oldBtn.remove();
@@ -21,7 +21,25 @@ class AccountManager {
         accountBtn.id = 'account-btn';
         accountBtn.className = 'account-btn';
         accountBtn.innerHTML = '👤';
-        accountBtn.onclick = () => this.toggleAccountDrawer();
+        
+        // 🔥 ЕДИНСТВЕННЫЙ обработчик:
+        accountBtn.onclick = () => {
+            // Если открыты настройки - закрываем их и открываем шторку
+            const settingsContainer = document.getElementById('settings-container');
+            const masterContainer = document.getElementById('master-container');
+            
+            if (settingsContainer || masterContainer) {
+                // Закрываем открытые страницы
+                if (settingsContainer) settingsModule.closeSettings();
+                if (masterContainer) accountManager.closeMasterPanel();
+                
+                // Даём время на анимацию закрытия
+                setTimeout(() => this.toggleAccountDrawer(), 50);
+            } else {
+                // Если ничего не открыто - просто открываем шторку
+                this.toggleAccountDrawer();
+            }
+        };
         
         accountBtn.style.position = 'fixed';
         accountBtn.style.top = '25px';
@@ -30,33 +48,6 @@ class AccountManager {
         
         document.body.appendChild(accountBtn);
     }
-    
-    // 🔥 ИСПРАВЛЕННЫЙ ОБРАБОТЧИК:
-    accountBtn.onclick = () => {
-        // Если открыты настройки - закрываем их и открываем шторку
-        const settingsContainer = document.getElementById('settings-container');
-        const masterContainer = document.getElementById('master-container');
-        
-        if (settingsContainer || masterContainer) {
-            // Закрываем открытые страницы
-            if (settingsContainer) settingsModule.closeSettings();
-            if (masterContainer) accountManager.closeMasterPanel();
-            
-            // Даём время на анимацию закрытия
-            setTimeout(() => this.toggleAccountDrawer(), 50);
-        } else {
-            // Если ничего не открыто - просто открываем шторку
-            this.toggleAccountDrawer();
-        }
-    };
-    
-    accountBtn.style.position = 'fixed';
-    accountBtn.style.top = '25px';
-    accountBtn.style.right = '25px';
-    accountBtn.style.zIndex = '1001'; // Важно: выше чем настройки
-    
-    document.body.appendChild(accountBtn);
-}
         
     // Создаем шторку аккаунта
     createAccountDrawer() {
