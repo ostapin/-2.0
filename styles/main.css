@@ -1789,3 +1789,90 @@ body.no-scroll {
     margin-top: 15px;
     text-align: center;
 }
+/* Стили для аватарок */
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.avatar-option {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #3d2418;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.avatar-option:hover {
+    border-color: #d4af37;
+    transform: scale(1.1);
+}
+
+.avatar-category {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #8b4513;
+}
+
+.avatar-category:last-child {
+    border-bottom: none;
+}
+
+.avatar-category h3 {
+    color: #d4af37;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.avatar-race-group {
+    margin-bottom: 15px;
+}
+
+.avatar-race-group h4 {
+    color: #b8a28a;
+    margin: 10px 0 5px 0;
+    font-size: 1em;
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-text {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #8b4513;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+}
+
+.avatar-emoji {
+    font-size: 60px;
+    line-height: 1;
+}
+
+/* В settings-module.js обнови метод changeAvatar: */
+// Вместо alert вызываем:
+changeAvatar() { 
+    if (typeof avatarSystem !== 'undefined') {
+        avatarSystem.showAvatarSelector(); 
+    } else {
+        alert('Система аватарок не загружена');
+    }
+}
