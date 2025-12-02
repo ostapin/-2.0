@@ -279,10 +279,11 @@ class SettingsModule {
         document.body.classList.remove('no-scroll');
     }
 
-    // Закрыть все модалки
     closeAllModals() {
-        document.querySelectorAll('.modal, .auth-modal, .account-drawer').forEach(el => el.remove());
-    }
+    // Удаляем только модалки, но НЕ шторку
+    document.querySelectorAll('.modal, .auth-modal').forEach(el => el.remove());
+    // НЕ удаляем .account-drawer!
+}
 
     // Показать кнопку профиля
     showProfileButton() {
