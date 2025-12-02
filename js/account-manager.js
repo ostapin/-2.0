@@ -533,6 +533,17 @@ console.log('🔍 Все данные:', userDoc.data());
                 this.closeAccountDrawer();
             }
         });
+        // Закрытие шторки при клике вне её
+document.addEventListener('click', (event) => {
+    const drawer = this.accountDrawer;
+    const accountBtn = document.getElementById('account-btn');
+    
+    if (drawer && drawer.classList.contains('open') && 
+        !drawer.contains(event.target) && 
+        accountBtn && !accountBtn.contains(event.target)) {
+        this.closeAccountDrawer();
+    }
+});
     }
 }
 
