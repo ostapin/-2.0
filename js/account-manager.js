@@ -12,29 +12,32 @@ class AccountManager {
         this.setupEventListeners();
     }
 
-        // Создаем кнопку аккаунта в верхнем правом углу
-    createAccountButton() {
-        const oldBtn = document.getElementById('account-btn');
-        if (oldBtn) oldBtn.remove();
+        // В методе createAccountButton() account-manager.js:
+createAccountButton() {
+    const oldBtn = document.getElementById('account-btn');
+    if (oldBtn) oldBtn.remove();
 
-        const accountBtn = document.createElement('button');
-        accountBtn.id = 'account-btn';
-        accountBtn.className = 'account-btn';
-        accountBtn.innerHTML = '👤';
-        
-               // 🔥 ПРОСТОЙ обработчик:
-        accountBtn.onclick = () => {
-            // Просто всегда открываем шторку поверх всего
-            this.toggleAccountDrawer();
-        };
-        
-        accountBtn.style.position = 'fixed';
-        accountBtn.style.top = '25px';
-        accountBtn.style.right = '25px';
-        accountBtn.style.zIndex = '1001';
-        
-        document.body.appendChild(accountBtn);
-    }
+    const accountBtn = document.createElement('button');
+    accountBtn.id = 'account-btn';
+    accountBtn.className = 'account-btn';
+    
+    // 🔥 ВОТ ЭТО ИЗМЕНИТЬ:
+    // Было: accountBtn.innerHTML = '👤';
+    // Стало: используем сохраненный аватар или дефолтный
+    const savedAvatar = localStorage.getItem(`avatar_${authSystem?.currentUser?.id}`);
+    accountBtn.innerHTML = savedAvatar || '👤';
+    
+    accountBtn.onclick = () => {
+        this.toggleAccountDrawer();
+    };
+    
+    accountBtn.style.position = 'fixed';
+    accountBtn.style.top = '25px';
+    accountBtn.style.right = '25px';
+    accountBtn.style.zIndex = '1001';
+    
+    document.body.appendChild(accountBtn);
+}
         
     // Создаем шторку аккаунта
     createAccountDrawer() {
