@@ -62,9 +62,9 @@ class AccountManager {
                     </div>
 
                     <div class="drawer-menu">
-                        <button class="drawer-menu-item" onclick="accountManager.showCharacters()">
-                            👥 ${isImpersonated ? 'Персонажи игрока' : 'Мои персонажи'}
-                        </button>
+                        <button class="drawer-menu-item" onclick="window.accountManager.showAccounts()">
+    👥 ${isImpersonated ? 'Аккаунт игрока' : 'Аккаунты'}
+</button>
                         ${isImpersonated ? 
                             '<button class="drawer-menu-item" onclick="accountManager.stopImpersonating()">🚪 Вернуться в свой аккаунт</button>' : 
                             '<button class="drawer-menu-item" onclick="accountManager.showSettings()">⚙️ Настройки</button>'
