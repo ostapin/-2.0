@@ -544,6 +544,7 @@ class AccountManager {
 
 // Создаем глобальный экземпляр
 const accountManager = new AccountManager();
+window.accountManager = accountManager; // ← ЭТА СТРОКА ОБЯЗАТЕЛЬНА
 
 // Инициализируем после загрузки
 document.addEventListener('DOMContentLoaded', function() {
