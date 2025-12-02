@@ -136,7 +136,6 @@ hideAuthPopup() {
         }
     }
 
-    // Вход в систему
    // Вход в систему
 async login() {
     const login = document.getElementById('login-input').value;
@@ -295,7 +294,6 @@ async completeLogin(user) {
             const db = firebaseConfig.getDatabase();
             await db.collection('users').doc(user.id).set({
                 login: user.login,
-                role: user.role,
                 lastLogin: new Date().toISOString()
             }, { merge: true }); // merge: true - обновляет только указанные поля
             console.log('✅ Пользователь сохранен в Firestore');
