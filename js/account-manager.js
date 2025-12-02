@@ -22,23 +22,10 @@ class AccountManager {
         accountBtn.className = 'account-btn';
         accountBtn.innerHTML = '👤';
         
-        // 🔥 ЕДИНСТВЕННЫЙ обработчик:
+               // 🔥 ПРОСТОЙ обработчик:
         accountBtn.onclick = () => {
-            // Если открыты настройки - закрываем их и открываем шторку
-            const settingsContainer = document.getElementById('settings-container');
-            const masterContainer = document.getElementById('master-container');
-            
-            if (settingsContainer || masterContainer) {
-                // Закрываем открытые страницы
-                if (settingsContainer) settingsModule.closeSettings();
-                if (masterContainer) accountManager.closeMasterPanel();
-                
-                // Даём время на анимацию закрытия
-                setTimeout(() => this.toggleAccountDrawer(), 50);
-            } else {
-                // Если ничего не открыто - просто открываем шторку
-                this.toggleAccountDrawer();
-            }
+            // Просто всегда открываем шторку поверх всего
+            this.toggleAccountDrawer();
         };
         
         accountBtn.style.position = 'fixed';
