@@ -293,7 +293,13 @@ class SettingsModule {
     }
 
     // Заглушки для будущих функций
-    changeAvatar() { alert('Смена аватара - в разработке'); }
+    changeAvatar() { 
+    if (typeof avatarSystem !== 'undefined' && avatarSystem.showAvatarSelector) {
+        avatarSystem.showAvatarSelector(); 
+    } else {
+        alert('Система аватарок не загружена');
+    }
+}
     saveProfile() { alert('Профиль сохранён'); }
     deleteAccount() { 
         if (confirm('УДАЛИТЬ АККАУНТ НАВСЕГДА? Это нельзя отменить!')) {
