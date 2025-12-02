@@ -152,7 +152,16 @@ class AccountManager {
         this.closeAccountDrawer();
         if (typeof openTab === 'function') openTab('characters');
     }
-
+// Показываем управление аккаунтами
+showAccounts() {
+    this.closeAccountDrawer();
+    if (typeof accountSwitcher !== 'undefined') {
+        accountSwitcher.openAccountsPage();
+    } else {
+        console.warn('AccountSwitcher не загружен');
+        this.showCharacters();
+    }
+}
     // Показываем настройки
     showSettings() {
         this.closeAccountDrawer();
