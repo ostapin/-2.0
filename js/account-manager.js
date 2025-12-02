@@ -430,7 +430,10 @@ showAccounts() {
         
         const db = firebaseConfig.getDatabase();
         const userDoc = await db.collection('users').doc(this.currentImpersonation.userId).get();
-        
+        // 🔥 ДОБАВЬ ЗДЕСЬ:
+console.log('🔍 Роль из Firestore:', userDoc.data().role);
+console.log('🔍 Все данные:', userDoc.data());
+
         if (userDoc.exists) {
             const userData = userDoc.data();
             const impersonatedUser = {
