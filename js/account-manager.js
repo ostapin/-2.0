@@ -423,6 +423,7 @@ showAccounts() {
 
     // Реальное переключение на игрока
     async switchToPlayer() {
+        console.log('🔄 switchToPlayer ВЫЗВАН');
         if (!this.currentImpersonation) return;
         
         const originalUser = authSystem.currentUser;
