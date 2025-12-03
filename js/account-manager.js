@@ -451,7 +451,7 @@ console.log('🔍 Все данные:', userDoc.data());
             authSystem.currentUser = impersonatedUser;
             localStorage.setItem('currentUser', JSON.stringify(impersonatedUser));
             characters = {};
-await this.loadCharactersForImpersonatedUser(impersonatedUser.id);
+await this.loadCharactersForImpersonatedUser(impersonatedUser.id, impersonatedUser.login);
             accountManager.updateUserInfo();
             authSystem.updateUI();
             
