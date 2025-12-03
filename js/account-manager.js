@@ -450,7 +450,8 @@ console.log('🔍 Все данные:', userDoc.data());
             
             authSystem.currentUser = impersonatedUser;
             localStorage.setItem('currentUser', JSON.stringify(impersonatedUser));
-            
+            characters = {};
+await this.loadCharactersForImpersonatedUser(impersonatedUser.id);
             accountManager.updateUserInfo();
             authSystem.updateUI();
             
@@ -458,7 +459,34 @@ console.log('🔍 Все данные:', userDoc.data());
             this.closeMasterPanel();
         }
     }
-
+async loadCharactersForImpersonatedUser(userId) {
+    try {
+        const db = firebaseConfig.getDatabase();
+        const snapshot = await db.collection('characters')
+            .where('userId', '==', userId)
+            .get();
+        
+        // Очищаем
+        characters = {};
+        
+        // Загружаем
+        snapshot.forEach(doc => {
+            const charData = doc.data();
+            characters[charData.id] = charData;
+        });
+        
+        // Сохраняем
+        saveCharacters();
+        
+        // Обновляем список
+        if (typeof renderCharactersList === 'function') {
+            renderCharactersList();
+        }
+        
+    } catch (error) {
+        console.error('Ошибка загрузки персонажей:', error);
+    }
+}
     // Выход из режима переключения
     stopImpersonating() {
         const originalUser = JSON.parse(localStorage.getItem('originalUser'));
