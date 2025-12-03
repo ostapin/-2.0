@@ -407,6 +407,7 @@ showAccounts() {
 
     // Переключение на аккаунт игрока
     impersonatePlayer(userId, userName) {
+         console.log('🔄 impersonatePlayer вызван для:', userName, 'ID:', userId);
         this.currentImpersonation = { userId, userName };
         
         const infoDiv = document.getElementById('impersonate-info');
