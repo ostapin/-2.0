@@ -177,8 +177,9 @@ const DrawModule = {
         panel.appendChild(brushPaletteContainer);
         
         // Пипетка
+        let eyeDropperBtn = null;
         if (window.EyeDropper) {
-            const eyeDropperBtn = document.createElement('button');
+            eyeDropperBtn = document.createElement('button');
             eyeDropperBtn.className = 'btn btn-roll';
             eyeDropperBtn.innerHTML = '👁️';
             eyeDropperBtn.style.padding = '5px 10px';
