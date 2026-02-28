@@ -7,6 +7,8 @@ const DrawModule = {
     currentColor: '#000000',
     currentSize: 5,
     drawings: {},
+    gridEnabled: false,
+    gridSize: 50,
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -35,6 +37,66 @@ const DrawModule = {
         document.getElementById('drawSize')?.addEventListener('input', (e) => this.setSize(e.target.value));
         document.getElementById('drawClear')?.addEventListener('click', () => this.clearCanvas());
         document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
+        
+        // Кнопка сетки (добавим позже в HTML)
+        this.addGridButton();
+    },
+    
+    addGridButton() {
+        const panel = document.querySelector('#draw-tab div:first-child');
+        if (panel) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-roll';
+            btn.id = 'drawGrid';
+            btn.innerHTML = this.gridEnabled ? '🔲 Сетка вкл' : '⬜ Сетка выкл';
+            btn.onclick = () => this.toggleGrid();
+            panel.appendChild(btn);
+        }
+    },
+    
+    toggleGrid() {
+        this.gridEnabled = !this.gridEnabled;
+        const btn = document.getElementById('drawGrid');
+        if (btn) {
+            btn.innerHTML = this.gridEnabled ? '🔲 Сетка вкл' : '⬜ Сетка выкл';
+        }
+        this.redrawWithGrid();
+    },
+    
+    drawGrid() {
+        if (!this.gridEnabled) return;
+        
+        this.ctx.save();
+        this.ctx.strokeStyle = '#cccccc';
+        this.ctx.lineWidth = 0.5;
+        
+        // Вертикальные линии
+        for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, this.canvas.height);
+            this.ctx.stroke();
+        }
+        
+        // Горизонтальные линии
+        for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.canvas.width, y);
+            this.ctx.stroke();
+        }
+        
+        this.ctx.restore();
+    },
+    
+    redrawWithGrid() {
+        // Сохраняем текущее изображение
+        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Очищаем и рисуем заново с сеткой
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.putImageData(imageData, 0, 0);
+        this.drawGrid();
     },
     
     startDrawing(e) {
@@ -54,6 +116,9 @@ const DrawModule = {
     
     stopDrawing() {
         this.drawing = false;
+        if (this.gridEnabled) {
+            this.redrawWithGrid();
+        }
     },
     
     setTool(tool) {
@@ -71,6 +136,9 @@ const DrawModule = {
     
     clearCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (this.gridEnabled) {
+            this.drawGrid();
+        }
     },
     
     saveDrawing() {
@@ -116,6 +184,9 @@ const DrawModule = {
         img.onload = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.drawImage(img, 0, 0);
+            if (this.gridEnabled) {
+                this.drawGrid();
+            }
         };
     },
     
