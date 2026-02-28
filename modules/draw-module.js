@@ -20,6 +20,7 @@ const DrawModule = {
     lastY: 0,
     brushColors: ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
     gridColors: ['#cccccc', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#888888', '#000000'],
+    colorPickerOpen: false,
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -31,7 +32,7 @@ const DrawModule = {
         
         this.loadDrawings();
         this.bindEvents();
-        this.addBrushPalette();
+        this.addCustomColorPicker();
         this.addGridControls();
         this.addZoomControls();
         console.log('Draw module initialized');
@@ -84,13 +85,19 @@ const DrawModule = {
         // Инструменты
         document.getElementById('drawBrush')?.addEventListener('click', () => this.setTool('brush'));
         document.getElementById('drawEraser')?.addEventListener('click', () => this.setTool('eraser'));
-        document.getElementById('drawColor')?.addEventListener('input', (e) => this.setColor(e.target.value));
         document.getElementById('drawSize')?.addEventListener('input', (e) => this.setSize(e.target.value));
         document.getElementById('drawClear')?.addEventListener('click', () => this.clearCanvas());
         document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
+        
+        // Закрытие палитры при клике вне ее
+        document.addEventListener('click', (e) => {
+            if (this.colorPickerOpen && !e.target.closest('.color-picker-container')) {
+                this.closeColorPicker();
+            }
+        });
     },
     
-    addBrushPalette() {
+    addCustomColorPicker() {
         const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
         if (!panel) return;
         
@@ -101,33 +108,139 @@ const DrawModule = {
         separator.style.fontWeight = 'bold';
         panel.appendChild(separator);
         
-        // Надпись "Кисть:"
-        const brushLabel = document.createElement('span');
-        brushLabel.innerHTML = 'Кисть:';
-        brushLabel.style.color = '#e0d0c0';
-        brushLabel.style.marginRight = '5px';
-        panel.appendChild(brushLabel);
+        // Контейнер для кнопки выбора цвета и палитры
+        const container = document.createElement('div');
+        container.className = 'color-picker-container';
+        container.style.position = 'relative';
+        container.style.display = 'inline-block';
         
-        // Палитра для кисти (квадратики с цветами)
-        const brushPalette = document.createElement('div');
-        brushPalette.style.display = 'inline-flex';
-        brushPalette.style.gap = '3px';
-        brushPalette.style.marginRight = '10px';
+        // Кнопка текущего цвета
+        const colorBtn = document.createElement('button');
+        colorBtn.id = 'customColorBtn';
+        colorBtn.style.width = '40px';
+        colorBtn.style.height = '40px';
+        colorBtn.style.backgroundColor = this.currentColor;
+        colorBtn.style.border = '2px solid #8b4513';
+        colorBtn.style.borderRadius = '4px';
+        colorBtn.style.cursor = 'pointer';
+        colorBtn.style.verticalAlign = 'middle';
+        colorBtn.onclick = () => this.toggleColorPicker();
+        container.appendChild(colorBtn);
+        
+        // Пипетка (если поддерживается)
+        if (window.EyeDropper) {
+            const eyeDropperBtn = document.createElement('button');
+            eyeDropperBtn.className = 'btn btn-roll';
+            eyeDropperBtn.innerHTML = '👁️';
+            eyeDropperBtn.style.padding = '5px 10px';
+            eyeDropperBtn.style.marginLeft = '5px';
+            eyeDropperBtn.onclick = () => this.useEyeDropper();
+            container.appendChild(eyeDropperBtn);
+        }
+        
+        panel.appendChild(container);
+        
+        // Создаем палитру (скрытую)
+        this.createColorPalette(container);
+    },
+    
+    createColorPalette(container) {
+        const palette = document.createElement('div');
+        palette.id = 'colorPalette';
+        palette.style.position = 'absolute';
+        palette.style.top = '45px';
+        palette.style.left = '0';
+        palette.style.backgroundColor = '#3d2418';
+        palette.style.border = '2px solid #8b4513';
+        palette.style.borderRadius = '8px';
+        palette.style.padding = '15px';
+        palette.style.zIndex = '1000';
+        palette.style.display = 'none';
+        palette.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+        
+        // Заголовок
+        const title = document.createElement('div');
+        title.style.color = '#d4af37';
+        title.style.marginBottom = '10px';
+        title.style.textAlign = 'center';
+        title.innerHTML = '🎨 Выберите цвет';
+        palette.appendChild(title);
+        
+        // Сетка частых цветов
+        const colorsGrid = document.createElement('div');
+        colorsGrid.style.display = 'grid';
+        colorsGrid.style.gridTemplateColumns = 'repeat(5, 40px)';
+        colorsGrid.style.gap = '5px';
+        colorsGrid.style.marginBottom = '15px';
         
         this.brushColors.forEach(color => {
-            const colorBtn = document.createElement('button');
-            colorBtn.style.width = '25px';
-            colorBtn.style.height = '25px';
-            colorBtn.style.backgroundColor = color;
-            colorBtn.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
-            colorBtn.style.borderRadius = '3px';
-            colorBtn.style.cursor = 'pointer';
-            colorBtn.title = color;
-            colorBtn.onclick = () => this.setColor(color);
-            brushPalette.appendChild(colorBtn);
+            const colorSquare = document.createElement('div');
+            colorSquare.style.width = '40px';
+            colorSquare.style.height = '40px';
+            colorSquare.style.backgroundColor = color;
+            colorSquare.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
+            colorSquare.style.borderRadius = '4px';
+            colorSquare.style.cursor = 'pointer';
+            colorSquare.onclick = () => {
+                this.setColor(color);
+                this.closeColorPicker();
+            };
+            colorsGrid.appendChild(colorSquare);
         });
         
-        panel.appendChild(brushPalette);
+        palette.appendChild(colorsGrid);
+        
+        // Стандартный color picker
+        const standardPicker = document.createElement('input');
+        standardPicker.type = 'color';
+        standardPicker.id = 'standardColorPicker';
+        standardPicker.value = this.currentColor;
+        standardPicker.style.width = '100%';
+        standardPicker.style.height = '40px';
+        standardPicker.style.border = '1px solid #8b4513';
+        standardPicker.style.borderRadius = '4px';
+        standardPicker.onchange = (e) => {
+            this.setColor(e.target.value);
+            this.closeColorPicker();
+        };
+        palette.appendChild(standardPicker);
+        
+        container.appendChild(palette);
+    },
+    
+    toggleColorPicker() {
+        const palette = document.getElementById('colorPalette');
+        if (palette) {
+            if (this.colorPickerOpen) {
+                this.closeColorPicker();
+            } else {
+                palette.style.display = 'block';
+                this.colorPickerOpen = true;
+            }
+        }
+    },
+    
+    closeColorPicker() {
+        const palette = document.getElementById('colorPalette');
+        if (palette) {
+            palette.style.display = 'none';
+            this.colorPickerOpen = false;
+        }
+    },
+    
+    async useEyeDropper() {
+        if (!window.EyeDropper) {
+            alert('Пипетка не поддерживается в вашем браузере');
+            return;
+        }
+        
+        try {
+            const eyeDropper = new EyeDropper();
+            const result = await eyeDropper.open();
+            this.setColor(result.sRGBHex);
+        } catch (e) {
+            console.log('Пипетка отменена');
+        }
     },
     
     addGridControls() {
@@ -174,7 +287,7 @@ const DrawModule = {
         gridColorLabel.style.marginRight = '5px';
         panel.appendChild(gridColorLabel);
         
-        // Палитра для сетки (квадратики с цветами)
+        // Палитра для сетки
         const gridPalette = document.createElement('div');
         gridPalette.style.display = 'inline-flex';
         gridPalette.style.gap = '3px';
@@ -378,25 +491,18 @@ const DrawModule = {
     },
     
     drawHexGrid() {
-        // Правильная формула для гексов (pointy-topped)
-        // Каждый гекс касается соседей всеми шестью сторонами [citation:1][citation:5]
+        const hexRadius = this.gridSize / 2;
+        const hexWidth = hexRadius * 1.732;
+        const hexHeight = hexRadius * 2;
         
-        const hexRadius = this.gridSize / 2; // расстояние от центра до вершины
-        const hexWidth = hexRadius * 1.732; // ширина гекса (√3 * радиус)
-        const hexHeight = hexRadius * 2; // высота гекса
-        
-        // Количество гексов с запасом, чтобы покрыть весь холст
         const cols = Math.ceil(this.canvas.width / hexWidth) + 2;
         const rows = Math.ceil(this.canvas.height / (hexHeight * 0.75)) + 2;
         
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                // Смещение для четных рядов (половина ширины)
                 const xOffset = (row % 2) * hexWidth / 2;
-                
-                // Координаты центра гекса
                 const x = col * hexWidth + xOffset;
-                const y = row * (hexHeight * 0.75); // 0.75 = 3/4 от высоты
+                const y = row * (hexHeight * 0.75);
                 
                 this.drawHexagon(x, y, hexRadius);
             }
@@ -406,7 +512,6 @@ const DrawModule = {
     drawHexagon(x, y, radius) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-            // Угол 60 градусов = PI/3
             const angle = i * Math.PI / 3;
             const hx = x + radius * Math.cos(angle);
             const hy = y + radius * Math.sin(angle);
@@ -422,16 +527,9 @@ const DrawModule = {
     },
     
     redrawWithGrid() {
-        // Сохраняем текущее изображение
         const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Полностью очищаем холст
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Восстанавливаем рисунок
         this.ctx.putImageData(imageData, 0, 0);
-        
-        // Рисуем сетку поверх
         this.drawGrid();
     },
     
@@ -463,7 +561,7 @@ const DrawModule = {
     
     setColor(color) {
         this.currentColor = color;
-        document.getElementById('drawColor').value = color;
+        document.getElementById('customColorBtn').style.backgroundColor = color;
     },
     
     setSize(size) {
