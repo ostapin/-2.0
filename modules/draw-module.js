@@ -211,6 +211,7 @@ const DrawModule = {
         gridSizeInput.style.border = '1px solid #8b4513';
         gridSizeInput.style.marginLeft = '5px';
         gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
+        gridSizeInput.oninput = (e) => this.setGridSize(parseInt(e.target.value)); // Добавляем oninput для мгновенного обновления при стрелках
         panel.appendChild(gridSizeInput);
         
         // Цвет сетки - стандартный color picker
@@ -537,6 +538,8 @@ const DrawModule = {
         if (size > 200) size = 200;
         this.gridSize = size;
         document.getElementById('gridSize').value = size;
+        
+        // Перерисовываем всё с новой сеткой
         if (this.gridEnabled) {
             this.redrawWithGrid();
         }
@@ -634,9 +637,16 @@ const DrawModule = {
     },
     
     redrawWithGrid() {
+        // Сохраняем текущее изображение
         const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Полностью очищаем холст
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Восстанавливаем рисунок
         this.ctx.putImageData(imageData, 0, 0);
+        
+        // Рисуем новую сетку поверх
         this.drawGrid();
     },
     
