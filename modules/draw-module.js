@@ -529,10 +529,15 @@ const DrawModule = {
         if (btn) {
             btn.innerHTML = this.gridEnabled ? '🔲 Сетка' : '⬜ Сетка';
         }
+        
         if (this.gridEnabled) {
+            // Если включили сетку - рисуем её поверх рисунка
             this.drawGrid();
         } else {
-            this.redrawWithoutGrid();
+            // Если выключили - убираем сетку, оставляя только рисунок
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.putImageData(imageData, 0, 0);
         }
     },
     
@@ -543,10 +548,16 @@ const DrawModule = {
         document.getElementById('gridSize').value = size;
         
         if (this.gridEnabled) {
-            // Полностью перерисовываем всё с новой сеткой
+            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Очищаем всё (рисунок + старая сетка)
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
+            
+            // Рисуем новую сетку поверх
             this.drawGrid();
         }
     },
@@ -555,9 +566,16 @@ const DrawModule = {
         this.gridColor = color;
         document.getElementById('gridColorPicker').value = color;
         if (this.gridEnabled) {
+            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
+            
+            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -565,9 +583,16 @@ const DrawModule = {
     setGridOpacity(opacity) {
         this.gridOpacity = opacity;
         if (this.gridEnabled) {
+            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
+            
+            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -575,9 +600,16 @@ const DrawModule = {
     setGridType(type) {
         this.gridType = type;
         if (this.gridEnabled) {
+            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
+            
+            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -651,12 +683,6 @@ const DrawModule = {
         this.ctx.stroke();
     },
     
-    redrawWithoutGrid() {
-        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.putImageData(imageData, 0, 0);
-    },
-    
     startDrawing(e) {
         this.drawing = true;
         this.ctx.beginPath();
@@ -681,11 +707,6 @@ const DrawModule = {
     stopDrawing() {
         this.drawing = false;
         this.ctx.globalCompositeOperation = 'source-over';
-        
-        if (this.gridEnabled) {
-            // Перерисовываем сетку поверх рисунка
-            this.drawGrid();
-        }
     },
     
     setTool(tool) {
