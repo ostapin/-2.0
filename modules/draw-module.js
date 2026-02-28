@@ -84,9 +84,6 @@ const DrawModule = {
         // Инструменты
         document.getElementById('drawBrush')?.addEventListener('click', () => this.setTool('brush'));
         document.getElementById('drawEraser')?.addEventListener('click', () => this.setTool('eraser'));
-        document.getElementById('drawSize')?.addEventListener('input', (e) => this.setSize(e.target.value));
-        document.getElementById('drawClear')?.addEventListener('click', () => this.clearCanvas());
-        document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
         
         // Закрытие палитр при клике вне их
         document.addEventListener('click', (e) => {
@@ -103,25 +100,62 @@ const DrawModule = {
         const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
         if (!panel) return;
         
-        // Разделитель
-        const separator = document.createElement('span');
-        separator.innerHTML = ' | ';
-        separator.style.color = '#8b4513';
-        separator.style.fontWeight = 'bold';
-        panel.appendChild(separator);
+        // Очищаем панель от старых элементов, оставляя только базовые кнопки
+        panel.innerHTML = '';
         
-        // ===== КНОПКА ЦВЕТА КИСТИ =====
+        // ===== РЯД 1: Кисть, Ластик, Размер, Цвет кисти =====
+        // Кисть
+        const brushBtn = document.createElement('button');
+        brushBtn.className = 'btn btn-roll';
+        brushBtn.id = 'drawBrush';
+        brushBtn.innerHTML = '🖌️ Кисть';
+        brushBtn.style.padding = '5px 10px';
+        panel.appendChild(brushBtn);
+        
+        // Ластик
+        const eraserBtn = document.createElement('button');
+        eraserBtn.className = 'btn btn-roll';
+        eraserBtn.id = 'drawEraser';
+        eraserBtn.innerHTML = '🧽 Ластик';
+        eraserBtn.style.padding = '5px 10px';
+        panel.appendChild(eraserBtn);
+        
+        // Размер кисти
+        const sizeLabel = document.createElement('span');
+        sizeLabel.innerHTML = 'Размер:';
+        sizeLabel.style.color = '#e0d0c0';
+        sizeLabel.style.marginLeft = '10px';
+        panel.appendChild(sizeLabel);
+        
+        const sizeInput = document.createElement('input');
+        sizeInput.type = 'range';
+        sizeInput.id = 'drawSize';
+        sizeInput.min = '1';
+        sizeInput.max = '20';
+        sizeInput.value = this.currentSize;
+        sizeInput.style.width = '100px';
+        sizeInput.style.marginLeft = '5px';
+        sizeInput.oninput = (e) => this.setSize(e.target.value);
+        panel.appendChild(sizeInput);
+        
+        const sizeValue = document.createElement('span');
+        sizeValue.id = 'drawSizeValue';
+        sizeValue.innerHTML = this.currentSize;
+        sizeValue.style.color = '#e0d0c0';
+        sizeValue.style.marginLeft = '5px';
+        panel.appendChild(sizeValue);
+        
+        // Цвет кисти
         const brushContainer = document.createElement('div');
         brushContainer.className = 'brush-picker-container';
         brushContainer.style.position = 'relative';
         brushContainer.style.display = 'inline-block';
-        brushContainer.style.marginRight = '15px';
+        brushContainer.style.marginLeft = '10px';
         
-        // Кнопка текущего цвета кисти
         const brushColorBtn = document.createElement('button');
         brushColorBtn.id = 'brushColorBtn';
-        brushColorBtn.style.width = '40px';
-        brushColorBtn.style.height = '40px';
+        brushColorBtn.style.width = '30px';
+        brushColorBtn.style.height = '30px';
         brushColorBtn.style.backgroundColor = this.currentColor;
         brushColorBtn.style.border = '2px solid #8b4513';
         brushColorBtn.style.borderRadius = '4px';
@@ -131,13 +165,13 @@ const DrawModule = {
         brushColorBtn.onclick = () => this.toggleBrushPicker();
         brushContainer.appendChild(brushColorBtn);
         
-        // Пипетка для кисти
+        // Пипетка
         if (window.EyeDropper) {
             const eyeDropperBtn = document.createElement('button');
             eyeDropperBtn.className = 'btn btn-roll';
             eyeDropperBtn.innerHTML = '👁️';
-            eyeDropperBtn.style.padding = '5px 10px';
-            eyeDropperBtn.style.marginLeft = '5px';
+            eyeDropperBtn.style.padding = '2px 8px';
+            eyeDropperBtn.style.marginLeft = '3px';
             eyeDropperBtn.title = 'Пипетка';
             eyeDropperBtn.onclick = () => this.useEyeDropper();
             brushContainer.appendChild(eyeDropperBtn);
@@ -145,18 +179,57 @@ const DrawModule = {
         
         panel.appendChild(brushContainer);
         
-        // ===== КНОПКА ЦВЕТА СЕТКИ =====
+        // ===== Разделитель =====
+        const sep1 = document.createElement('span');
+        sep1.innerHTML = ' | ';
+        sep1.style.color = '#8b4513';
+        sep1.style.fontWeight = 'bold';
+        sep1.style.margin = '0 10px';
+        panel.appendChild(sep1);
+        
+        // ===== РЯД 2: Сетка, размер, цвет, прозрачность, тип =====
+        // Кнопка сетки
+        const gridBtn = document.createElement('button');
+        gridBtn.className = 'btn btn-roll';
+        gridBtn.id = 'drawGrid';
+        gridBtn.innerHTML = '⬜ Сетка';
+        gridBtn.style.padding = '5px 10px';
+        gridBtn.onclick = () => this.toggleGrid();
+        panel.appendChild(gridBtn);
+        
+        // Размер сетки
+        const gridSizeLabel = document.createElement('span');
+        gridSizeLabel.innerHTML = 'Размер:';
+        gridSizeLabel.style.color = '#e0d0c0';
+        gridSizeLabel.style.marginLeft = '10px';
+        panel.appendChild(gridSizeLabel);
+        
+        const gridSizeInput = document.createElement('input');
+        gridSizeInput.type = 'number';
+        gridSizeInput.id = 'gridSize';
+        gridSizeInput.value = this.gridSize;
+        gridSizeInput.min = '5';
+        gridSizeInput.max = '200';
+        gridSizeInput.style.width = '60px';
+        gridSizeInput.style.padding = '3px';
+        gridSizeInput.style.background = '#1a0f0b';
+        gridSizeInput.style.color = '#e0d0c0';
+        gridSizeInput.style.border = '1px solid #8b4513';
+        gridSizeInput.style.marginLeft = '5px';
+        gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
+        panel.appendChild(gridSizeInput);
+        
+        // Цвет сетки
         const gridContainer = document.createElement('div');
         gridContainer.className = 'grid-picker-container';
         gridContainer.style.position = 'relative';
         gridContainer.style.display = 'inline-block';
-        gridContainer.style.marginRight = '15px';
+        gridContainer.style.marginLeft = '10px';
         
-        // Кнопка текущего цвета сетки
         const gridColorBtn = document.createElement('button');
         gridColorBtn.id = 'gridColorBtn';
-        gridColorBtn.style.width = '40px';
-        gridColorBtn.style.height = '40px';
+        gridColorBtn.style.width = '30px';
+        gridColorBtn.style.height = '30px';
         gridColorBtn.style.backgroundColor = this.gridColor;
         gridColorBtn.style.border = '2px solid #8b4513';
         gridColorBtn.style.borderRadius = '4px';
@@ -168,35 +241,9 @@ const DrawModule = {
         
         panel.appendChild(gridContainer);
         
-        // ===== ОСТАЛЬНЫЕ КОНТРОЛЫ СЕТКИ =====
-        // Кнопка сетки
-        const gridBtn = document.createElement('button');
-        gridBtn.className = 'btn btn-roll';
-        gridBtn.id = 'drawGrid';
-        gridBtn.innerHTML = '⬜ Сетка';
-        gridBtn.style.padding = '5px 10px';
-        gridBtn.onclick = () => this.toggleGrid();
-        panel.appendChild(gridBtn);
-        
-        // Размер сетки
-        const gridSizeInput = document.createElement('input');
-        gridSizeInput.type = 'number';
-        gridSizeInput.id = 'gridSize';
-        gridSizeInput.value = this.gridSize;
-        gridSizeInput.min = '5';
-        gridSizeInput.max = '200';
-        gridSizeInput.style.width = '60px';
-        gridSizeInput.style.padding = '5px';
-        gridSizeInput.style.background = '#1a0f0b';
-        gridSizeInput.style.color = '#e0d0c0';
-        gridSizeInput.style.border = '1px solid #8b4513';
-        gridSizeInput.style.marginLeft = '5px';
-        gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
-        panel.appendChild(gridSizeInput);
-        
         // Прозрачность сетки
         const opacityLabel = document.createElement('span');
-        opacityLabel.innerHTML = 'Прозр:';
+        opacityLabel.innerHTML = 'Прозрачность:';
         opacityLabel.style.color = '#e0d0c0';
         opacityLabel.style.marginLeft = '10px';
         panel.appendChild(opacityLabel);
@@ -225,7 +272,7 @@ const DrawModule = {
         gridTypeSelect.style.background = '#1a0f0b';
         gridTypeSelect.style.color = '#e0d0c0';
         gridTypeSelect.style.border = '1px solid #8b4513';
-        gridTypeSelect.style.padding = '5px';
+        gridTypeSelect.style.padding = '3px';
         gridTypeSelect.style.marginLeft = '5px';
         gridTypeSelect.onchange = (e) => this.setGridType(e.target.value);
         
@@ -241,13 +288,15 @@ const DrawModule = {
         
         panel.appendChild(gridTypeSelect);
         
-        // ===== КНОПКИ ЗУМА =====
-        const zoomSeparator = document.createElement('span');
-        zoomSeparator.innerHTML = ' | ';
-        zoomSeparator.style.color = '#8b4513';
-        zoomSeparator.style.fontWeight = 'bold';
-        panel.appendChild(zoomSeparator);
+        // ===== Разделитель =====
+        const sep2 = document.createElement('span');
+        sep2.innerHTML = ' | ';
+        sep2.style.color = '#8b4513';
+        sep2.style.fontWeight = 'bold';
+        sep2.style.margin = '0 10px';
+        panel.appendChild(sep2);
         
+        // ===== РЯД 3: Зум =====
         const zoomOutBtn = document.createElement('button');
         zoomOutBtn.className = 'btn btn-roll';
         zoomOutBtn.innerHTML = '🔍-';
@@ -269,6 +318,32 @@ const DrawModule = {
         resetBtn.onclick = () => this.resetView();
         panel.appendChild(resetBtn);
         
+        // ===== Разделитель =====
+        const sep3 = document.createElement('span');
+        sep3.innerHTML = ' | ';
+        sep3.style.color = '#8b4513';
+        sep3.style.fontWeight = 'bold';
+        sep3.style.margin = '0 10px';
+        panel.appendChild(sep3);
+        
+        // ===== РЯД 4: Сохранить и Очистить (в конце) =====
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn-plus';
+        saveBtn.id = 'drawSave';
+        saveBtn.innerHTML = '💾 Сохранить';
+        saveBtn.style.padding = '5px 10px';
+        saveBtn.onclick = () => this.saveDrawing();
+        panel.appendChild(saveBtn);
+        
+        const clearBtn = document.createElement('button');
+        clearBtn.className = 'btn btn-minus';
+        clearBtn.id = 'drawClear';
+        clearBtn.innerHTML = '🗑️ Очистить';
+        clearBtn.style.padding = '5px 10px';
+        clearBtn.style.marginLeft = '5px';
+        clearBtn.onclick = () => this.clearCanvas();
+        panel.appendChild(clearBtn);
+        
         // Создаем палитры
         this.createBrushPalette(brushContainer);
         this.createGridPalette(gridContainer);
@@ -278,7 +353,7 @@ const DrawModule = {
         const palette = document.createElement('div');
         palette.id = 'brushPalette';
         palette.style.position = 'absolute';
-        palette.style.top = '45px';
+        palette.style.top = '35px';
         palette.style.left = '0';
         palette.style.backgroundColor = '#3d2418';
         palette.style.border = '2px solid #8b4513';
@@ -342,7 +417,7 @@ const DrawModule = {
         const palette = document.createElement('div');
         palette.id = 'gridPalette';
         palette.style.position = 'absolute';
-        palette.style.top = '45px';
+        palette.style.top = '35px';
         palette.style.left = '0';
         palette.style.backgroundColor = '#3d2418';
         palette.style.border = '2px solid #8b4513';
