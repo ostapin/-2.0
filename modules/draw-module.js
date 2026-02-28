@@ -698,30 +698,39 @@ const DrawModule = {
     setTool(tool) {
         this.currentTool = tool;
         
+        const colorPicker = document.getElementById('standardColorPicker');
+        const sizeInput = document.getElementById('drawSize');
+        
         if (tool === 'eraser') {
             // Ластик: фиксированный белый цвет, увеличенный макс размер
             this.currentColor = '#ffffff';
-            document.getElementById('standardColorPicker').value = '#ffffff';
-            document.getElementById('drawSize').max = '200';
+            if (colorPicker) {
+                colorPicker.value = '#ffffff';
+                colorPicker.disabled = true;
+            }
+            if (sizeInput) {
+                sizeInput.max = '200';
+            }
             
-            // Блокируем элементы выбора цвета
+            // Блокируем остальные элементы
             if (this.colorElements) {
-                this.colorElements.standardPicker.disabled = true;
-                this.colorElements.paletteBtn.disabled = true;
-                if (this.colorElements.eyeDropper) {
-                    this.colorElements.eyeDropper.disabled = true;
-                }
+                if (this.colorElements.paletteBtn) this.colorElements.paletteBtn.disabled = true;
+                if (this.colorElements.eyeDropper) this.colorElements.eyeDropper.disabled = true;
             }
         } else {
             // Кисть: разблокируем выбор цвета
-            document.getElementById('drawSize').max = '100';
+            if (colorPicker) {
+                colorPicker.disabled = false;
+                this.currentColor = colorPicker.value;
+            }
+            if (sizeInput) {
+                sizeInput.max = '100';
+            }
             
+            // Разблокируем элементы
             if (this.colorElements) {
-                this.colorElements.standardPicker.disabled = false;
-                this.colorElements.paletteBtn.disabled = false;
-                if (this.colorElements.eyeDropper) {
-                    this.colorElements.eyeDropper.disabled = false;
-                }
+                if (this.colorElements.paletteBtn) this.colorElements.paletteBtn.disabled = false;
+                if (this.colorElements.eyeDropper) this.colorElements.eyeDropper.disabled = false;
             }
         }
     },
@@ -733,7 +742,10 @@ const DrawModule = {
         }
         
         this.currentColor = color;
-        document.getElementById('standardColorPicker').value = color;
+        const colorPicker = document.getElementById('standardColorPicker');
+        if (colorPicker) {
+            colorPicker.value = color;
+        }
     },
     
     setSize(size) {
