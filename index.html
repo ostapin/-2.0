@@ -9,18 +9,22 @@
 </head>
 <body>
     <div class="container">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('character')">🧙 Персонаж</button>
-            <button class="tab-btn" onclick="openTab('generator')">🎲 Генератор</button>
-            <button class="tab-btn" onclick="openTab('inventory')">🎒 Инвентарь</button>
-            <button class="tab-btn" onclick="openTab('dice')">🎲 Кубики</button>
-            <button class="tab-btn" onclick="openTab('notes')">✍️ Заметки</button>
-            <button class="tab-btn" onclick="openTab('characters')">👥 Персонажи</button>
-            <button class="tab-btn" onclick="openTab('calendar')">📅 Календарь</button>
-            <button class="tab-btn" onclick="openTab('maps')">🗺️ Карты</button>
-            <button class="tab-btn" onclick="openTab('battle')">🗺️ Бой ⚔️ </button>
-            <button class="tab-btn" onclick="openTab('draw')">🎨 Рисовалка</button>
-        </div>
+       <div class="tabs" style="display: flex; flex-direction: column; gap: 5px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+        <button class="tab-btn active" onclick="openTab('character')">🧙 Персонаж</button>
+        <button class="tab-btn" onclick="openTab('generator')">🎲 Генератор</button>
+        <button class="tab-btn" onclick="openTab('inventory')">🎒 Инвентарь</button>
+        <button class="tab-btn" onclick="openTab('dice')">🎲 Кубики</button>
+        <button class="tab-btn" onclick="openTab('notes')">✍️ Заметки</button>
+        <button class="tab-btn" onclick="openTab('characters')">👥 Персонажи</button>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+        <button class="tab-btn" onclick="openTab('calendar')">📅 Календарь</button>
+        <button class="tab-btn" onclick="openTab('maps')">🗺️ Карты</button>
+        <button class="tab-btn" onclick="openTab('battle')">⚔️ Бой</button>
+        <button class="tab-btn" onclick="openTab('draw')">🎨 Рисовалка</button>
+    </div>
+</div>
 
         <!-- Вкладка персонажа -->
         <div id="character-tab" class="tab-content active">
@@ -416,6 +420,7 @@
     <script src="modules/account-switcher.js"></script>
 </body>
 </html>
+
 
 
 
