@@ -32,8 +32,8 @@ const DrawModule = {
         this.ctx.lineJoin = 'round';
         
         this.loadDrawings();
-        this.bindEvents();
         this.addControls();
+        this.bindEvents();
         console.log('Draw module initialized');
     },
     
@@ -81,10 +81,6 @@ const DrawModule = {
             }
         });
         
-        // Инструменты
-        document.getElementById('drawBrush')?.addEventListener('click', () => this.setTool('brush'));
-        document.getElementById('drawEraser')?.addEventListener('click', () => this.setTool('eraser'));
-        
         // Закрытие палитр при клике вне их
         document.addEventListener('click', (e) => {
             if (this.brushPickerOpen && !e.target.closest('.brush-palette-container')) {
@@ -109,6 +105,7 @@ const DrawModule = {
         brushBtn.id = 'drawBrush';
         brushBtn.innerHTML = '🖌️ Кисть';
         brushBtn.style.padding = '5px 10px';
+        brushBtn.onclick = () => this.setTool('brush');
         panel.appendChild(brushBtn);
         
         const eraserBtn = document.createElement('button');
@@ -116,6 +113,7 @@ const DrawModule = {
         eraserBtn.id = 'drawEraser';
         eraserBtn.innerHTML = '🧽 Ластик';
         eraserBtn.style.padding = '5px 10px';
+        eraserBtn.onclick = () => this.setTool('eraser');
         panel.appendChild(eraserBtn);
         
         // ===== РАЗМЕР =====
@@ -647,21 +645,17 @@ const DrawModule = {
         this.ctx.beginPath();
         this.ctx.moveTo(e.offsetX, e.offsetY);
         
-        // Устанавливаем режим композиции для всего процесса рисования
         if (this.currentTool === 'eraser') {
-            this.ctx.globalCompositeOperation = 'destination-out'; // Режим стирания [citation:1]
+            this.ctx.globalCompositeOperation = 'destination-out';
+            console.log('Режим стирания включен');
         } else {
-            this.ctx.globalCompositeOperation = 'source-over'; // Обычный режим
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.strokeStyle = this.currentColor;
         }
     },
     
     draw(e) {
         if (!this.drawing) return;
-        
-        if (this.currentTool === 'brush') {
-            this.ctx.strokeStyle = this.currentColor;
-        }
-        // Для ластика цвет не важен, важен режим destination-out
         
         this.ctx.lineWidth = this.currentSize;
         this.ctx.lineTo(e.offsetX, e.offsetY);
@@ -670,7 +664,7 @@ const DrawModule = {
     
     stopDrawing() {
         this.drawing = false;
-        // Не сбрасываем композицию сразу, путь уже завершен
+        this.ctx.globalCompositeOperation = 'source-over';
         
         if (this.gridEnabled) {
             this.redrawWithGrid();
@@ -679,36 +673,22 @@ const DrawModule = {
     
     setTool(tool) {
         this.currentTool = tool;
+        console.log('Смена инструмента на:', tool);
         
         const colorPicker = document.getElementById('standardColorPicker');
         const sizeInput = document.getElementById('drawSize');
         
         if (tool === 'eraser') {
-            // Ластик: блокируем выбор цвета
-            if (colorPicker) {
-                colorPicker.disabled = true;
-            }
-            if (sizeInput) {
-                sizeInput.max = '200';
-            }
-            
-            // Блокируем кнопку палитры
-            if (this.colorElements && this.colorElements.paletteBtn) {
-                this.colorElements.paletteBtn.disabled = true;
-            }
+            if (colorPicker) colorPicker.disabled = true;
+            if (sizeInput) sizeInput.max = '200';
+            if (this.colorElements?.paletteBtn) this.colorElements.paletteBtn.disabled = true;
         } else {
-            // Кисть: разблокируем выбор цвета
             if (colorPicker) {
                 colorPicker.disabled = false;
+                this.currentColor = colorPicker.value;
             }
-            if (sizeInput) {
-                sizeInput.max = '100';
-            }
-            
-            // Разблокируем кнопку палитры
-            if (this.colorElements && this.colorElements.paletteBtn) {
-                this.colorElements.paletteBtn.disabled = false;
-            }
+            if (sizeInput) sizeInput.max = '100';
+            if (this.colorElements?.paletteBtn) this.colorElements.paletteBtn.disabled = false;
         }
     },
     
