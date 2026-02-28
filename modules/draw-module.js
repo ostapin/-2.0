@@ -10,6 +10,8 @@ const DrawModule = {
     gridEnabled: false,
     gridSize: 50,
     gridColor: '#cccccc',
+    gridOpacity: 0.5,
+    gridType: 'square', // 'square' или 'hex'
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -42,24 +44,26 @@ const DrawModule = {
     },
     
     addGridControls() {
-        const panel = document.querySelector('#draw-tab div:first-child');
+        const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
         if (!panel) return;
+        
+        // Разделитель
+        const separator = document.createElement('span');
+        separator.innerHTML = ' | ';
+        separator.style.color = '#8b4513';
+        separator.style.fontWeight = 'bold';
+        panel.appendChild(separator);
         
         // Кнопка сетки
         const gridBtn = document.createElement('button');
         gridBtn.className = 'btn btn-roll';
         gridBtn.id = 'drawGrid';
-        gridBtn.innerHTML = '⬜ Сетка выкл';
+        gridBtn.innerHTML = '⬜ Сетка';
+        gridBtn.style.padding = '5px 10px';
         gridBtn.onclick = () => this.toggleGrid();
         panel.appendChild(gridBtn);
         
         // Размер сетки
-        const sizeLabel = document.createElement('span');
-        sizeLabel.style.color = '#e0d0c0';
-        sizeLabel.innerHTML = 'Размер:';
-        sizeLabel.style.marginLeft = '10px';
-        panel.appendChild(sizeLabel);
-        
         const gridSizeInput = document.createElement('input');
         gridSizeInput.type = 'number';
         gridSizeInput.id = 'gridSize';
@@ -71,31 +75,62 @@ const DrawModule = {
         gridSizeInput.style.background = '#1a0f0b';
         gridSizeInput.style.color = '#e0d0c0';
         gridSizeInput.style.border = '1px solid #8b4513';
+        gridSizeInput.style.marginLeft = '5px';
         gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
         panel.appendChild(gridSizeInput);
         
         // Цвет сетки
-        const colorLabel = document.createElement('span');
-        colorLabel.style.color = '#e0d0c0';
-        colorLabel.innerHTML = 'Цвет:';
-        colorLabel.style.marginLeft = '10px';
-        panel.appendChild(colorLabel);
-        
         const gridColorInput = document.createElement('input');
         gridColorInput.type = 'color';
         gridColorInput.id = 'gridColor';
         gridColorInput.value = this.gridColor;
         gridColorInput.style.width = '40px';
         gridColorInput.style.height = '30px';
+        gridColorInput.style.marginLeft = '5px';
         gridColorInput.onchange = (e) => this.setGridColor(e.target.value);
         panel.appendChild(gridColorInput);
+        
+        // Прозрачность сетки
+        const opacityInput = document.createElement('input');
+        opacityInput.type = 'range';
+        opacityInput.id = 'gridOpacity';
+        opacityInput.min = '0';
+        opacityInput.max = '1';
+        opacityInput.step = '0.1';
+        opacityInput.value = this.gridOpacity;
+        opacityInput.style.width = '80px';
+        opacityInput.style.marginLeft = '5px';
+        opacityInput.oninput = (e) => this.setGridOpacity(parseFloat(e.target.value));
+        panel.appendChild(opacityInput);
+        
+        // Тип сетки
+        const gridTypeSelect = document.createElement('select');
+        gridTypeSelect.id = 'gridType';
+        gridTypeSelect.style.background = '#1a0f0b';
+        gridTypeSelect.style.color = '#e0d0c0';
+        gridTypeSelect.style.border = '1px solid #8b4513';
+        gridTypeSelect.style.padding = '5px';
+        gridTypeSelect.style.marginLeft = '5px';
+        gridTypeSelect.onchange = (e) => this.setGridType(e.target.value);
+        
+        const optionSquare = document.createElement('option');
+        optionSquare.value = 'square';
+        optionSquare.text = 'Квадраты';
+        gridTypeSelect.appendChild(optionSquare);
+        
+        const optionHex = document.createElement('option');
+        optionHex.value = 'hex';
+        optionHex.text = 'Гексы';
+        gridTypeSelect.appendChild(optionHex);
+        
+        panel.appendChild(gridTypeSelect);
     },
     
     toggleGrid() {
         this.gridEnabled = !this.gridEnabled;
         const btn = document.getElementById('drawGrid');
         if (btn) {
-            btn.innerHTML = this.gridEnabled ? '🔲 Сетка вкл' : '⬜ Сетка выкл';
+            btn.innerHTML = this.gridEnabled ? '🔲 Сетка' : '⬜ Сетка';
         }
         this.redrawWithGrid();
     },
@@ -117,13 +152,38 @@ const DrawModule = {
         }
     },
     
+    setGridOpacity(opacity) {
+        this.gridOpacity = opacity;
+        if (this.gridEnabled) {
+            this.redrawWithGrid();
+        }
+    },
+    
+    setGridType(type) {
+        this.gridType = type;
+        if (this.gridEnabled) {
+            this.redrawWithGrid();
+        }
+    },
+    
     drawGrid() {
         if (!this.gridEnabled) return;
         
         this.ctx.save();
         this.ctx.strokeStyle = this.gridColor;
         this.ctx.lineWidth = 0.5;
+        this.ctx.globalAlpha = this.gridOpacity;
         
+        if (this.gridType === 'square') {
+            this.drawSquareGrid();
+        } else {
+            this.drawHexGrid();
+        }
+        
+        this.ctx.restore();
+    },
+    
+    drawSquareGrid() {
         // Вертикальные линии
         for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
             this.ctx.beginPath();
@@ -139,8 +199,37 @@ const DrawModule = {
             this.ctx.lineTo(this.canvas.width, y);
             this.ctx.stroke();
         }
+    },
+    
+    drawHexGrid() {
+        const hexHeight = this.gridSize;
+        const hexWidth = this.gridSize * 0.866;
         
-        this.ctx.restore();
+        for (let row = 0; row < this.canvas.height / hexHeight + 2; row++) {
+            for (let col = 0; col < this.canvas.width / hexWidth + 2; col++) {
+                const x = col * hexWidth * 2 + (row % 2) * hexWidth;
+                const y = row * hexHeight * 0.75;
+                
+                this.drawHexagon(x, y, this.gridSize / 2);
+            }
+        }
+    },
+    
+    drawHexagon(x, y, size) {
+        this.ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = i * Math.PI / 3;
+            const hx = x + size * Math.cos(angle);
+            const hy = y + size * Math.sin(angle);
+            
+            if (i === 0) {
+                this.ctx.moveTo(hx, hy);
+            } else {
+                this.ctx.lineTo(hx, hy);
+            }
+        }
+        this.ctx.closePath();
+        this.ctx.stroke();
     },
     
     redrawWithGrid() {
