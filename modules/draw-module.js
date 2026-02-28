@@ -176,19 +176,6 @@ const DrawModule = {
         
         panel.appendChild(brushPaletteContainer);
         
-        // Пипетка
-        let eyeDropperBtn = null;
-        if (window.EyeDropper) {
-            eyeDropperBtn = document.createElement('button');
-            eyeDropperBtn.className = 'btn btn-roll';
-            eyeDropperBtn.innerHTML = '👁️';
-            eyeDropperBtn.style.padding = '5px 10px';
-            eyeDropperBtn.style.marginLeft = '5px';
-            eyeDropperBtn.title = 'Пипетка';
-            eyeDropperBtn.onclick = () => this.useEyeDropper();
-            panel.appendChild(eyeDropperBtn);
-        }
-        
         // ===== Разделитель =====
         const sep1 = document.createElement('span');
         sep1.innerHTML = ' | ';
@@ -370,8 +357,7 @@ const DrawModule = {
         // Сохраняем ссылки на элементы цвета для блокировки
         this.colorElements = {
             standardPicker: standardColorPicker,
-            paletteBtn: paletteBtn,
-            eyeDropper: eyeDropperBtn
+            paletteBtn: paletteBtn
         };
     },
     
@@ -509,23 +495,6 @@ const DrawModule = {
         if (palette) {
             palette.style.display = 'none';
             this.gridPickerOpen = false;
-        }
-    },
-    
-    async useEyeDropper() {
-        if (this.currentTool !== 'brush') return;
-        
-        if (!window.EyeDropper) {
-            alert('Пипетка не поддерживается в вашем браузере');
-            return;
-        }
-        
-        try {
-            const eyeDropper = new EyeDropper();
-            const result = await eyeDropper.open();
-            this.setColor(result.sRGBHex);
-        } catch (e) {
-            console.log('Пипетка отменена');
         }
     },
     
@@ -678,11 +647,9 @@ const DrawModule = {
         this.ctx.beginPath();
         this.ctx.moveTo(e.offsetX, e.offsetY);
         
-        // Устанавливаем режим композиции в зависимости от инструмента
+        // Устанавливаем режим композиции для ластика
         if (this.currentTool === 'eraser') {
             this.ctx.globalCompositeOperation = 'destination-out';
-        } else {
-            this.ctx.globalCompositeOperation = 'source-over';
         }
     },
     
@@ -695,7 +662,7 @@ const DrawModule = {
             this.ctx.lineTo(e.offsetX, e.offsetY);
             this.ctx.stroke();
         } else if (this.currentTool === 'eraser') {
-            // Для ластика цвет не важен, важно что режим destination-out
+            this.ctx.strokeStyle = '#ffffff'; // цвет не важен
             this.ctx.lineWidth = this.currentSize;
             this.ctx.lineTo(e.offsetX, e.offsetY);
             this.ctx.stroke();
@@ -728,10 +695,9 @@ const DrawModule = {
                 sizeInput.max = '200';
             }
             
-            // Блокируем остальные элементы
-            if (this.colorElements) {
-                if (this.colorElements.paletteBtn) this.colorElements.paletteBtn.disabled = true;
-                if (this.colorElements.eyeDropper) this.colorElements.eyeDropper.disabled = true;
+            // Блокируем кнопку палитры
+            if (this.colorElements && this.colorElements.paletteBtn) {
+                this.colorElements.paletteBtn.disabled = true;
             }
         } else {
             // Кисть: разблокируем выбор цвета
@@ -742,10 +708,9 @@ const DrawModule = {
                 sizeInput.max = '100';
             }
             
-            // Разблокируем элементы
-            if (this.colorElements) {
-                if (this.colorElements.paletteBtn) this.colorElements.paletteBtn.disabled = false;
-                if (this.colorElements.eyeDropper) this.colorElements.eyeDropper.disabled = false;
+            // Разблокируем кнопку палитры
+            if (this.colorElements && this.colorElements.paletteBtn) {
+                this.colorElements.paletteBtn.disabled = false;
             }
         }
     },
