@@ -210,8 +210,7 @@ const DrawModule = {
         gridSizeInput.style.color = '#e0d0c0';
         gridSizeInput.style.border = '1px solid #8b4513';
         gridSizeInput.style.marginLeft = '5px';
-        gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
-        gridSizeInput.oninput = (e) => this.setGridSize(parseInt(e.target.value)); // Добавляем oninput для мгновенного обновления при стрелках
+        gridSizeInput.oninput = (e) => this.setGridSize(parseInt(e.target.value));
         panel.appendChild(gridSizeInput);
         
         // Цвет сетки - стандартный color picker
@@ -530,7 +529,11 @@ const DrawModule = {
         if (btn) {
             btn.innerHTML = this.gridEnabled ? '🔲 Сетка' : '⬜ Сетка';
         }
-        this.redrawWithGrid();
+        if (this.gridEnabled) {
+            this.drawGrid();
+        } else {
+            this.redrawWithoutGrid();
+        }
     },
     
     setGridSize(size) {
@@ -539,9 +542,12 @@ const DrawModule = {
         this.gridSize = size;
         document.getElementById('gridSize').value = size;
         
-        // Перерисовываем всё с новой сеткой
         if (this.gridEnabled) {
-            this.redrawWithGrid();
+            // Полностью перерисовываем всё с новой сеткой
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.putImageData(imageData, 0, 0);
+            this.drawGrid();
         }
     },
     
@@ -549,21 +555,30 @@ const DrawModule = {
         this.gridColor = color;
         document.getElementById('gridColorPicker').value = color;
         if (this.gridEnabled) {
-            this.redrawWithGrid();
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.putImageData(imageData, 0, 0);
+            this.drawGrid();
         }
     },
     
     setGridOpacity(opacity) {
         this.gridOpacity = opacity;
         if (this.gridEnabled) {
-            this.redrawWithGrid();
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.putImageData(imageData, 0, 0);
+            this.drawGrid();
         }
     },
     
     setGridType(type) {
         this.gridType = type;
         if (this.gridEnabled) {
-            this.redrawWithGrid();
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.putImageData(imageData, 0, 0);
+            this.drawGrid();
         }
     },
     
@@ -636,18 +651,10 @@ const DrawModule = {
         this.ctx.stroke();
     },
     
-    redrawWithGrid() {
-        // Сохраняем текущее изображение
+    redrawWithoutGrid() {
         const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Полностью очищаем холст
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Восстанавливаем рисунок
         this.ctx.putImageData(imageData, 0, 0);
-        
-        // Рисуем новую сетку поверх
-        this.drawGrid();
     },
     
     startDrawing(e) {
@@ -657,7 +664,6 @@ const DrawModule = {
         
         if (this.currentTool === 'eraser') {
             this.ctx.globalCompositeOperation = 'destination-out';
-            console.log('Режим стирания включен');
         } else {
             this.ctx.globalCompositeOperation = 'source-over';
             this.ctx.strokeStyle = this.currentColor;
@@ -677,7 +683,8 @@ const DrawModule = {
         this.ctx.globalCompositeOperation = 'source-over';
         
         if (this.gridEnabled) {
-            this.redrawWithGrid();
+            // Перерисовываем сетку поверх рисунка
+            this.drawGrid();
         }
     },
     
