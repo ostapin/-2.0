@@ -377,12 +377,32 @@
         <p style="color: #e0d0c0;">Тут будет система боя. Инициатива, хп монстров и т.д.</p>
     </div>
 </div>
-    <!-- Вкладка рисовалки -->
+   <!-- Вкладка рисовалки -->
 <div id="draw-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">🎨 РИСОВАЛКА</h2>
     
-    <div style="text-align: center; margin-bottom: 20px;">
-        <p style="color: #e0d0c0;">Тут можно рисовать. Подготовь место.</p>
+    <!-- Панель инструментов -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; padding: 15px; background: #3d2418; border-radius: 8px;">
+        <button class="btn btn-roll" id="drawBrush">🖌️ Кисть</button>
+        <button class="btn btn-roll" id="drawEraser">🧽 Ластик</button>
+        <input type="color" id="drawColor" value="#000000" style="width: 50px; height: 40px;">
+        <input type="range" id="drawSize" min="1" max="20" value="5">
+        <span style="color: #e0d0c0;">Размер: <span id="drawSizeValue">5</span></span>
+        <button class="btn btn-plus" id="drawSave">💾 Сохранить</button>
+        <button class="btn btn-minus" id="drawClear">🗑️ Очистить</button>
+    </div>
+
+    <!-- Холст для рисования -->
+    <div style="text-align: center; background: #1a0f0b; padding: 20px; border-radius: 8px; border: 2px solid #8b4513;">
+        <canvas id="drawCanvas" width="800" height="500" style="border: 2px solid #8b4513; background: white; cursor: crosshair;"></canvas>
+    </div>
+
+    <!-- Список сохраненных рисунков -->
+    <div style="margin-top: 20px; padding: 15px; background: #3d2418; border-radius: 8px;">
+        <h3 style="color: #d4af37; margin-bottom: 10px;">📂 Сохраненные рисунки</h3>
+        <div id="drawList" style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 50px;">
+            <p style="color: #8b7d6b;">Пока нет сохраненных рисунков</p>
+        </div>
     </div>
 </div>
     <!-- Подключаем Firebase -->
@@ -423,6 +443,7 @@
     <script src="js/draw.js"></script>
 </body>
 </html>
+
 
 
 
