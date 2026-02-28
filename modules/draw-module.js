@@ -9,6 +9,7 @@ const DrawModule = {
     drawings: {},
     gridEnabled: false,
     gridSize: 50,
+    gridColor: '#cccccc',
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -20,6 +21,7 @@ const DrawModule = {
         
         this.loadDrawings();
         this.bindEvents();
+        this.addGridControls();
         console.log('Draw module initialized');
     },
     
@@ -37,21 +39,56 @@ const DrawModule = {
         document.getElementById('drawSize')?.addEventListener('input', (e) => this.setSize(e.target.value));
         document.getElementById('drawClear')?.addEventListener('click', () => this.clearCanvas());
         document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
-        
-        // Кнопка сетки (добавим позже в HTML)
-        this.addGridButton();
     },
     
-    addGridButton() {
+    addGridControls() {
         const panel = document.querySelector('#draw-tab div:first-child');
-        if (panel) {
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-roll';
-            btn.id = 'drawGrid';
-            btn.innerHTML = this.gridEnabled ? '🔲 Сетка вкл' : '⬜ Сетка выкл';
-            btn.onclick = () => this.toggleGrid();
-            panel.appendChild(btn);
-        }
+        if (!panel) return;
+        
+        // Кнопка сетки
+        const gridBtn = document.createElement('button');
+        gridBtn.className = 'btn btn-roll';
+        gridBtn.id = 'drawGrid';
+        gridBtn.innerHTML = '⬜ Сетка выкл';
+        gridBtn.onclick = () => this.toggleGrid();
+        panel.appendChild(gridBtn);
+        
+        // Размер сетки
+        const sizeLabel = document.createElement('span');
+        sizeLabel.style.color = '#e0d0c0';
+        sizeLabel.innerHTML = 'Размер:';
+        sizeLabel.style.marginLeft = '10px';
+        panel.appendChild(sizeLabel);
+        
+        const gridSizeInput = document.createElement('input');
+        gridSizeInput.type = 'number';
+        gridSizeInput.id = 'gridSize';
+        gridSizeInput.value = this.gridSize;
+        gridSizeInput.min = '5';
+        gridSizeInput.max = '200';
+        gridSizeInput.style.width = '60px';
+        gridSizeInput.style.padding = '5px';
+        gridSizeInput.style.background = '#1a0f0b';
+        gridSizeInput.style.color = '#e0d0c0';
+        gridSizeInput.style.border = '1px solid #8b4513';
+        gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
+        panel.appendChild(gridSizeInput);
+        
+        // Цвет сетки
+        const colorLabel = document.createElement('span');
+        colorLabel.style.color = '#e0d0c0';
+        colorLabel.innerHTML = 'Цвет:';
+        colorLabel.style.marginLeft = '10px';
+        panel.appendChild(colorLabel);
+        
+        const gridColorInput = document.createElement('input');
+        gridColorInput.type = 'color';
+        gridColorInput.id = 'gridColor';
+        gridColorInput.value = this.gridColor;
+        gridColorInput.style.width = '40px';
+        gridColorInput.style.height = '30px';
+        gridColorInput.onchange = (e) => this.setGridColor(e.target.value);
+        panel.appendChild(gridColorInput);
     },
     
     toggleGrid() {
@@ -63,11 +100,28 @@ const DrawModule = {
         this.redrawWithGrid();
     },
     
+    setGridSize(size) {
+        if (size < 5) size = 5;
+        if (size > 200) size = 200;
+        this.gridSize = size;
+        document.getElementById('gridSize').value = size;
+        if (this.gridEnabled) {
+            this.redrawWithGrid();
+        }
+    },
+    
+    setGridColor(color) {
+        this.gridColor = color;
+        if (this.gridEnabled) {
+            this.redrawWithGrid();
+        }
+    },
+    
     drawGrid() {
         if (!this.gridEnabled) return;
         
         this.ctx.save();
-        this.ctx.strokeStyle = '#cccccc';
+        this.ctx.strokeStyle = this.gridColor;
         this.ctx.lineWidth = 0.5;
         
         // Вертикальные линии
