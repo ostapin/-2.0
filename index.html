@@ -19,6 +19,7 @@
             <button class="tab-btn" onclick="openTab('calendar')">📅 Календарь</button>
             <button class="tab-btn" onclick="openTab('maps')">🗺️ Карты</button>
             <button class="tab-btn" onclick="openTab('battle')">🗺️ Бой ⚔️ </button>
+            <button class="tab-btn" onclick="openTab('draw')">🎨 Рисовалка</button>
         </div>
 
         <!-- Вкладка персонажа -->
@@ -364,6 +365,22 @@
         </div>
     </div>
 </div>
+    <!-- Вкладка боя -->
+<div id="battle-tab" class="tab-content">
+    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">⚔️ СИСТЕМА БОЯ</h2>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <p style="color: #e0d0c0;">Тут будет система боя. Инициатива, хп монстров и т.д.</p>
+    </div>
+</div>
+    <!-- Вкладка рисовалки -->
+<div id="draw-tab" class="tab-content">
+    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">🎨 РИСОВАЛКА</h2>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <p style="color: #e0d0c0;">Тут можно рисовать. Подготовь место.</p>
+    </div>
+</div>
     <!-- Подключаем Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
@@ -399,6 +416,7 @@
     <script src="modules/account-switcher.js"></script>
 </body>
 </html>
+
 
 
 
