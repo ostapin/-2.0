@@ -87,10 +87,10 @@ const DrawModule = {
         
         // Закрытие палитр при клике вне их
         document.addEventListener('click', (e) => {
-            if (this.brushPickerOpen && !e.target.closest('.brush-picker-container')) {
+            if (this.brushPickerOpen && !e.target.closest('.brush-palette-container')) {
                 this.closeBrushPicker();
             }
-            if (this.gridPickerOpen && !e.target.closest('.grid-picker-container')) {
+            if (this.gridPickerOpen && !e.target.closest('.grid-palette-container')) {
                 this.closeGridPicker();
             }
         });
@@ -100,11 +100,10 @@ const DrawModule = {
         const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
         if (!panel) return;
         
-        // Очищаем панель от старых элементов, оставляя только базовые кнопки
+        // Очищаем панель
         panel.innerHTML = '';
         
-        // ===== РЯД 1: Кисть, Ластик, Размер, Цвет кисти =====
-        // Кисть
+        // ===== КИСТЬ И ЛАСТИК =====
         const brushBtn = document.createElement('button');
         brushBtn.className = 'btn btn-roll';
         brushBtn.id = 'drawBrush';
@@ -112,7 +111,6 @@ const DrawModule = {
         brushBtn.style.padding = '5px 10px';
         panel.appendChild(brushBtn);
         
-        // Ластик
         const eraserBtn = document.createElement('button');
         eraserBtn.className = 'btn btn-roll';
         eraserBtn.id = 'drawEraser';
@@ -120,7 +118,7 @@ const DrawModule = {
         eraserBtn.style.padding = '5px 10px';
         panel.appendChild(eraserBtn);
         
-        // Размер кисти
+        // ===== РАЗМЕР КИСТИ =====
         const sizeLabel = document.createElement('span');
         sizeLabel.innerHTML = 'Размер:';
         sizeLabel.style.color = '#e0d0c0';
@@ -131,7 +129,7 @@ const DrawModule = {
         sizeInput.type = 'range';
         sizeInput.id = 'drawSize';
         sizeInput.min = '1';
-        sizeInput.max = '20';
+        sizeInput.max = '100';
         sizeInput.value = this.currentSize;
         sizeInput.style.width = '100px';
         sizeInput.style.marginLeft = '5px';
@@ -145,39 +143,50 @@ const DrawModule = {
         sizeValue.style.marginLeft = '5px';
         panel.appendChild(sizeValue);
         
-        // Цвет кисти
-        const brushContainer = document.createElement('div');
-        brushContainer.className = 'brush-picker-container';
-        brushContainer.style.position = 'relative';
-        brushContainer.style.display = 'inline-block';
-        brushContainer.style.marginLeft = '10px';
+        // ===== ЦВЕТ КИСТИ =====
+        // Стандартный color picker (радуга)
+        const standardColorPicker = document.createElement('input');
+        standardColorPicker.type = 'color';
+        standardColorPicker.id = 'standardColorPicker';
+        standardColorPicker.value = this.currentColor;
+        standardColorPicker.style.width = '40px';
+        standardColorPicker.style.height = '40px';
+        standardColorPicker.style.border = '2px solid #8b4513';
+        standardColorPicker.style.borderRadius = '4px';
+        standardColorPicker.style.marginLeft = '10px';
+        standardColorPicker.style.cursor = 'pointer';
+        standardColorPicker.onchange = (e) => this.setColor(e.target.value);
+        panel.appendChild(standardColorPicker);
         
-        const brushColorBtn = document.createElement('button');
-        brushColorBtn.id = 'brushColorBtn';
-        brushColorBtn.style.width = '30px';
-        brushColorBtn.style.height = '30px';
-        brushColorBtn.style.backgroundColor = this.currentColor;
-        brushColorBtn.style.border = '2px solid #8b4513';
-        brushColorBtn.style.borderRadius = '4px';
-        brushColorBtn.style.cursor = 'pointer';
-        brushColorBtn.style.verticalAlign = 'middle';
-        brushColorBtn.title = 'Цвет кисти';
-        brushColorBtn.onclick = () => this.toggleBrushPicker();
-        brushContainer.appendChild(brushColorBtn);
+        // Контейнер для палитры частых цветов
+        const brushPaletteContainer = document.createElement('div');
+        brushPaletteContainer.className = 'brush-palette-container';
+        brushPaletteContainer.style.position = 'relative';
+        brushPaletteContainer.style.display = 'inline-block';
+        
+        // Кнопка открытия палитры частых цветов
+        const paletteBtn = document.createElement('button');
+        paletteBtn.className = 'btn btn-roll';
+        paletteBtn.innerHTML = '🎨';
+        paletteBtn.style.padding = '5px 10px';
+        paletteBtn.style.marginLeft = '5px';
+        paletteBtn.title = 'Частые цвета';
+        paletteBtn.onclick = () => this.toggleBrushPicker();
+        brushPaletteContainer.appendChild(paletteBtn);
+        
+        panel.appendChild(brushPaletteContainer);
         
         // Пипетка
         if (window.EyeDropper) {
             const eyeDropperBtn = document.createElement('button');
             eyeDropperBtn.className = 'btn btn-roll';
             eyeDropperBtn.innerHTML = '👁️';
-            eyeDropperBtn.style.padding = '2px 8px';
-            eyeDropperBtn.style.marginLeft = '3px';
+            eyeDropperBtn.style.padding = '5px 10px';
+            eyeDropperBtn.style.marginLeft = '5px';
             eyeDropperBtn.title = 'Пипетка';
             eyeDropperBtn.onclick = () => this.useEyeDropper();
-            brushContainer.appendChild(eyeDropperBtn);
+            panel.appendChild(eyeDropperBtn);
         }
-        
-        panel.appendChild(brushContainer);
         
         // ===== Разделитель =====
         const sep1 = document.createElement('span');
@@ -187,8 +196,7 @@ const DrawModule = {
         sep1.style.margin = '0 10px';
         panel.appendChild(sep1);
         
-        // ===== РЯД 2: Сетка, размер, цвет, прозрачность, тип =====
-        // Кнопка сетки
+        // ===== СЕТКА =====
         const gridBtn = document.createElement('button');
         gridBtn.className = 'btn btn-roll';
         gridBtn.id = 'drawGrid';
@@ -219,27 +227,37 @@ const DrawModule = {
         gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
         panel.appendChild(gridSizeInput);
         
-        // Цвет сетки
-        const gridContainer = document.createElement('div');
-        gridContainer.className = 'grid-picker-container';
-        gridContainer.style.position = 'relative';
-        gridContainer.style.display = 'inline-block';
-        gridContainer.style.marginLeft = '10px';
+        // Цвет сетки - стандартный color picker
+        const gridColorPicker = document.createElement('input');
+        gridColorPicker.type = 'color';
+        gridColorPicker.id = 'gridColorPicker';
+        gridColorPicker.value = this.gridColor;
+        gridColorPicker.style.width = '30px';
+        gridColorPicker.style.height = '30px';
+        gridColorPicker.style.border = '2px solid #8b4513';
+        gridColorPicker.style.borderRadius = '4px';
+        gridColorPicker.style.marginLeft = '10px';
+        gridColorPicker.style.cursor = 'pointer';
+        gridColorPicker.onchange = (e) => this.setGridColor(e.target.value);
+        panel.appendChild(gridColorPicker);
         
-        const gridColorBtn = document.createElement('button');
-        gridColorBtn.id = 'gridColorBtn';
-        gridColorBtn.style.width = '30px';
-        gridColorBtn.style.height = '30px';
-        gridColorBtn.style.backgroundColor = this.gridColor;
-        gridColorBtn.style.border = '2px solid #8b4513';
-        gridColorBtn.style.borderRadius = '4px';
-        gridColorBtn.style.cursor = 'pointer';
-        gridColorBtn.style.verticalAlign = 'middle';
-        gridColorBtn.title = 'Цвет сетки';
-        gridColorBtn.onclick = () => this.toggleGridPicker();
-        gridContainer.appendChild(gridColorBtn);
+        // Контейнер для палитры частых цветов сетки
+        const gridPaletteContainer = document.createElement('div');
+        gridPaletteContainer.className = 'grid-palette-container';
+        gridPaletteContainer.style.position = 'relative';
+        gridPaletteContainer.style.display = 'inline-block';
         
-        panel.appendChild(gridContainer);
+        // Кнопка открытия палитры частых цветов для сетки
+        const gridPaletteBtn = document.createElement('button');
+        gridPaletteBtn.className = 'btn btn-roll';
+        gridPaletteBtn.innerHTML = '🎨';
+        gridPaletteBtn.style.padding = '2px 8px';
+        gridPaletteBtn.style.marginLeft = '3px';
+        gridPaletteBtn.title = 'Частые цвета для сетки';
+        gridPaletteBtn.onclick = () => this.toggleGridPicker();
+        gridPaletteContainer.appendChild(gridPaletteBtn);
+        
+        panel.appendChild(gridPaletteContainer);
         
         // Прозрачность сетки
         const opacityLabel = document.createElement('span');
@@ -296,7 +314,7 @@ const DrawModule = {
         sep2.style.margin = '0 10px';
         panel.appendChild(sep2);
         
-        // ===== РЯД 3: Зум =====
+        // ===== ЗУМ =====
         const zoomOutBtn = document.createElement('button');
         zoomOutBtn.className = 'btn btn-roll';
         zoomOutBtn.innerHTML = '🔍-';
@@ -326,7 +344,7 @@ const DrawModule = {
         sep3.style.margin = '0 10px';
         panel.appendChild(sep3);
         
-        // ===== РЯД 4: Сохранить и Очистить (в конце) =====
+        // ===== СОХРАНИТЬ И ОЧИСТИТЬ =====
         const saveBtn = document.createElement('button');
         saveBtn.className = 'btn btn-plus';
         saveBtn.id = 'drawSave';
@@ -344,9 +362,9 @@ const DrawModule = {
         clearBtn.onclick = () => this.clearCanvas();
         panel.appendChild(clearBtn);
         
-        // Создаем палитры
-        this.createBrushPalette(brushContainer);
-        this.createGridPalette(gridContainer);
+        // Создаем палитры частых цветов
+        this.createBrushPalette(brushPaletteContainer);
+        this.createGridPalette(gridPaletteContainer);
     },
     
     createBrushPalette(container) {
@@ -363,15 +381,13 @@ const DrawModule = {
         palette.style.display = 'none';
         palette.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
         
-        // Заголовок
         const title = document.createElement('div');
         title.style.color = '#d4af37';
         title.style.marginBottom = '10px';
         title.style.textAlign = 'center';
-        title.innerHTML = '🎨 Цвет кисти';
+        title.innerHTML = '🎨 Частые цвета';
         palette.appendChild(title);
         
-        // Сетка частых цветов
         const colorsGrid = document.createElement('div');
         colorsGrid.style.display = 'grid';
         colorsGrid.style.gridTemplateColumns = 'repeat(5, 40px)';
@@ -394,22 +410,6 @@ const DrawModule = {
         });
         
         palette.appendChild(colorsGrid);
-        
-        // Стандартный color picker
-        const standardPicker = document.createElement('input');
-        standardPicker.type = 'color';
-        standardPicker.id = 'standardBrushPicker';
-        standardPicker.value = this.currentColor;
-        standardPicker.style.width = '100%';
-        standardPicker.style.height = '40px';
-        standardPicker.style.border = '1px solid #8b4513';
-        standardPicker.style.borderRadius = '4px';
-        standardPicker.onchange = (e) => {
-            this.setColor(e.target.value);
-            this.closeBrushPicker();
-        };
-        palette.appendChild(standardPicker);
-        
         container.appendChild(palette);
     },
     
@@ -427,20 +427,17 @@ const DrawModule = {
         palette.style.display = 'none';
         palette.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
         
-        // Заголовок
         const title = document.createElement('div');
         title.style.color = '#d4af37';
         title.style.marginBottom = '10px';
         title.style.textAlign = 'center';
-        title.innerHTML = '🎨 Цвет сетки';
+        title.innerHTML = '🎨 Частые цвета';
         palette.appendChild(title);
         
-        // Сетка частых цветов
         const colorsGrid = document.createElement('div');
         colorsGrid.style.display = 'grid';
         colorsGrid.style.gridTemplateColumns = 'repeat(5, 40px)';
         colorsGrid.style.gap = '5px';
-        colorsGrid.style.marginBottom = '15px';
         
         this.gridColors.forEach(color => {
             const colorSquare = document.createElement('div');
@@ -458,22 +455,6 @@ const DrawModule = {
         });
         
         palette.appendChild(colorsGrid);
-        
-        // Стандартный color picker
-        const standardPicker = document.createElement('input');
-        standardPicker.type = 'color';
-        standardPicker.id = 'standardGridPicker';
-        standardPicker.value = this.gridColor;
-        standardPicker.style.width = '100%';
-        standardPicker.style.height = '40px';
-        standardPicker.style.border = '1px solid #8b4513';
-        standardPicker.style.borderRadius = '4px';
-        standardPicker.onchange = (e) => {
-            this.setGridColor(e.target.value);
-            this.closeGridPicker();
-        };
-        palette.appendChild(standardPicker);
-        
         container.appendChild(palette);
     },
     
@@ -582,7 +563,7 @@ const DrawModule = {
     
     setGridColor(color) {
         this.gridColor = color;
-        document.getElementById('gridColorBtn').style.backgroundColor = color;
+        document.getElementById('gridColorPicker').value = color;
         if (this.gridEnabled) {
             this.redrawWithGrid();
         }
@@ -702,12 +683,17 @@ const DrawModule = {
     
     setTool(tool) {
         this.currentTool = tool;
+        if (tool === 'eraser') {
+            this.setColor('#ffffff');
+            document.getElementById('drawSize').max = '200';
+        } else {
+            document.getElementById('drawSize').max = '100';
+        }
     },
     
     setColor(color) {
         this.currentColor = color;
-        document.getElementById('brushColorBtn').style.backgroundColor = color;
-        document.getElementById('standardBrushPicker').value = color;
+        document.getElementById('standardColorPicker').value = color;
     },
     
     setSize(size) {
