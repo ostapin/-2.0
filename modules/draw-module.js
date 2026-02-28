@@ -18,6 +18,7 @@ const DrawModule = {
     isDragging: false,
     lastX: 0,
     lastY: 0,
+    commonColors: ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -31,6 +32,7 @@ const DrawModule = {
         this.bindEvents();
         this.addGridControls();
         this.addZoomControls();
+        this.addColorPalette();
         console.log('Draw module initialized');
     },
     
@@ -85,6 +87,39 @@ const DrawModule = {
         document.getElementById('drawSize')?.addEventListener('input', (e) => this.setSize(e.target.value));
         document.getElementById('drawClear')?.addEventListener('click', () => this.clearCanvas());
         document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
+    },
+    
+    addColorPalette() {
+        const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
+        if (!panel) return;
+        
+        // Разделитель
+        const separator = document.createElement('span');
+        separator.innerHTML = ' | ';
+        separator.style.color = '#8b4513';
+        separator.style.fontWeight = 'bold';
+        panel.appendChild(separator);
+        
+        // Палитра цветов
+        const paletteDiv = document.createElement('div');
+        paletteDiv.style.display = 'inline-flex';
+        paletteDiv.style.gap = '3px';
+        paletteDiv.style.marginLeft = '5px';
+        
+        this.commonColors.forEach(color => {
+            const colorBtn = document.createElement('button');
+            colorBtn.style.width = '25px';
+            colorBtn.style.height = '25px';
+            colorBtn.style.backgroundColor = color;
+            colorBtn.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
+            colorBtn.style.borderRadius = '3px';
+            colorBtn.style.cursor = 'pointer';
+            colorBtn.title = color;
+            colorBtn.onclick = () => this.setColor(color);
+            paletteDiv.appendChild(colorBtn);
+        });
+        
+        panel.appendChild(paletteDiv);
     },
     
     addGridControls() {
@@ -209,7 +244,6 @@ const DrawModule = {
         this.scale *= factor;
         this.scale = Math.min(Math.max(this.scale, 0.1), 5);
         
-        // Корректируем offset, чтобы зум был относительно мыши
         if (mouseX !== undefined && mouseY !== undefined) {
             const dx = mouseX - this.offsetX;
             const dy = mouseY - this.offsetY;
@@ -306,31 +340,30 @@ const DrawModule = {
     },
     
     drawHexGrid() {
-        const hexWidth = this.gridSize * 1.5;
-        const hexHeight = this.gridSize * 1.732; // √3 * размер
+        const hexRadius = this.gridSize / 2;
+        const hexWidth = hexRadius * 1.732; // √3 * радиус
+        const hexHeight = hexRadius * 2;
         
-        // Рассчитываем количество рядов, чтобы покрыть весь холст
         const cols = Math.ceil(this.canvas.width / hexWidth) + 2;
         const rows = Math.ceil(this.canvas.height / (hexHeight * 0.75)) + 2;
         
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                // Смещение для четных/нечетных рядов
                 const xOffset = (row % 2) * hexWidth / 2;
-                const x = col * hexWidth + xOffset - hexWidth;
-                const y = row * (hexHeight * 0.75) - hexHeight * 0.5;
+                const x = col * hexWidth + xOffset;
+                const y = row * (hexHeight * 0.75);
                 
-                this.drawHexagon(x + this.gridSize/2, y + this.gridSize/2, this.gridSize / 1.5);
+                this.drawHexagon(x, y, hexRadius);
             }
         }
     },
     
-    drawHexagon(x, y, size) {
+    drawHexagon(x, y, radius) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
             const angle = i * Math.PI / 3;
-            const hx = x + size * Math.cos(angle);
-            const hy = y + size * Math.sin(angle);
+            const hx = x + radius * Math.cos(angle);
+            const hy = y + radius * Math.sin(angle);
             
             if (i === 0) {
                 this.ctx.moveTo(hx, hy);
@@ -384,6 +417,7 @@ const DrawModule = {
     
     setColor(color) {
         this.currentColor = color;
+        document.getElementById('drawColor').value = color;
     },
     
     setSize(size) {
