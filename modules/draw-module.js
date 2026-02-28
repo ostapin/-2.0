@@ -677,19 +677,37 @@ const DrawModule = {
         this.drawing = true;
         this.ctx.beginPath();
         this.ctx.moveTo(e.offsetX, e.offsetY);
+        
+        // Устанавливаем режим композиции в зависимости от инструмента
+        if (this.currentTool === 'eraser') {
+            this.ctx.globalCompositeOperation = 'destination-out';
+        } else {
+            this.ctx.globalCompositeOperation = 'source-over';
+        }
     },
     
     draw(e) {
         if (!this.drawing) return;
         
-        this.ctx.strokeStyle = this.currentTool === 'eraser' ? '#ffffff' : this.currentColor;
-        this.ctx.lineWidth = this.currentSize;
-        this.ctx.lineTo(e.offsetX, e.offsetY);
-        this.ctx.stroke();
+        if (this.currentTool === 'brush') {
+            this.ctx.strokeStyle = this.currentColor;
+            this.ctx.lineWidth = this.currentSize;
+            this.ctx.lineTo(e.offsetX, e.offsetY);
+            this.ctx.stroke();
+        } else if (this.currentTool === 'eraser') {
+            // Для ластика цвет не важен, важно что режим destination-out
+            this.ctx.lineWidth = this.currentSize;
+            this.ctx.lineTo(e.offsetX, e.offsetY);
+            this.ctx.stroke();
+        }
     },
     
     stopDrawing() {
         this.drawing = false;
+        
+        // Возвращаем обычный режим композиции
+        this.ctx.globalCompositeOperation = 'source-over';
+        
         if (this.gridEnabled) {
             this.redrawWithGrid();
         }
@@ -702,10 +720,8 @@ const DrawModule = {
         const sizeInput = document.getElementById('drawSize');
         
         if (tool === 'eraser') {
-            // Ластик: фиксированный белый цвет, увеличенный макс размер
-            this.currentColor = '#ffffff';
+            // Ластик: блокируем выбор цвета
             if (colorPicker) {
-                colorPicker.value = '#ffffff';
                 colorPicker.disabled = true;
             }
             if (sizeInput) {
@@ -721,7 +737,6 @@ const DrawModule = {
             // Кисть: разблокируем выбор цвета
             if (colorPicker) {
                 colorPicker.disabled = false;
-                this.currentColor = colorPicker.value;
             }
             if (sizeInput) {
                 sizeInput.max = '100';
@@ -736,10 +751,7 @@ const DrawModule = {
     },
     
     setColor(color) {
-        if (this.currentTool === 'eraser') {
-            this.currentColor = '#ffffff';
-            return;
-        }
+        if (this.currentTool === 'eraser') return;
         
         this.currentColor = color;
         const colorPicker = document.getElementById('standardColorPicker');
