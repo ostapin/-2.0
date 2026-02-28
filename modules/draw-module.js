@@ -647,9 +647,11 @@ const DrawModule = {
         this.ctx.beginPath();
         this.ctx.moveTo(e.offsetX, e.offsetY);
         
-        // Устанавливаем режим композиции для ластика
+        // Устанавливаем режим композиции для всего процесса рисования
         if (this.currentTool === 'eraser') {
-            this.ctx.globalCompositeOperation = 'destination-out';
+            this.ctx.globalCompositeOperation = 'destination-out'; // Режим стирания [citation:1]
+        } else {
+            this.ctx.globalCompositeOperation = 'source-over'; // Обычный режим
         }
     },
     
@@ -658,22 +660,17 @@ const DrawModule = {
         
         if (this.currentTool === 'brush') {
             this.ctx.strokeStyle = this.currentColor;
-            this.ctx.lineWidth = this.currentSize;
-            this.ctx.lineTo(e.offsetX, e.offsetY);
-            this.ctx.stroke();
-        } else if (this.currentTool === 'eraser') {
-            this.ctx.strokeStyle = '#ffffff'; // цвет не важен
-            this.ctx.lineWidth = this.currentSize;
-            this.ctx.lineTo(e.offsetX, e.offsetY);
-            this.ctx.stroke();
         }
+        // Для ластика цвет не важен, важен режим destination-out
+        
+        this.ctx.lineWidth = this.currentSize;
+        this.ctx.lineTo(e.offsetX, e.offsetY);
+        this.ctx.stroke();
     },
     
     stopDrawing() {
         this.drawing = false;
-        
-        // Возвращаем обычный режим композиции
-        this.ctx.globalCompositeOperation = 'source-over';
+        // Не сбрасываем композицию сразу, путь уже завершен
         
         if (this.gridEnabled) {
             this.redrawWithGrid();
