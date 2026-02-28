@@ -20,7 +20,8 @@ const DrawModule = {
     lastY: 0,
     brushColors: ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
     gridColors: ['#cccccc', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#888888', '#000000'],
-    colorPickerOpen: false,
+    brushPickerOpen: false,
+    gridPickerOpen: false,
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -32,9 +33,7 @@ const DrawModule = {
         
         this.loadDrawings();
         this.bindEvents();
-        this.addCustomColorPicker();
-        this.addGridControls();
-        this.addZoomControls();
+        this.addControls();
         console.log('Draw module initialized');
     },
     
@@ -89,15 +88,18 @@ const DrawModule = {
         document.getElementById('drawClear')?.addEventListener('click', () => this.clearCanvas());
         document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
         
-        // Закрытие палитры при клике вне ее
+        // Закрытие палитр при клике вне их
         document.addEventListener('click', (e) => {
-            if (this.colorPickerOpen && !e.target.closest('.color-picker-container')) {
-                this.closeColorPicker();
+            if (this.brushPickerOpen && !e.target.closest('.brush-picker-container')) {
+                this.closeBrushPicker();
+            }
+            if (this.gridPickerOpen && !e.target.closest('.grid-picker-container')) {
+                this.closeGridPicker();
             }
         });
     },
     
-    addCustomColorPicker() {
+    addControls() {
         const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
         if (!panel) return;
         
@@ -108,152 +110,65 @@ const DrawModule = {
         separator.style.fontWeight = 'bold';
         panel.appendChild(separator);
         
-        // Контейнер для кнопки выбора цвета и палитры
-        const container = document.createElement('div');
-        container.className = 'color-picker-container';
-        container.style.position = 'relative';
-        container.style.display = 'inline-block';
+        // ===== КНОПКА ЦВЕТА КИСТИ =====
+        const brushContainer = document.createElement('div');
+        brushContainer.className = 'brush-picker-container';
+        brushContainer.style.position = 'relative';
+        brushContainer.style.display = 'inline-block';
+        brushContainer.style.marginRight = '15px';
         
-        // Кнопка текущего цвета
-        const colorBtn = document.createElement('button');
-        colorBtn.id = 'customColorBtn';
-        colorBtn.style.width = '40px';
-        colorBtn.style.height = '40px';
-        colorBtn.style.backgroundColor = this.currentColor;
-        colorBtn.style.border = '2px solid #8b4513';
-        colorBtn.style.borderRadius = '4px';
-        colorBtn.style.cursor = 'pointer';
-        colorBtn.style.verticalAlign = 'middle';
-        colorBtn.onclick = () => this.toggleColorPicker();
-        container.appendChild(colorBtn);
+        // Кнопка текущего цвета кисти
+        const brushColorBtn = document.createElement('button');
+        brushColorBtn.id = 'brushColorBtn';
+        brushColorBtn.style.width = '40px';
+        brushColorBtn.style.height = '40px';
+        brushColorBtn.style.backgroundColor = this.currentColor;
+        brushColorBtn.style.border = '2px solid #8b4513';
+        brushColorBtn.style.borderRadius = '4px';
+        brushColorBtn.style.cursor = 'pointer';
+        brushColorBtn.style.verticalAlign = 'middle';
+        brushColorBtn.title = 'Цвет кисти';
+        brushColorBtn.onclick = () => this.toggleBrushPicker();
+        brushContainer.appendChild(brushColorBtn);
         
-        // Пипетка (если поддерживается)
+        // Пипетка для кисти
         if (window.EyeDropper) {
             const eyeDropperBtn = document.createElement('button');
             eyeDropperBtn.className = 'btn btn-roll';
             eyeDropperBtn.innerHTML = '👁️';
             eyeDropperBtn.style.padding = '5px 10px';
             eyeDropperBtn.style.marginLeft = '5px';
+            eyeDropperBtn.title = 'Пипетка';
             eyeDropperBtn.onclick = () => this.useEyeDropper();
-            container.appendChild(eyeDropperBtn);
+            brushContainer.appendChild(eyeDropperBtn);
         }
         
-        panel.appendChild(container);
+        panel.appendChild(brushContainer);
         
-        // Создаем палитру (скрытую)
-        this.createColorPalette(container);
-    },
-    
-    createColorPalette(container) {
-        const palette = document.createElement('div');
-        palette.id = 'colorPalette';
-        palette.style.position = 'absolute';
-        palette.style.top = '45px';
-        palette.style.left = '0';
-        palette.style.backgroundColor = '#3d2418';
-        palette.style.border = '2px solid #8b4513';
-        palette.style.borderRadius = '8px';
-        palette.style.padding = '15px';
-        palette.style.zIndex = '1000';
-        palette.style.display = 'none';
-        palette.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+        // ===== КНОПКА ЦВЕТА СЕТКИ =====
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'grid-picker-container';
+        gridContainer.style.position = 'relative';
+        gridContainer.style.display = 'inline-block';
+        gridContainer.style.marginRight = '15px';
         
-        // Заголовок
-        const title = document.createElement('div');
-        title.style.color = '#d4af37';
-        title.style.marginBottom = '10px';
-        title.style.textAlign = 'center';
-        title.innerHTML = '🎨 Выберите цвет';
-        palette.appendChild(title);
+        // Кнопка текущего цвета сетки
+        const gridColorBtn = document.createElement('button');
+        gridColorBtn.id = 'gridColorBtn';
+        gridColorBtn.style.width = '40px';
+        gridColorBtn.style.height = '40px';
+        gridColorBtn.style.backgroundColor = this.gridColor;
+        gridColorBtn.style.border = '2px solid #8b4513';
+        gridColorBtn.style.borderRadius = '4px';
+        gridColorBtn.style.cursor = 'pointer';
+        gridColorBtn.style.verticalAlign = 'middle';
+        gridColorBtn.title = 'Цвет сетки';
+        gridColorBtn.onclick = () => this.toggleGridPicker();
+        gridContainer.appendChild(gridColorBtn);
         
-        // Сетка частых цветов
-        const colorsGrid = document.createElement('div');
-        colorsGrid.style.display = 'grid';
-        colorsGrid.style.gridTemplateColumns = 'repeat(5, 40px)';
-        colorsGrid.style.gap = '5px';
-        colorsGrid.style.marginBottom = '15px';
+        panel.appendChild(gridContainer);
         
-        this.brushColors.forEach(color => {
-            const colorSquare = document.createElement('div');
-            colorSquare.style.width = '40px';
-            colorSquare.style.height = '40px';
-            colorSquare.style.backgroundColor = color;
-            colorSquare.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
-            colorSquare.style.borderRadius = '4px';
-            colorSquare.style.cursor = 'pointer';
-            colorSquare.onclick = () => {
-                this.setColor(color);
-                this.closeColorPicker();
-            };
-            colorsGrid.appendChild(colorSquare);
-        });
-        
-        palette.appendChild(colorsGrid);
-        
-        // Стандартный color picker
-        const standardPicker = document.createElement('input');
-        standardPicker.type = 'color';
-        standardPicker.id = 'standardColorPicker';
-        standardPicker.value = this.currentColor;
-        standardPicker.style.width = '100%';
-        standardPicker.style.height = '40px';
-        standardPicker.style.border = '1px solid #8b4513';
-        standardPicker.style.borderRadius = '4px';
-        standardPicker.onchange = (e) => {
-            this.setColor(e.target.value);
-            this.closeColorPicker();
-        };
-        palette.appendChild(standardPicker);
-        
-        container.appendChild(palette);
-    },
-    
-    toggleColorPicker() {
-        const palette = document.getElementById('colorPalette');
-        if (palette) {
-            if (this.colorPickerOpen) {
-                this.closeColorPicker();
-            } else {
-                palette.style.display = 'block';
-                this.colorPickerOpen = true;
-            }
-        }
-    },
-    
-    closeColorPicker() {
-        const palette = document.getElementById('colorPalette');
-        if (palette) {
-            palette.style.display = 'none';
-            this.colorPickerOpen = false;
-        }
-    },
-    
-    async useEyeDropper() {
-        if (!window.EyeDropper) {
-            alert('Пипетка не поддерживается в вашем браузере');
-            return;
-        }
-        
-        try {
-            const eyeDropper = new EyeDropper();
-            const result = await eyeDropper.open();
-            this.setColor(result.sRGBHex);
-        } catch (e) {
-            console.log('Пипетка отменена');
-        }
-    },
-    
-    addGridControls() {
-        const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
-        if (!panel) return;
-        
-        // Разделитель
-        const separator = document.createElement('span');
-        separator.innerHTML = ' | ';
-        separator.style.color = '#8b4513';
-        separator.style.fontWeight = 'bold';
-        panel.appendChild(separator);
-        
+        // ===== ОСТАЛЬНЫЕ КОНТРОЛЫ СЕТКИ =====
         // Кнопка сетки
         const gridBtn = document.createElement('button');
         gridBtn.className = 'btn btn-roll';
@@ -279,40 +194,11 @@ const DrawModule = {
         gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
         panel.appendChild(gridSizeInput);
         
-        // Надпись "Цвет сетки:"
-        const gridColorLabel = document.createElement('span');
-        gridColorLabel.innerHTML = 'Цвет:';
-        gridColorLabel.style.color = '#e0d0c0';
-        gridColorLabel.style.marginLeft = '10px';
-        gridColorLabel.style.marginRight = '5px';
-        panel.appendChild(gridColorLabel);
-        
-        // Палитра для сетки
-        const gridPalette = document.createElement('div');
-        gridPalette.style.display = 'inline-flex';
-        gridPalette.style.gap = '3px';
-        gridPalette.style.marginRight = '10px';
-        
-        this.gridColors.forEach(color => {
-            const colorBtn = document.createElement('button');
-            colorBtn.style.width = '25px';
-            colorBtn.style.height = '25px';
-            colorBtn.style.backgroundColor = color;
-            colorBtn.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
-            colorBtn.style.borderRadius = '3px';
-            colorBtn.style.cursor = 'pointer';
-            colorBtn.title = color;
-            colorBtn.onclick = () => this.setGridColor(color);
-            gridPalette.appendChild(colorBtn);
-        });
-        
-        panel.appendChild(gridPalette);
-        
         // Прозрачность сетки
         const opacityLabel = document.createElement('span');
         opacityLabel.innerHTML = 'Прозр:';
         opacityLabel.style.color = '#e0d0c0';
-        opacityLabel.style.marginLeft = '5px';
+        opacityLabel.style.marginLeft = '10px';
         panel.appendChild(opacityLabel);
         
         const opacityInput = document.createElement('input');
@@ -354,20 +240,14 @@ const DrawModule = {
         gridTypeSelect.appendChild(optionHex);
         
         panel.appendChild(gridTypeSelect);
-    },
-    
-    addZoomControls() {
-        const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
-        if (!panel) return;
         
-        // Разделитель
-        const separator = document.createElement('span');
-        separator.innerHTML = ' | ';
-        separator.style.color = '#8b4513';
-        separator.style.fontWeight = 'bold';
-        panel.appendChild(separator);
+        // ===== КНОПКИ ЗУМА =====
+        const zoomSeparator = document.createElement('span');
+        zoomSeparator.innerHTML = ' | ';
+        zoomSeparator.style.color = '#8b4513';
+        zoomSeparator.style.fontWeight = 'bold';
+        panel.appendChild(zoomSeparator);
         
-        // Кнопки зума
         const zoomOutBtn = document.createElement('button');
         zoomOutBtn.className = 'btn btn-roll';
         zoomOutBtn.innerHTML = '🔍-';
@@ -388,6 +268,195 @@ const DrawModule = {
         resetBtn.style.padding = '5px 10px';
         resetBtn.onclick = () => this.resetView();
         panel.appendChild(resetBtn);
+        
+        // Создаем палитры
+        this.createBrushPalette(brushContainer);
+        this.createGridPalette(gridContainer);
+    },
+    
+    createBrushPalette(container) {
+        const palette = document.createElement('div');
+        palette.id = 'brushPalette';
+        palette.style.position = 'absolute';
+        palette.style.top = '45px';
+        palette.style.left = '0';
+        palette.style.backgroundColor = '#3d2418';
+        palette.style.border = '2px solid #8b4513';
+        palette.style.borderRadius = '8px';
+        palette.style.padding = '15px';
+        palette.style.zIndex = '1000';
+        palette.style.display = 'none';
+        palette.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+        
+        // Заголовок
+        const title = document.createElement('div');
+        title.style.color = '#d4af37';
+        title.style.marginBottom = '10px';
+        title.style.textAlign = 'center';
+        title.innerHTML = '🎨 Цвет кисти';
+        palette.appendChild(title);
+        
+        // Сетка частых цветов
+        const colorsGrid = document.createElement('div');
+        colorsGrid.style.display = 'grid';
+        colorsGrid.style.gridTemplateColumns = 'repeat(5, 40px)';
+        colorsGrid.style.gap = '5px';
+        colorsGrid.style.marginBottom = '15px';
+        
+        this.brushColors.forEach(color => {
+            const colorSquare = document.createElement('div');
+            colorSquare.style.width = '40px';
+            colorSquare.style.height = '40px';
+            colorSquare.style.backgroundColor = color;
+            colorSquare.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
+            colorSquare.style.borderRadius = '4px';
+            colorSquare.style.cursor = 'pointer';
+            colorSquare.onclick = () => {
+                this.setColor(color);
+                this.closeBrushPicker();
+            };
+            colorsGrid.appendChild(colorSquare);
+        });
+        
+        palette.appendChild(colorsGrid);
+        
+        // Стандартный color picker
+        const standardPicker = document.createElement('input');
+        standardPicker.type = 'color';
+        standardPicker.id = 'standardBrushPicker';
+        standardPicker.value = this.currentColor;
+        standardPicker.style.width = '100%';
+        standardPicker.style.height = '40px';
+        standardPicker.style.border = '1px solid #8b4513';
+        standardPicker.style.borderRadius = '4px';
+        standardPicker.onchange = (e) => {
+            this.setColor(e.target.value);
+            this.closeBrushPicker();
+        };
+        palette.appendChild(standardPicker);
+        
+        container.appendChild(palette);
+    },
+    
+    createGridPalette(container) {
+        const palette = document.createElement('div');
+        palette.id = 'gridPalette';
+        palette.style.position = 'absolute';
+        palette.style.top = '45px';
+        palette.style.left = '0';
+        palette.style.backgroundColor = '#3d2418';
+        palette.style.border = '2px solid #8b4513';
+        palette.style.borderRadius = '8px';
+        palette.style.padding = '15px';
+        palette.style.zIndex = '1000';
+        palette.style.display = 'none';
+        palette.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+        
+        // Заголовок
+        const title = document.createElement('div');
+        title.style.color = '#d4af37';
+        title.style.marginBottom = '10px';
+        title.style.textAlign = 'center';
+        title.innerHTML = '🎨 Цвет сетки';
+        palette.appendChild(title);
+        
+        // Сетка частых цветов
+        const colorsGrid = document.createElement('div');
+        colorsGrid.style.display = 'grid';
+        colorsGrid.style.gridTemplateColumns = 'repeat(5, 40px)';
+        colorsGrid.style.gap = '5px';
+        colorsGrid.style.marginBottom = '15px';
+        
+        this.gridColors.forEach(color => {
+            const colorSquare = document.createElement('div');
+            colorSquare.style.width = '40px';
+            colorSquare.style.height = '40px';
+            colorSquare.style.backgroundColor = color;
+            colorSquare.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
+            colorSquare.style.borderRadius = '4px';
+            colorSquare.style.cursor = 'pointer';
+            colorSquare.onclick = () => {
+                this.setGridColor(color);
+                this.closeGridPicker();
+            };
+            colorsGrid.appendChild(colorSquare);
+        });
+        
+        palette.appendChild(colorsGrid);
+        
+        // Стандартный color picker
+        const standardPicker = document.createElement('input');
+        standardPicker.type = 'color';
+        standardPicker.id = 'standardGridPicker';
+        standardPicker.value = this.gridColor;
+        standardPicker.style.width = '100%';
+        standardPicker.style.height = '40px';
+        standardPicker.style.border = '1px solid #8b4513';
+        standardPicker.style.borderRadius = '4px';
+        standardPicker.onchange = (e) => {
+            this.setGridColor(e.target.value);
+            this.closeGridPicker();
+        };
+        palette.appendChild(standardPicker);
+        
+        container.appendChild(palette);
+    },
+    
+    toggleBrushPicker() {
+        const palette = document.getElementById('brushPalette');
+        if (palette) {
+            if (this.brushPickerOpen) {
+                this.closeBrushPicker();
+            } else {
+                this.closeGridPicker();
+                palette.style.display = 'block';
+                this.brushPickerOpen = true;
+            }
+        }
+    },
+    
+    closeBrushPicker() {
+        const palette = document.getElementById('brushPalette');
+        if (palette) {
+            palette.style.display = 'none';
+            this.brushPickerOpen = false;
+        }
+    },
+    
+    toggleGridPicker() {
+        const palette = document.getElementById('gridPalette');
+        if (palette) {
+            if (this.gridPickerOpen) {
+                this.closeGridPicker();
+            } else {
+                this.closeBrushPicker();
+                palette.style.display = 'block';
+                this.gridPickerOpen = true;
+            }
+        }
+    },
+    
+    closeGridPicker() {
+        const palette = document.getElementById('gridPalette');
+        if (palette) {
+            palette.style.display = 'none';
+            this.gridPickerOpen = false;
+        }
+    },
+    
+    async useEyeDropper() {
+        if (!window.EyeDropper) {
+            alert('Пипетка не поддерживается в вашем браузере');
+            return;
+        }
+        
+        try {
+            const eyeDropper = new EyeDropper();
+            const result = await eyeDropper.open();
+            this.setColor(result.sRGBHex);
+        } catch (e) {
+            console.log('Пипетка отменена');
+        }
     },
     
     zoom(factor, mouseX, mouseY) {
@@ -438,6 +507,7 @@ const DrawModule = {
     
     setGridColor(color) {
         this.gridColor = color;
+        document.getElementById('gridColorBtn').style.backgroundColor = color;
         if (this.gridEnabled) {
             this.redrawWithGrid();
         }
@@ -561,7 +631,8 @@ const DrawModule = {
     
     setColor(color) {
         this.currentColor = color;
-        document.getElementById('customColorBtn').style.backgroundColor = color;
+        document.getElementById('brushColorBtn').style.backgroundColor = color;
+        document.getElementById('standardBrushPicker').value = color;
     },
     
     setSize(size) {
