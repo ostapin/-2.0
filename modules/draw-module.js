@@ -108,7 +108,7 @@ const DrawModule = {
         brushLabel.style.marginRight = '5px';
         panel.appendChild(brushLabel);
         
-        // Палитра для кисти
+        // Палитра для кисти (квадратики с цветами)
         const brushPalette = document.createElement('div');
         brushPalette.style.display = 'inline-flex';
         brushPalette.style.gap = '3px';
@@ -174,7 +174,7 @@ const DrawModule = {
         gridColorLabel.style.marginRight = '5px';
         panel.appendChild(gridColorLabel);
         
-        // Палитра для сетки
+        // Палитра для сетки (квадратики с цветами)
         const gridPalette = document.createElement('div');
         gridPalette.style.display = 'inline-flex';
         gridPalette.style.gap = '3px';
@@ -378,35 +378,38 @@ const DrawModule = {
     },
     
     drawHexGrid() {
-        // Размеры гекса
-        const a = this.gridSize / 2; // половина стороны
-        const h = a * Math.sqrt(3); // высота гекса
+        // Правильная формула для гексов (pointy-topped)
+        // Каждый гекс касается соседей всеми шестью сторонами [citation:1][citation:5]
         
-        // Расчет количества гексов
-        const cols = Math.ceil(this.canvas.width / (a * 3)) + 2;
-        const rows = Math.ceil(this.canvas.height / h) + 2;
+        const hexRadius = this.gridSize / 2; // расстояние от центра до вершины
+        const hexWidth = hexRadius * 1.732; // ширина гекса (√3 * радиус)
+        const hexHeight = hexRadius * 2; // высота гекса
+        
+        // Количество гексов с запасом, чтобы покрыть весь холст
+        const cols = Math.ceil(this.canvas.width / hexWidth) + 2;
+        const rows = Math.ceil(this.canvas.height / (hexHeight * 0.75)) + 2;
         
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                // Смещение для четных рядов
-                const xOffset = (row % 2) * (a * 1.5);
+                // Смещение для четных рядов (половина ширины)
+                const xOffset = (row % 2) * hexWidth / 2;
                 
                 // Координаты центра гекса
-                const x = col * (a * 3) + xOffset;
-                const y = row * h;
+                const x = col * hexWidth + xOffset;
+                const y = row * (hexHeight * 0.75); // 0.75 = 3/4 от высоты
                 
-                this.drawHexagon(x, y, a);
+                this.drawHexagon(x, y, hexRadius);
             }
         }
     },
     
-    drawHexagon(x, y, sideLength) {
+    drawHexagon(x, y, radius) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-            const angle = i * Math.PI / 3; // 60 градусов
-            // Для правильного гекса расстояние от центра до вершины = сторона
-            const hx = x + sideLength * Math.cos(angle);
-            const hy = y + sideLength * Math.sin(angle);
+            // Угол 60 градусов = PI/3
+            const angle = i * Math.PI / 3;
+            const hx = x + radius * Math.cos(angle);
+            const hy = y + radius * Math.sin(angle);
             
             if (i === 0) {
                 this.ctx.moveTo(hx, hy);
@@ -534,5 +537,4 @@ const DrawModule = {
 };
 
 // Инициализация после загрузки страницы
-document.addEventListener('DOMContentLoaded', () => DrawModule.init());
 document.addEventListener('DOMContentLoaded', () => DrawModule.init());
