@@ -118,7 +118,7 @@ const DrawModule = {
         eraserBtn.style.padding = '5px 10px';
         panel.appendChild(eraserBtn);
         
-        // ===== РАЗМЕР КИСТИ =====
+        // ===== РАЗМЕР =====
         const sizeLabel = document.createElement('span');
         sizeLabel.innerHTML = 'Размер:';
         sizeLabel.style.color = '#e0d0c0';
@@ -365,6 +365,13 @@ const DrawModule = {
         // Создаем палитры частых цветов
         this.createBrushPalette(brushPaletteContainer);
         this.createGridPalette(gridPaletteContainer);
+        
+        // Сохраняем ссылки на элементы цвета для блокировки
+        this.colorElements = {
+            standardPicker: standardColorPicker,
+            paletteBtn: paletteBtn,
+            eyeDropper: eyeDropperBtn
+        };
     },
     
     createBrushPalette(container) {
@@ -403,8 +410,10 @@ const DrawModule = {
             colorSquare.style.borderRadius = '4px';
             colorSquare.style.cursor = 'pointer';
             colorSquare.onclick = () => {
-                this.setColor(color);
-                this.closeBrushPicker();
+                if (this.currentTool === 'brush') {
+                    this.setColor(color);
+                    this.closeBrushPicker();
+                }
             };
             colorsGrid.appendChild(colorSquare);
         });
@@ -459,6 +468,8 @@ const DrawModule = {
     },
     
     toggleBrushPicker() {
+        if (this.currentTool !== 'brush') return;
+        
         const palette = document.getElementById('brushPalette');
         if (palette) {
             if (this.brushPickerOpen) {
@@ -501,6 +512,8 @@ const DrawModule = {
     },
     
     async useEyeDropper() {
+        if (this.currentTool !== 'brush') return;
+        
         if (!window.EyeDropper) {
             alert('Пипетка не поддерживается в вашем браузере');
             return;
@@ -683,15 +696,41 @@ const DrawModule = {
     
     setTool(tool) {
         this.currentTool = tool;
+        
         if (tool === 'eraser') {
-            this.setColor('#ffffff');
+            // Ластик: фиксированный белый цвет, увеличенный макс размер
+            this.currentColor = '#ffffff';
+            document.getElementById('standardColorPicker').value = '#ffffff';
             document.getElementById('drawSize').max = '200';
+            
+            // Блокируем элементы выбора цвета
+            if (this.colorElements) {
+                this.colorElements.standardPicker.disabled = true;
+                this.colorElements.paletteBtn.disabled = true;
+                if (this.colorElements.eyeDropper) {
+                    this.colorElements.eyeDropper.disabled = true;
+                }
+            }
         } else {
+            // Кисть: разблокируем выбор цвета
             document.getElementById('drawSize').max = '100';
+            
+            if (this.colorElements) {
+                this.colorElements.standardPicker.disabled = false;
+                this.colorElements.paletteBtn.disabled = false;
+                if (this.colorElements.eyeDropper) {
+                    this.colorElements.eyeDropper.disabled = false;
+                }
+            }
         }
     },
     
     setColor(color) {
+        if (this.currentTool === 'eraser') {
+            this.currentColor = '#ffffff';
+            return;
+        }
+        
         this.currentColor = color;
         document.getElementById('standardColorPicker').value = color;
     },
