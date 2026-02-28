@@ -22,6 +22,8 @@ const DrawModule = {
     gridColors: ['#cccccc', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#888888', '#000000'],
     brushPickerOpen: false,
     gridPickerOpen: false,
+    history: [],
+    historyIndex: -1,
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -34,6 +36,7 @@ const DrawModule = {
         this.loadDrawings();
         this.addControls();
         this.bindEvents();
+        this.saveToHistory(); // Сохраняем начальное состояние
         console.log('Draw module initialized');
     },
     
@@ -78,6 +81,18 @@ const DrawModule = {
             if (e.button === 1 || e.button === 0) {
                 this.isDragging = false;
                 this.canvas.style.cursor = 'crosshair';
+            }
+        });
+        
+        // Горячие клавиши
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                this.undo();
+            }
+            if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                this.redo();
             }
         });
         
@@ -173,6 +188,23 @@ const DrawModule = {
         brushPaletteContainer.appendChild(paletteBtn);
         
         panel.appendChild(brushPaletteContainer);
+        
+        // ===== КНОПКИ ОТМЕНЫ/ПОВТОРА =====
+        const undoBtn = document.createElement('button');
+        undoBtn.className = 'btn btn-roll';
+        undoBtn.innerHTML = '↩ Отмена (Ctrl+Z)';
+        undoBtn.style.padding = '5px 10px';
+        undoBtn.style.marginLeft = '10px';
+        undoBtn.onclick = () => this.undo();
+        panel.appendChild(undoBtn);
+        
+        const redoBtn = document.createElement('button');
+        redoBtn.className = 'btn btn-roll';
+        redoBtn.innerHTML = '↪ Повтор (Ctrl+Y)';
+        redoBtn.style.padding = '5px 10px';
+        redoBtn.style.marginLeft = '5px';
+        redoBtn.onclick = () => this.redo();
+        panel.appendChild(redoBtn);
         
         // ===== Разделитель =====
         const sep1 = document.createElement('span');
@@ -496,6 +528,51 @@ const DrawModule = {
         }
     },
     
+    // Функции для истории
+    saveToHistory() {
+        // Получаем текущее состояние холста
+        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Удаляем все состояния после текущего индекса
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+        
+        // Добавляем новое состояние
+        this.history.push(imageData);
+        this.historyIndex++;
+        
+        // Ограничиваем историю 50 шагами
+        if (this.history.length > 50) {
+            this.history.shift();
+            this.historyIndex--;
+        }
+        
+        console.log('Сохранено в историю. Шаг:', this.historyIndex);
+    },
+    
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.ctx.putImageData(this.history[this.historyIndex], 0, 0);
+            if (this.gridEnabled) {
+                this.drawGrid();
+            }
+            console.log('Отмена. Шаг:', this.historyIndex);
+        }
+    },
+    
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.ctx.putImageData(this.history[this.historyIndex], 0, 0);
+            if (this.gridEnabled) {
+                this.drawGrid();
+            }
+            console.log('Повтор. Шаг:', this.historyIndex);
+        }
+    },
+    
     zoom(factor, mouseX, mouseY) {
         const oldScale = this.scale;
         this.scale *= factor;
@@ -531,10 +608,9 @@ const DrawModule = {
         }
         
         if (this.gridEnabled) {
-            // Если включили сетку - рисуем её поверх рисунка
             this.drawGrid();
         } else {
-            // Если выключили - убираем сетку, оставляя только рисунок
+            // Если выключили сетку - перерисовываем без неё
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.putImageData(imageData, 0, 0);
@@ -551,13 +627,13 @@ const DrawModule = {
             // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
             
-            // Очищаем всё (рисунок + старая сетка)
+            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             
             // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
             
-            // Рисуем новую сетку поверх
+            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -566,16 +642,9 @@ const DrawModule = {
         this.gridColor = color;
         document.getElementById('gridColorPicker').value = color;
         if (this.gridEnabled) {
-            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
-            
-            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -583,16 +652,9 @@ const DrawModule = {
     setGridOpacity(opacity) {
         this.gridOpacity = opacity;
         if (this.gridEnabled) {
-            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
-            
-            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -600,16 +662,9 @@ const DrawModule = {
     setGridType(type) {
         this.gridType = type;
         if (this.gridEnabled) {
-            // Сохраняем рисунок
             const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Очищаем всё
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Восстанавливаем только рисунок
             this.ctx.putImageData(imageData, 0, 0);
-            
-            // Рисуем новую сетку
             this.drawGrid();
         }
     },
@@ -707,6 +762,7 @@ const DrawModule = {
     stopDrawing() {
         this.drawing = false;
         this.ctx.globalCompositeOperation = 'source-over';
+        this.saveToHistory(); // Сохраняем после каждого завершенного действия
     },
     
     setTool(tool) {
@@ -750,6 +806,7 @@ const DrawModule = {
         if (this.gridEnabled) {
             this.drawGrid();
         }
+        this.saveToHistory();
     },
     
     saveDrawing() {
@@ -798,6 +855,7 @@ const DrawModule = {
             if (this.gridEnabled) {
                 this.drawGrid();
             }
+            this.saveToHistory();
         };
     },
     
