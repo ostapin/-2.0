@@ -18,7 +18,8 @@ const DrawModule = {
     isDragging: false,
     lastX: 0,
     lastY: 0,
-    commonColors: ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
+    brushColors: ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
+    gridColors: ['#cccccc', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#888888', '#000000'],
     
     init() {
         this.canvas = document.getElementById('drawCanvas');
@@ -30,9 +31,9 @@ const DrawModule = {
         
         this.loadDrawings();
         this.bindEvents();
+        this.addBrushPalette();
         this.addGridControls();
         this.addZoomControls();
-        this.addColorPalette();
         console.log('Draw module initialized');
     },
     
@@ -50,9 +51,9 @@ const DrawModule = {
             this.zoom(delta, e.offsetX, e.offsetY);
         });
         
-        // Перемещение (зажатый пробел или средняя кнопка)
+        // Перемещение (Alt + ЛКМ или средняя кнопка)
         this.canvas.addEventListener('mousedown', (e) => {
-            if (e.button === 1 || e.button === 0 && e.altKey) {
+            if (e.button === 1 || (e.button === 0 && e.altKey)) {
                 this.isDragging = true;
                 this.lastX = e.offsetX;
                 this.lastY = e.offsetY;
@@ -89,7 +90,7 @@ const DrawModule = {
         document.getElementById('drawSave')?.addEventListener('click', () => this.saveDrawing());
     },
     
-    addColorPalette() {
+    addBrushPalette() {
         const panel = document.querySelector('#draw-tab .btn-roll')?.parentNode;
         if (!panel) return;
         
@@ -100,13 +101,20 @@ const DrawModule = {
         separator.style.fontWeight = 'bold';
         panel.appendChild(separator);
         
-        // Палитра цветов
-        const paletteDiv = document.createElement('div');
-        paletteDiv.style.display = 'inline-flex';
-        paletteDiv.style.gap = '3px';
-        paletteDiv.style.marginLeft = '5px';
+        // Надпись "Кисть:"
+        const brushLabel = document.createElement('span');
+        brushLabel.innerHTML = 'Кисть:';
+        brushLabel.style.color = '#e0d0c0';
+        brushLabel.style.marginRight = '5px';
+        panel.appendChild(brushLabel);
         
-        this.commonColors.forEach(color => {
+        // Палитра для кисти
+        const brushPalette = document.createElement('div');
+        brushPalette.style.display = 'inline-flex';
+        brushPalette.style.gap = '3px';
+        brushPalette.style.marginRight = '10px';
+        
+        this.brushColors.forEach(color => {
             const colorBtn = document.createElement('button');
             colorBtn.style.width = '25px';
             colorBtn.style.height = '25px';
@@ -116,10 +124,10 @@ const DrawModule = {
             colorBtn.style.cursor = 'pointer';
             colorBtn.title = color;
             colorBtn.onclick = () => this.setColor(color);
-            paletteDiv.appendChild(colorBtn);
+            brushPalette.appendChild(colorBtn);
         });
         
-        panel.appendChild(paletteDiv);
+        panel.appendChild(brushPalette);
     },
     
     addGridControls() {
@@ -158,18 +166,42 @@ const DrawModule = {
         gridSizeInput.onchange = (e) => this.setGridSize(parseInt(e.target.value));
         panel.appendChild(gridSizeInput);
         
-        // Цвет сетки
-        const gridColorInput = document.createElement('input');
-        gridColorInput.type = 'color';
-        gridColorInput.id = 'gridColor';
-        gridColorInput.value = this.gridColor;
-        gridColorInput.style.width = '40px';
-        gridColorInput.style.height = '30px';
-        gridColorInput.style.marginLeft = '5px';
-        gridColorInput.onchange = (e) => this.setGridColor(e.target.value);
-        panel.appendChild(gridColorInput);
+        // Надпись "Цвет сетки:"
+        const gridColorLabel = document.createElement('span');
+        gridColorLabel.innerHTML = 'Цвет:';
+        gridColorLabel.style.color = '#e0d0c0';
+        gridColorLabel.style.marginLeft = '10px';
+        gridColorLabel.style.marginRight = '5px';
+        panel.appendChild(gridColorLabel);
+        
+        // Палитра для сетки
+        const gridPalette = document.createElement('div');
+        gridPalette.style.display = 'inline-flex';
+        gridPalette.style.gap = '3px';
+        gridPalette.style.marginRight = '10px';
+        
+        this.gridColors.forEach(color => {
+            const colorBtn = document.createElement('button');
+            colorBtn.style.width = '25px';
+            colorBtn.style.height = '25px';
+            colorBtn.style.backgroundColor = color;
+            colorBtn.style.border = color === '#ffffff' ? '1px solid #8b4513' : 'none';
+            colorBtn.style.borderRadius = '3px';
+            colorBtn.style.cursor = 'pointer';
+            colorBtn.title = color;
+            colorBtn.onclick = () => this.setGridColor(color);
+            gridPalette.appendChild(colorBtn);
+        });
+        
+        panel.appendChild(gridPalette);
         
         // Прозрачность сетки
+        const opacityLabel = document.createElement('span');
+        opacityLabel.innerHTML = 'Прозр:';
+        opacityLabel.style.color = '#e0d0c0';
+        opacityLabel.style.marginLeft = '5px';
+        panel.appendChild(opacityLabel);
+        
         const opacityInput = document.createElement('input');
         opacityInput.type = 'range';
         opacityInput.id = 'gridOpacity';
@@ -183,6 +215,12 @@ const DrawModule = {
         panel.appendChild(opacityInput);
         
         // Тип сетки
+        const typeLabel = document.createElement('span');
+        typeLabel.innerHTML = 'Тип:';
+        typeLabel.style.color = '#e0d0c0';
+        typeLabel.style.marginLeft = '10px';
+        panel.appendChild(typeLabel);
+        
         const gridTypeSelect = document.createElement('select');
         gridTypeSelect.id = 'gridType';
         gridTypeSelect.style.background = '#1a0f0b';
@@ -340,30 +378,35 @@ const DrawModule = {
     },
     
     drawHexGrid() {
-        const hexRadius = this.gridSize / 2;
-        const hexWidth = hexRadius * 1.732; // √3 * радиус
-        const hexHeight = hexRadius * 2;
+        // Размеры гекса
+        const a = this.gridSize / 2; // половина стороны
+        const h = a * Math.sqrt(3); // высота гекса
         
-        const cols = Math.ceil(this.canvas.width / hexWidth) + 2;
-        const rows = Math.ceil(this.canvas.height / (hexHeight * 0.75)) + 2;
+        // Расчет количества гексов
+        const cols = Math.ceil(this.canvas.width / (a * 3)) + 2;
+        const rows = Math.ceil(this.canvas.height / h) + 2;
         
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                const xOffset = (row % 2) * hexWidth / 2;
-                const x = col * hexWidth + xOffset;
-                const y = row * (hexHeight * 0.75);
+                // Смещение для четных рядов
+                const xOffset = (row % 2) * (a * 1.5);
                 
-                this.drawHexagon(x, y, hexRadius);
+                // Координаты центра гекса
+                const x = col * (a * 3) + xOffset;
+                const y = row * h;
+                
+                this.drawHexagon(x, y, a);
             }
         }
     },
     
-    drawHexagon(x, y, radius) {
+    drawHexagon(x, y, sideLength) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-            const angle = i * Math.PI / 3;
-            const hx = x + radius * Math.cos(angle);
-            const hy = y + radius * Math.sin(angle);
+            const angle = i * Math.PI / 3; // 60 градусов
+            // Для правильного гекса расстояние от центра до вершины = сторона
+            const hx = x + sideLength * Math.cos(angle);
+            const hy = y + sideLength * Math.sin(angle);
             
             if (i === 0) {
                 this.ctx.moveTo(hx, hy);
@@ -491,4 +534,5 @@ const DrawModule = {
 };
 
 // Инициализация после загрузки страницы
+document.addEventListener('DOMContentLoaded', () => DrawModule.init());
 document.addEventListener('DOMContentLoaded', () => DrawModule.init());
