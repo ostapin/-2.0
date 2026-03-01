@@ -1,4 +1,4 @@
-// modules/battle-module.js (исправленная версия)
+// modules/battle-module.js (ПОЛНАЯ ВЕРСИЯ)
 
 const BattleModule = {
     canvas: null,
@@ -7,6 +7,7 @@ const BattleModule = {
     gridColor: '#8b4513',
     highlightColor: '#d4af37',
     moveHighlightColor: '#5a9c4a',
+    currentTurnHighlight: '#ffaa00',
     selectedHex: null,
     hexes: [],
     offsetX: 500,
@@ -20,6 +21,11 @@ const BattleModule = {
     
     // Существа на поле
     activeCreatures: [],
+    
+    // Очередность ходов
+    turnOrder: [],
+    currentTurnIndex: -1,
+    turnActive: false,
     
     // Режимы
     moveModeActive: false,
@@ -68,6 +74,7 @@ const BattleModule = {
         this.bindEvents();
         this.createControls();
         this.createSidePanel();
+        this.createTurnOrderPanel();
         
         console.log('Battle module initialized');
     },
@@ -171,24 +178,30 @@ const BattleModule = {
         const creature = this.creatures.find(c => c.id === hex.creature);
         if (!creature) return;
         
-        // Получаем данные существа
         const creatureData = this.activeCreatures.find(c => c.id === hex.creatureId);
         const isDead = creatureData && creatureData.currentHp <= 0;
         
-        // Цвет существа (серый если мертв)
-        this.ctx.fillStyle = isDead ? '#555555' : creature.color;
-        this.ctx.globalAlpha = isDead ? 0.5 : 0.7;
+        const isCurrentTurn = this.turnActive && 
+                             this.turnOrder[this.currentTurnIndex] === hex.creatureId;
+        
+        let fillColor = creature.color;
+        if (isDead) {
+            fillColor = '#555555';
+        } else if (isCurrentTurn) {
+            fillColor = this.currentTurnHighlight;
+        }
+        
+        this.ctx.fillStyle = fillColor;
+        this.ctx.globalAlpha = isDead ? 0.5 : (isCurrentTurn ? 0.9 : 0.7);
         this.drawHexagon(hex.x, hex.y, false);
         this.ctx.globalAlpha = 1;
         
-        // Иконка (перечеркнутая если мертв)
         this.ctx.font = `${this.hexSize * 1.2}px Arial`;
         this.ctx.fillStyle = isDead ? '#888888' : '#ffffff';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText(creature.icon, hex.x, hex.y);
         
-        // Если мертв - рисуем крест
         if (isDead) {
             this.ctx.strokeStyle = '#ff0000';
             this.ctx.lineWidth = 3 / this.scale;
@@ -200,7 +213,6 @@ const BattleModule = {
             this.ctx.stroke();
         }
         
-        // Полоска HP (только для живых)
         if (!isDead && creatureData) {
             const hpPercent = creatureData.currentHp / creatureData.maxHp;
             const barWidth = this.hexSize * 1.5;
@@ -213,6 +225,10 @@ const BattleModule = {
             
             this.ctx.fillStyle = hpPercent > 0.5 ? '#00aa00' : (hpPercent > 0.2 ? '#aaaa00' : '#aa0000');
             this.ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+            
+            this.ctx.font = `${this.hexSize * 0.5}px Arial`;
+            this.ctx.fillStyle = '#ffffaa';
+            this.ctx.fillText(creatureData.currentInitiative, hex.x + this.hexSize/2, hex.y - this.hexSize/2);
         }
     },
     
@@ -273,7 +289,6 @@ const BattleModule = {
             }
         });
         
-        // Обработка клика
         this.canvas.addEventListener('click', (e) => {
             if (this.isDragging) return;
             
@@ -295,9 +310,7 @@ const BattleModule = {
             }
         });
         
-        // Двойной клик - открытие панели персонажа (только если не в режиме расстановки)
         this.canvas.addEventListener('dblclick', (e) => {
-            // Если в режиме расстановки - игнорируем двойной клик
             if (this.placementMode || this.eraseMode) return;
             
             const rect = this.canvas.getBoundingClientRect();
@@ -332,12 +345,112 @@ const BattleModule = {
         });
     },
     
+    // Панель очередности ходов
+    createTurnOrderPanel() {
+        const container = document.querySelector('#battle-tab');
+        if (!container) return;
+        
+        const panel = document.createElement('div');
+        panel.id = 'turnOrderPanel';
+        panel.style.cssText = `
+            position: fixed;
+            right: 20px;
+            top: 200px;
+            width: 250px;
+            background: #2a1a0f;
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 15px;
+            color: #e0d0c0;
+            z-index: 1000;
+            display: none;
+        `;
+        
+        panel.innerHTML = `
+            <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">⚔️ ОЧЕРЕДНОСТЬ ХОДОВ</h3>
+            <div id="turnOrderList" style="min-height: 50px; margin-bottom: 10px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-roll" onclick="BattleModule.startInitiative()">▶ Начать бой</button>
+                <button class="btn btn-roll" onclick="BattleModule.nextTurn()">⏭ Следующий ход</button>
+            </div>
+        `;
+        
+        container.appendChild(panel);
+    },
+    
+    updateTurnOrder() {
+        const panel = document.getElementById('turnOrderPanel');
+        const listDiv = document.getElementById('turnOrderList');
+        
+        if (!panel || !listDiv) return;
+        
+        if (this.activeCreatures.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+        
+        panel.style.display = 'block';
+        
+        const sorted = [...this.activeCreatures]
+            .filter(c => c.currentHp > 0)
+            .sort((a, b) => b.currentInitiative - a.currentInitiative);
+        
+        this.turnOrder = sorted.map(c => c.id);
+        
+        if (sorted.length === 0) {
+            listDiv.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Нет живых существ</p>';
+            return;
+        }
+        
+        let html = '';
+        sorted.forEach((creature, index) => {
+            const isCurrent = this.turnActive && index === this.currentTurnIndex;
+            const bgColor = isCurrent ? '#5a9c4a' : '#1a0f0b';
+            
+            html += `
+                <div style="background: ${bgColor}; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">${creature.icon}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: #d4af37;">${creature.name}</div>
+                        <div style="font-size: 12px;">Инициатива: ${creature.currentInitiative}</div>
+                    </div>
+                    ${isCurrent ? '<span style="color: #ffffaa;">▶ ХОДИТ</span>' : ''}
+                </div>
+            `;
+        });
+        
+        listDiv.innerHTML = html;
+    },
+    
+    startInitiative() {
+        const alive = this.activeCreatures.filter(c => c.currentHp > 0);
+        if (alive.length === 0) return;
+        
+        this.turnActive = true;
+        this.currentTurnIndex = 0;
+        this.updateTurnOrder();
+        this.drawGrid();
+        
+        console.log('Бой начат! Ходит:', this.activeCreatures.find(c => c.id === this.turnOrder[0])?.name);
+    },
+    
+    nextTurn() {
+        if (!this.turnActive || this.turnOrder.length === 0) return;
+        
+        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnOrder.length;
+        this.updateTurnOrder();
+        this.drawGrid();
+        
+        const currentId = this.turnOrder[this.currentTurnIndex];
+        const current = this.activeCreatures.find(c => c.id === currentId);
+        console.log('Следующий ход:', current?.name);
+    },
+    
     // Панель персонажа
     openCreaturePanel(creatureId) {
         const creature = this.activeCreatures.find(c => c.id === creatureId);
         if (!creature) return;
         
-        // Получаем скорость из базы данных
         const template = CreaturesDB.get(creature.templateId);
         const speed = template ? template.speed : 5;
         
@@ -379,6 +492,14 @@ const BattleModule = {
                 </div>
             </div>
             
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>⚡ Инициатива:</span>
+                    <input type="number" id="initiativeInput" value="${creature.currentInitiative}" min="1" max="30" style="width: 60px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513;">
+                    <button class="btn btn-small" onclick="BattleModule.updateInitiative('${creature.id}')">✓</button>
+                </div>
+            </div>
+            
             ${!isDead ? `
                 <div style="display: flex; gap: 5px; margin-bottom: 15px;">
                     <button class="btn btn-minus" style="flex: 1;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5</button>
@@ -406,10 +527,29 @@ const BattleModule = {
         document.body.appendChild(panel);
     },
     
-    // Активация режима движения
+    updateInitiative(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        const input = document.getElementById('initiativeInput');
+        const newValue = parseInt(input.value);
+        
+        if (newValue && newValue > 0) {
+            creature.currentInitiative = newValue;
+            this.updateTurnOrder();
+            this.drawGrid();
+            this.openCreaturePanel(creatureId);
+        }
+    },
+    
     activateMoveMode(creatureId) {
         const creature = this.activeCreatures.find(c => c.id === creatureId);
         if (!creature || !creature.position || creature.currentHp <= 0) return;
+        
+        if (this.turnActive && this.turnOrder[this.currentTurnIndex] !== creatureId) {
+            alert('Сейчас не ход этого существа!');
+            return;
+        }
         
         const panel = document.getElementById('creaturePanel');
         if (panel) panel.remove();
@@ -422,75 +562,58 @@ const BattleModule = {
         
         this.moveModeActive = true;
         this.movingCreatureId = creatureId;
-        
-        // Исправленный поиск доступных гексов
         this.availableMoveHexes = this.findReachableHexes(currentHex, speed);
         
         this.selectedHex = currentHex;
         this.drawGrid();
         this.highlightSelected();
-        
-        console.log(`Режим движения активирован. Доступно гексов: ${this.availableMoveHexes.length}`);
     },
     
-    // Правильный поиск доступных гексов (BFS для гексагональной сетки)
     findReachableHexes(startHex, maxDistance) {
         const reachable = [];
-        const distances = new Map(); // храним расстояния до каждого гекса
+        const distances = new Map();
         const queue = [{ hex: startHex, dist: 0 }];
         
         const hexKey = (hex) => `${hex.col},${hex.row}`;
         distances.set(hexKey(startHex), 0);
         
-        // Правильные направления для гексов с острым верхом (pointy-top)
-        // Для четных и нечетных рядов смещения разные
         while (queue.length > 0) {
             const { hex, dist } = queue.shift();
             
-            // Если это не стартовая позиция и расстояние в пределах досягаемости
             if (dist > 0 && dist <= maxDistance) {
-                // Проверяем, можно ли встать на этот гекс
                 if (!hex.object && !hex.creature) {
                     reachable.push(hex);
                 }
             }
             
-            // Если можем идти дальше
             if (dist < maxDistance) {
-                // Соседние гексы для pointy-top ориентации
-                // Для четных рядов (row % 2 === 0)
                 let neighbors = [];
                 
                 if (hex.row % 2 === 0) {
-                    // Четный ряд
                     neighbors = [
-                        { col: hex.col + 1, row: hex.row },     // восток
-                        { col: hex.col - 1, row: hex.row },     // запад
-                        { col: hex.col, row: hex.row - 1 },      // северо-восток
-                        { col: hex.col - 1, row: hex.row - 1 },  // северо-запад
-                        { col: hex.col, row: hex.row + 1 },      // юго-восток
-                        { col: hex.col - 1, row: hex.row + 1 }   // юго-запад
+                        { col: hex.col + 1, row: hex.row },
+                        { col: hex.col - 1, row: hex.row },
+                        { col: hex.col, row: hex.row - 1 },
+                        { col: hex.col - 1, row: hex.row - 1 },
+                        { col: hex.col, row: hex.row + 1 },
+                        { col: hex.col - 1, row: hex.row + 1 }
                     ];
                 } else {
-                    // Нечетный ряд
                     neighbors = [
-                        { col: hex.col + 1, row: hex.row },     // восток
-                        { col: hex.col - 1, row: hex.row },     // запад
-                        { col: hex.col + 1, row: hex.row - 1 },  // северо-восток
-                        { col: hex.col, row: hex.row - 1 },      // северо-запад
-                        { col: hex.col + 1, row: hex.row + 1 },  // юго-восток
-                        { col: hex.col, row: hex.row + 1 }       // юго-запад
+                        { col: hex.col + 1, row: hex.row },
+                        { col: hex.col - 1, row: hex.row },
+                        { col: hex.col + 1, row: hex.row - 1 },
+                        { col: hex.col, row: hex.row - 1 },
+                        { col: hex.col + 1, row: hex.row + 1 },
+                        { col: hex.col, row: hex.row + 1 }
                     ];
                 }
                 
-                // Проверяем каждого соседа
                 neighbors.forEach(pos => {
-                    // Проверяем границы
                     if (pos.col >= 0 && pos.col < this.cols && pos.row >= 0 && pos.row < this.rows) {
                         const neighbor = this.hexes.find(h => h.col === pos.col && h.row === pos.row);
                         if (neighbor) {
                             const key = hexKey(neighbor);
-                            // Если еще не посещали или нашли более короткий путь
                             if (!distances.has(key) || distances.get(key) > dist + 1) {
                                 distances.set(key, dist + 1);
                                 queue.push({ hex: neighbor, dist: dist + 1 });
@@ -504,7 +627,6 @@ const BattleModule = {
         return reachable;
     },
     
-    // Попытка переместить существо
     tryMoveToHex(targetHex) {
         if (!this.moveModeActive || !this.movingCreatureId) {
             this.moveModeActive = false;
@@ -532,6 +654,10 @@ const BattleModule = {
                 creature.position = { col: targetHex.col, row: targetHex.row };
                 
                 console.log(`Существо перемещено на [${targetHex.col}, ${targetHex.row}]`);
+                
+                if (this.turnActive) {
+                    this.nextTurn();
+                }
             }
         }
         
@@ -543,7 +669,6 @@ const BattleModule = {
         this.highlightSelected();
     },
     
-    // Нанесение урона
     damageCreature(creatureId, amount) {
         amount = parseInt(amount) || 0;
         const creature = this.activeCreatures.find(c => c.id === creatureId);
@@ -552,25 +677,23 @@ const BattleModule = {
         creature.currentHp = Math.max(0, creature.currentHp - amount);
         
         if (creature.currentHp === 0) {
-            // Существо умерло - НЕ убираем с карты, просто отмечаем как мертвое
             console.log(`Существо ${creature.name} погибло`);
+            this.updateTurnOrder();
             
-            // Закрываем панель
             const panel = document.getElementById('creaturePanel');
             if (panel) panel.remove();
         }
         
         this.drawGrid();
         this.updateCreaturesList();
+        this.updateTurnOrder();
         
-        // Обновляем панель если открыта для этого существа
         const panel = document.getElementById('creaturePanel');
         if (panel && panel.innerHTML.includes(creatureId)) {
             this.openCreaturePanel(creatureId);
         }
     },
     
-    // Лечение
     healCreature(creatureId, amount) {
         amount = parseInt(amount) || 0;
         const creature = this.activeCreatures.find(c => c.id === creatureId);
@@ -580,6 +703,7 @@ const BattleModule = {
         
         this.drawGrid();
         this.updateCreaturesList();
+        this.updateTurnOrder();
         
         const panel = document.getElementById('creaturePanel');
         if (panel) {
@@ -587,7 +711,6 @@ const BattleModule = {
         }
     },
     
-    // Создание боковой панели
     createSidePanel() {
         const container = document.querySelector('#battle-tab');
         if (!container) return;
@@ -607,27 +730,29 @@ const BattleModule = {
             max-height: 500px;
             overflow-y: auto;
             z-index: 1000;
+            display: none;
         `;
         
         panel.innerHTML = `
             <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">👥 Существа на поле</h3>
-            <div id="creaturesList" style="min-height: 100px;">
-                <p style="color: #8b7d6b; text-align: center;">Пока нет существ</p>
-            </div>
+            <div id="creaturesList" style="min-height: 100px;"></div>
         `;
         
         container.appendChild(panel);
     },
     
-    // Обновление списка существ
     updateCreaturesList() {
+        const panel = document.getElementById('battleCreaturesPanel');
         const listDiv = document.getElementById('creaturesList');
-        if (!listDiv) return;
+        
+        if (!panel || !listDiv) return;
         
         if (this.activeCreatures.length === 0) {
-            listDiv.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Пока нет существ</p>';
+            panel.style.display = 'none';
             return;
         }
+        
+        panel.style.display = 'block';
         
         let html = '';
         this.activeCreatures.forEach(creature => {
@@ -646,7 +771,7 @@ const BattleModule = {
                                 ${creature.name} ${isDead ? '💀' : ''}
                             </div>
                             <div style="font-size: 12px; color: ${isDead ? '#888888' : '#e0d0c0'};">
-                                HP: ${creature.currentHp}/${creature.maxHp}
+                                HP: ${creature.currentHp}/${creature.maxHp} | Иниц: ${creature.currentInitiative}
                             </div>
                             ${!isDead ? `
                                 <div style="height: 4px; background: #330000; margin-top: 5px;">
@@ -662,7 +787,6 @@ const BattleModule = {
         listDiv.innerHTML = html;
     },
     
-    // Выбор существа по ID
     selectCreatureById(id) {
         const creature = this.activeCreatures.find(c => c.id === id);
         if (creature && creature.position) {
@@ -675,7 +799,7 @@ const BattleModule = {
     
     placeOnHex(hex) {
         if (this.currentType === 'creature') {
-            if (!hex.object && !hex.creature) { // Проверяем что гекс пустой
+            if (!hex.object && !hex.creature) {
                 const creatureData = CreaturesDB.createForBattle(this.currentCreature);
                 if (creatureData) {
                     const creatureId = `${this.currentCreature}_${Date.now()}`;
@@ -690,6 +814,7 @@ const BattleModule = {
                     hex.occupied = true;
                     
                     this.updateCreaturesList();
+                    this.updateTurnOrder();
                 }
             } else {
                 alert('На этом гексе уже есть что-то!');
@@ -721,7 +846,9 @@ const BattleModule = {
         this.drawGrid();
         this.highlightSelected();
         this.updateHexInfo(hex);
+        
         this.updateCreaturesList();
+        this.updateTurnOrder();
         
         const panel = document.getElementById('creaturePanel');
         if (panel) panel.remove();
@@ -1053,4 +1180,4 @@ const BattleModule = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => BattleModule.init()); 
+document.addEventListener('DOMContentLoaded', () => BattleModule.init());
