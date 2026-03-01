@@ -7,19 +7,21 @@ const BattleModule = {
     highlightColor: '#d4af37',
     selectedHex: null,
     hexes: [],
-    offsetX: 100,
-    offsetY: 100,
-    scale: 1,           // масштаб
-    isDragging: false,  // перетаскивание
+    offsetX: 500,
+    offsetY: 300,
+    scale: 1,
+    isDragging: false,
     lastX: 0,
     lastY: 0,
+    cols: 20,
+    rows: 20,
     
     init() {
         this.canvas = document.getElementById('battleCanvas');
         if (!this.canvas) return;
         
         this.ctx = this.canvas.getContext('2d');
-        this.generateHexGrid(8, 8);
+        this.generateHexGrid(this.cols, this.rows);
         this.drawGrid();
         this.bindEvents();
         
@@ -59,47 +61,41 @@ const BattleModule = {
         this.ctx.fillStyle = '#2a1a0f';
         
         this.hexes.forEach(hex => {
-            this.fillHexagon(hex.x, hex.y);
-            this.strokeHexagon(hex.x, hex.y);
+            this.drawHexagon(hex.x, hex.y, false);
+        });
+        
+        this.ctx.strokeStyle = this.gridColor;
+        this.ctx.lineWidth = 2 / this.scale;
+        this.hexes.forEach(hex => {
+            this.drawHexagon(hex.x, hex.y, true);
         });
         
         this.ctx.restore();
     },
     
-    strokeHexagon(x, y) {
+    drawHexagon(x, y, stroke = true) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-            const angle = i * Math.PI / 3;
+            const angle = i * Math.PI / 3 - Math.PI / 6;
             const hx = x + this.hexSize * Math.cos(angle);
             const hy = y + this.hexSize * Math.sin(angle);
             
-            if (i === 0) this.ctx.moveTo(hx, hy);
-            else this.ctx.lineTo(hx, hy);
+            if (i === 0) {
+                this.ctx.moveTo(hx, hy);
+            } else {
+                this.ctx.lineTo(hx, hy);
+            }
         }
         this.ctx.closePath();
-        this.ctx.stroke();
-    },
-    
-    fillHexagon(x, y) {
-        this.ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-            const angle = i * Math.PI / 3;
-            const hx = x + this.hexSize * Math.cos(angle);
-            const hy = y + this.hexSize * Math.sin(angle);
-            
-            if (i === 0) this.ctx.moveTo(hx, hy);
-            else this.ctx.lineTo(hx, hy);
+        
+        if (stroke) {
+            this.ctx.stroke();
+        } else {
+            this.ctx.fill();
         }
-        this.ctx.closePath();
-        this.ctx.fill();
     },
     
     bindEvents() {
-        this.canvas.addEventListener('click', (e) => this.handleClick(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleMove(e));
-        this.canvas.addEventListener('mouseleave', () => this.handleLeave());
-        
-        // Зум колесиком
         this.canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             const rect = this.canvas.getBoundingClientRect();
@@ -110,7 +106,6 @@ const BattleModule = {
             this.zoom(delta, mouseX, mouseY);
         });
         
-        // Перетаскивание (Alt+ЛКМ или средняя кнопка)
         this.canvas.addEventListener('mousedown', (e) => {
             if (e.button === 1 || (e.button === 0 && e.altKey)) {
                 this.isDragging = true;
@@ -140,14 +135,47 @@ const BattleModule = {
                 this.canvas.style.cursor = 'crosshair';
             }
         });
+        
+        this.canvas.addEventListener('click', (e) => {
+            if (this.isDragging) return;
+            
+            const rect = this.canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - this.offsetX) / this.scale;
+            const y = (e.clientY - rect.top - this.offsetY) / this.scale;
+            
+            const hex = this.findHexByPosition(x, y);
+            if (hex) {
+                this.selectHex(hex);
+            }
+        });
+        
+        this.canvas.addEventListener('mousemove', (e) => {
+            if (this.isDragging) return;
+            
+            const rect = this.canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - this.offsetX) / this.scale;
+            const y = (e.clientY - rect.top - this.offsetY) / this.scale;
+            
+            this.drawGrid();
+            this.highlightSelected();
+            
+            const hex = this.findHexByPosition(x, y);
+            if (hex && hex !== this.selectedHex) {
+                this.highlightHex(hex, true);
+            }
+        });
+        
+        this.canvas.addEventListener('mouseleave', () => {
+            this.drawGrid();
+            this.highlightSelected();
+        });
     },
     
     zoom(factor, mouseX, mouseY) {
         const oldScale = this.scale;
         this.scale *= factor;
-        this.scale = Math.min(Math.max(this.scale, 0.5), 3);
+        this.scale = Math.min(Math.max(this.scale, 0.3), 5);
         
-        // Зум в точку под курсором
         const worldX = (mouseX - this.offsetX) / oldScale;
         const worldY = (mouseY - this.offsetY) / oldScale;
         
@@ -169,9 +197,8 @@ const BattleModule = {
     
     resetView() {
         this.scale = 1;
-        this.offsetX = 100;
-        this.offsetY = 100;
-        this.generateHexGrid(8, 8);
+        this.offsetX = 500;
+        this.offsetY = 300;
         this.drawGrid();
         this.highlightSelected();
         this.updateZoomDisplay();
@@ -182,40 +209,6 @@ const BattleModule = {
         if (zoomLevel) {
             zoomLevel.textContent = Math.round(this.scale * 100) + '%';
         }
-    },
-    
-    handleClick(e) {
-        if (this.isDragging) return;
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left - this.offsetX) / this.scale;
-        const y = (e.clientY - rect.top - this.offsetY) / this.scale;
-        
-        const hex = this.findHexByPosition(x, y);
-        if (hex) {
-            this.selectHex(hex);
-        }
-    },
-    
-    handleMove(e) {
-        if (this.isDragging) return;
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left - this.offsetX) / this.scale;
-        const y = (e.clientY - rect.top - this.offsetY) / this.scale;
-        
-        this.drawGrid();
-        this.highlightSelected();
-        
-        const hex = this.findHexByPosition(x, y);
-        if (hex && hex !== this.selectedHex) {
-            this.highlightHex(hex, true);
-        }
-    },
-    
-    handleLeave() {
-        this.drawGrid();
-        this.highlightSelected();
     },
     
     findHexByPosition(px, py) {
@@ -242,9 +235,9 @@ const BattleModule = {
         this.ctx.scale(this.scale, this.scale);
         
         this.ctx.strokeStyle = isHover ? '#ffd700' : this.highlightColor;
-        this.ctx.lineWidth = (isHover ? 2.5 : 3) / this.scale;
+        this.ctx.lineWidth = (isHover ? 3 : 4) / this.scale;
         
-        this.strokeHexagon(hex.x, hex.y);
+        this.drawHexagon(hex.x, hex.y, true);
         
         this.ctx.restore();
     },
@@ -262,16 +255,30 @@ const BattleModule = {
         
         const info = document.getElementById('hexInfo');
         if (info) {
-            info.innerHTML = `Выбран гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1}`;
+            info.innerHTML = `Выбран гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1} (из ${this.rows}x${this.cols})`;
         }
     },
     
     setHexSize(size) {
         this.hexSize = parseInt(size);
         document.getElementById('hexSizeValue').textContent = size;
-        this.generateHexGrid(8, 8);
+        this.generateHexGrid(this.cols, this.rows);
         this.drawGrid();
         this.highlightSelected();
+    },
+    
+    setGridSize(size) {
+        size = parseInt(size);
+        this.cols = size;
+        this.rows = size;
+        this.generateHexGrid(this.cols, this.rows);
+        this.drawGrid();
+        this.highlightSelected();
+        
+        const info = document.getElementById('hexInfo');
+        if (info && this.selectedHex) {
+            info.innerHTML = `Выбран гекс: ряд ${this.selectedHex.row + 1}, колонка ${this.selectedHex.col + 1} (из ${this.rows}x${this.cols})`;
+        }
     }
 };
 
