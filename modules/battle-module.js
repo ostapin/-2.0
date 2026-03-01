@@ -1,4 +1,4 @@
-// modules/battle-module.js (с нумерацией)
+// modules/battle-module.js (полная версия с навыками)
 
 const BattleModule = {
     canvas: null,
@@ -33,7 +33,24 @@ const BattleModule = {
     availableMoveHexes: [],
     
     // Настройки отображения
-    showNumbers: true, // показывать ли нумерацию
+    showNumbers: true,
+    
+    // Навыки по умолчанию для человека
+    defaultSkills: {
+        'Тяжёлая броня': 10,
+        'Лёгкая броня': 10,
+        'Двуручное оружие': 10,
+        'Одноручное оружие': 10,
+        'Стрельба': 10,
+        'Блокирование': 10,
+        'Древковое': 10,
+        'Рукопашный бой': 10,
+        'Метание': 10,
+        'Скрытность': 10,
+        'Выносливость': 10,
+        'Восприятие': 10,
+        'Ловкость': 10
+    },
     
     creatures: [
         { id: 'human', name: '👤 Человек', color: '#4a7a9c', icon: '👤' },
@@ -149,7 +166,6 @@ const BattleModule = {
             this.drawHexagon(hex.x, hex.y, false);
         });
         
-        // Подсвечиваем доступные для движения клетки
         if (this.moveModeActive && this.availableMoveHexes.length > 0) {
             this.ctx.fillStyle = this.moveHighlightColor;
             this.ctx.globalAlpha = 0.3;
@@ -158,7 +174,6 @@ const BattleModule = {
             });
             this.ctx.globalAlpha = 1;
             
-            // Нумеруем доступные клетки если включено
             if (this.showNumbers) {
                 this.ctx.font = `${this.hexSize * 0.8}px Arial`;
                 this.ctx.fillStyle = '#ffffff';
@@ -242,7 +257,6 @@ const BattleModule = {
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText(creature.icon, hex.x, hex.y);
         
-        // Номер существа если включено и не мертв
         if (this.showNumbers && !isDead && creatureData) {
             const creatureIndex = this.activeCreatures.findIndex(c => c.id === hex.creatureId) + 1;
             this.ctx.font = `${this.hexSize * 0.5}px Arial`;
@@ -448,7 +462,7 @@ const BattleModule = {
             color: #e0d0c0;
             z-index: 1000;
             display: none;
-            max-height: 400px;
+            max-height: 450px;
             flex-direction: column;
         `;
         
@@ -459,10 +473,14 @@ const BattleModule = {
                         style="background: none; border: none; color: #d4af37; font-size: 18px; cursor: pointer;">✖</button>
             </div>
             <div id="turnOrderList" style="min-height: 50px; overflow-y: auto; flex-grow: 1; margin-bottom: 10px; padding-right: 5px;"></div>
-            <div style="display: flex; gap: 10px; justify-content: center; flex-shrink: 0;">
-                <button class="btn btn-roll" onclick="BattleModule.startInitiative()">▶ Начать бой</button>
-                <button class="btn btn-roll" onclick="BattleModule.nextTurn()">⏭ Следующий ход</button>
-                <button class="btn btn-roll" id="toggleNumbersBtn" onclick="BattleModule.toggleNumbers()">🔢 ВЫКЛ</button>
+            <div style="display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;">
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-roll" onclick="BattleModule.startInitiative()">▶ Начать бой</button>
+                    <button class="btn btn-roll" onclick="BattleModule.nextTurn()">⏭ Следующий ход</button>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-roll" id="toggleNumbersBtn" onclick="BattleModule.toggleNumbers()" style="flex: 1;">🔢 ВКЛ</button>
+                </div>
             </div>
         `;
         
@@ -596,6 +614,11 @@ const BattleModule = {
         const template = CreaturesDB.get(creature.templateId);
         const speed = template ? template.speed : 5;
         
+        // Инициализируем навыки, если их нет
+        if (!creature.skills) {
+            creature.skills = { ...this.defaultSkills };
+        }
+        
         const oldPanel = document.getElementById('creaturePanel');
         if (oldPanel) oldPanel.remove();
         
@@ -604,8 +627,8 @@ const BattleModule = {
         panel.style.cssText = `
             position: fixed;
             left: 300px;
-            top: 200px;
-            width: 250px;
+            top: 150px;
+            width: 300px;
             background: #3d2418;
             border: 3px solid #d4af37;
             border-radius: 10px;
@@ -613,10 +636,40 @@ const BattleModule = {
             color: #e0d0c0;
             z-index: 1001;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-height: 600px;
+            overflow-y: auto;
         `;
         
         const hpPercent = (creature.currentHp / creature.maxHp) * 100;
         const isDead = creature.currentHp <= 0;
+        
+        // Генерируем HTML для навыков
+        let skillsHtml = '';
+        if (!isDead) {
+            skillsHtml = '<div style="margin-top: 15px; border-top: 1px solid #8b4513; padding-top: 15px;">';
+            skillsHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+            skillsHtml += '<span style="color: #d4af37; font-weight: bold;">📊 НАВЫКИ</span>';
+            skillsHtml += '<button class="btn btn-small" onclick="BattleModule.toggleSkills(\'' + creature.id + '\')">📋 Показать</button>';
+            skillsHtml += '</div>';
+            skillsHtml += `<div id="skillsList_${creature.id}" style="display: none;">`;
+            
+            // Сортируем навыки по алфавиту
+            const sortedSkills = Object.keys(creature.skills).sort();
+            sortedSkills.forEach(skill => {
+                skillsHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 3px; background: #1a0f0b; border-radius: 4px;">
+                        <span style="font-size: 12px;">${skill}</span>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <button class="btn btn-small" style="padding: 2px 5px;" onclick="BattleModule.modifySkill('${creature.id}', '${skill}', -1)">-</button>
+                            <span id="skill_${creature.id}_${skill}" style="min-width: 25px; text-align: center;">${creature.skills[skill]}</span>
+                            <button class="btn btn-small" style="padding: 2px 5px;" onclick="BattleModule.modifySkill('${creature.id}', '${skill}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            skillsHtml += '</div></div>';
+        }
         
         panel.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -659,6 +712,8 @@ const BattleModule = {
                         <button class="btn btn-roll" onclick="BattleModule.activateMoveMode('${creature.id}')">🚶 Движение</button>
                     </div>
                 </div>
+                
+                ${skillsHtml}
             ` : '<div style="color: #ff6666; text-align: center; padding: 10px;">💀 СУЩЕСТВО МЕРТВО</div>'}
             
             <div style="font-size: 12px; color: #b89a7a; text-align: center; margin-top: 10px;">
@@ -667,6 +722,31 @@ const BattleModule = {
         `;
         
         document.body.appendChild(panel);
+    },
+    
+    toggleSkills(creatureId) {
+        const skillsDiv = document.getElementById(`skillsList_${creatureId}`);
+        if (skillsDiv) {
+            if (skillsDiv.style.display === 'none') {
+                skillsDiv.style.display = 'block';
+            } else {
+                skillsDiv.style.display = 'none';
+            }
+        }
+    },
+    
+    modifySkill(creatureId, skillName, change) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature || !creature.skills) return;
+        
+        creature.skills[skillName] = (creature.skills[skillName] || 10) + change;
+        if (creature.skills[skillName] < 0) creature.skills[skillName] = 0;
+        if (creature.skills[skillName] > 30) creature.skills[skillName] = 30;
+        
+        const skillSpan = document.getElementById(`skill_${creatureId}_${skillName}`);
+        if (skillSpan) {
+            skillSpan.textContent = creature.skills[skillName];
+        }
     },
     
     updateInitiative(creatureId) {
@@ -872,6 +952,7 @@ const BattleModule = {
                     creatureData.id = creatureId;
                     creatureData.templateId = this.currentCreature;
                     creatureData.position = { col: hex.col, row: hex.row };
+                    creatureData.skills = { ...this.defaultSkills }; // Добавляем навыки
                     
                     this.activeCreatures.push(creatureData);
                     
@@ -1019,14 +1100,12 @@ const BattleModule = {
     },
     
     resetView() {
-        // Полностью очищаем всё
         this.activeCreatures = [];
         this.turnOrder = [];
         this.currentTurnIndex = -1;
         this.turnActive = false;
         this.selectedHex = null;
         
-        // Очищаем все гексы
         this.hexes.forEach(hex => {
             hex.creature = null;
             hex.creatureId = null;
@@ -1034,17 +1113,14 @@ const BattleModule = {
             hex.occupied = false;
         });
         
-        // Сбрасываем масштаб и центрируем
         this.scale = 1;
         this.centerView();
         
-        // Обновляем отображение
         this.drawGrid();
         this.updateCreaturesList();
         this.updateTurnOrder();
         this.updateZoomDisplay();
         
-        // Закрываем все панели
         const creaturePanel = document.getElementById('creaturePanel');
         if (creaturePanel) creaturePanel.remove();
         
@@ -1054,7 +1130,6 @@ const BattleModule = {
     setGridSize(size) {
         size = parseInt(size);
         
-        // Сохраняем текущих существ с их относительными позициями
         const oldCreatures = this.activeCreatures.map(c => ({
             ...c,
             position: c.position ? { 
@@ -1063,19 +1138,15 @@ const BattleModule = {
             } : null
         }));
         
-        // Сохраняем объекты
         const oldObjects = this.hexes
             .filter(h => h.object)
             .map(h => ({ col: h.col, row: h.row, object: h.object }));
         
-        // Меняем размер сетки
         this.cols = size;
         this.rows = size;
         
-        // Генерируем новую сетку
         this.generateHexGrid(this.cols, this.rows);
         
-        // Восстанавливаем объекты (только если они в пределах новой сетки)
         oldObjects.forEach(obj => {
             if (obj.col < this.cols && obj.row < this.rows) {
                 const hex = this.hexes.find(h => h.col === obj.col && h.row === obj.row);
@@ -1085,7 +1156,6 @@ const BattleModule = {
             }
         });
         
-        // Восстанавливаем существ (только если они в пределах новой сетки)
         this.activeCreatures = [];
         oldCreatures.forEach(creature => {
             if (creature.position && 
@@ -1098,7 +1168,6 @@ const BattleModule = {
                 );
                 
                 if (hex) {
-                    // Создаем нового существа с тем же ID
                     const newCreature = { ...creature };
                     this.activeCreatures.push(newCreature);
                     
@@ -1109,10 +1178,8 @@ const BattleModule = {
             }
         });
         
-        // Центрируем view с учетом новых размеров
         this.centerView();
         
-        // Перерисовываем
         this.drawGrid();
         this.highlightSelected();
         this.updateCreaturesList();
