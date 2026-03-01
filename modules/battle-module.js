@@ -1,4 +1,4 @@
-// modules/battle-module.js (исправленная версия)
+// modules/battle-module.js (полная версия с исправлениями)
 
 const BattleModule = {
     canvas: null,
@@ -70,7 +70,7 @@ const BattleModule = {
         
         this.ctx = this.canvas.getContext('2d');
         this.generateHexGrid(this.cols, this.rows);
-        this.centerView(); // Центрируем при загрузке
+        this.centerView();
         this.drawGrid();
         this.bindEvents();
         this.createControls();
@@ -80,22 +80,18 @@ const BattleModule = {
         console.log('Battle module initialized');
     },
     
-    // Новый метод для центрирования
     centerView() {
-        // Вычисляем центр поля
         const hexWidth = this.hexSize * 1.732;
         const vertSpacing = this.hexSize * 1.5;
         const totalWidth = this.cols * hexWidth;
         const totalHeight = this.rows * vertSpacing;
         
-        // Центрируем относительно canvas
         this.offsetX = (this.canvas.width / 2) - (totalWidth / 2) * this.scale;
         this.offsetY = (this.canvas.height / 2) - (totalHeight / 2) * this.scale;
     },
     
     generateHexGrid(cols, rows) {
-        // Сохраняем существующие существа и объекты
-        const oldCreatures = [...this.hexes];
+        const oldHexes = [...this.hexes];
         
         this.hexes = [];
         const hexWidth = this.hexSize * 1.732;
@@ -107,8 +103,7 @@ const BattleModule = {
                 const x = col * hexWidth + xOffset;
                 const y = row * vertSpacing;
                 
-                // Ищем старые данные для этого гекса
-                const oldHex = oldCreatures.find(h => h.col === col && h.row === row);
+                const oldHex = oldHexes.find(h => h.col === col && h.row === row);
                 
                 this.hexes.push({
                     x, y,
@@ -121,7 +116,6 @@ const BattleModule = {
             }
         }
         
-        // Обновляем позиции существ в activeCreatures (если они не изменились)
         this.activeCreatures.forEach(creature => {
             if (creature.position) {
                 const hex = this.hexes.find(h => 
@@ -144,7 +138,6 @@ const BattleModule = {
         this.ctx.translate(this.offsetX, this.offsetY);
         this.ctx.scale(this.scale, this.scale);
         
-        // Рисуем все гексы (фон)
         this.ctx.strokeStyle = this.gridColor;
         this.ctx.lineWidth = 2 / this.scale;
         this.ctx.fillStyle = '#2a1a0f';
@@ -153,7 +146,6 @@ const BattleModule = {
             this.drawHexagon(hex.x, hex.y, false);
         });
         
-        // Подсвечиваем доступные для движения клетки
         if (this.moveModeActive && this.availableMoveHexes.length > 0) {
             this.ctx.fillStyle = this.moveHighlightColor;
             this.ctx.globalAlpha = 0.3;
@@ -163,21 +155,18 @@ const BattleModule = {
             this.ctx.globalAlpha = 1;
         }
         
-        // Рисуем объекты
         this.hexes.forEach(hex => {
             if (hex.object) {
                 this.drawObject(hex);
             }
         });
         
-        // Рисуем существ
         this.hexes.forEach(hex => {
             if (hex.creature) {
                 this.drawCreature(hex);
             }
         });
         
-        // Обводка гексов (поверх всего)
         this.ctx.strokeStyle = this.gridColor;
         this.ctx.lineWidth = 2 / this.scale;
         this.hexes.forEach(hex => {
@@ -380,7 +369,6 @@ const BattleModule = {
         });
     },
     
-    // Панель очередности ходов с кнопкой закрытия
     createTurnOrderPanel() {
         const container = document.querySelector('#battle-tab');
         if (!container) return;
@@ -423,7 +411,6 @@ const BattleModule = {
         
         if (!panel || !listDiv) return;
         
-        // Показываем только если есть живые существа
         const aliveCreatures = this.activeCreatures.filter(c => c.currentHp > 0);
         
         if (aliveCreatures.length === 0) {
@@ -458,7 +445,30 @@ const BattleModule = {
         listDiv.innerHTML = html;
     },
     
-    // Панель существ с кнопкой закрытия
+    startInitiative() {
+        const alive = this.activeCreatures.filter(c => c.currentHp > 0);
+        if (alive.length === 0) return;
+        
+        this.turnActive = true;
+        this.currentTurnIndex = 0;
+        this.updateTurnOrder();
+        this.drawGrid();
+        
+        console.log('Бой начат! Ходит:', this.activeCreatures.find(c => c.id === this.turnOrder[0])?.name);
+    },
+    
+    nextTurn() {
+        if (!this.turnActive || this.turnOrder.length === 0) return;
+        
+        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnOrder.length;
+        this.updateTurnOrder();
+        this.drawGrid();
+        
+        const currentId = this.turnOrder[this.currentTurnIndex];
+        const current = this.activeCreatures.find(c => c.id === currentId);
+        console.log('Следующий ход:', current?.name);
+    },
+    
     createSidePanel() {
         const container = document.querySelector('#battle-tab');
         if (!container) return;
@@ -499,7 +509,6 @@ const BattleModule = {
         
         if (!panel || !listDiv) return;
         
-        // Показываем только если есть существа
         if (this.activeCreatures.length === 0) {
             panel.style.display = 'none';
             return;
@@ -538,30 +547,6 @@ const BattleModule = {
         });
         
         listDiv.innerHTML = html;
-    },
-    
-    startInitiative() {
-        const alive = this.activeCreatures.filter(c => c.currentHp > 0);
-        if (alive.length === 0) return;
-        
-        this.turnActive = true;
-        this.currentTurnIndex = 0;
-        this.updateTurnOrder();
-        this.drawGrid();
-        
-        console.log('Бой начат! Ходит:', this.activeCreatures.find(c => c.id === this.turnOrder[0])?.name);
-    },
-    
-    nextTurn() {
-        if (!this.turnActive || this.turnOrder.length === 0) return;
-        
-        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnOrder.length;
-        this.updateTurnOrder();
-        this.drawGrid();
-        
-        const currentId = this.turnOrder[this.currentTurnIndex];
-        const current = this.activeCreatures.find(c => c.id === currentId);
-        console.log('Следующий ход:', current?.name);
     },
     
     openCreaturePanel(creatureId) {
@@ -994,10 +979,104 @@ const BattleModule = {
     },
     
     resetView() {
-        this.centerView(); // Используем центрирование вместо фиксированных координат
+        // Полностью очищаем всё
+        this.activeCreatures = [];
+        this.turnOrder = [];
+        this.currentTurnIndex = -1;
+        this.turnActive = false;
+        this.selectedHex = null;
+        
+        // Очищаем все гексы
+        this.hexes.forEach(hex => {
+            hex.creature = null;
+            hex.creatureId = null;
+            hex.object = null;
+            hex.occupied = false;
+        });
+        
+        // Сбрасываем масштаб и центрируем
+        this.scale = 1;
+        this.centerView();
+        
+        // Обновляем отображение
+        this.drawGrid();
+        this.updateCreaturesList();
+        this.updateTurnOrder();
+        this.updateZoomDisplay();
+        
+        // Закрываем все панели
+        const creaturePanel = document.getElementById('creaturePanel');
+        if (creaturePanel) creaturePanel.remove();
+        
+        console.log('Полный сброс выполнен');
+    },
+    
+    setGridSize(size) {
+        size = parseInt(size);
+        
+        // Сохраняем текущих существ с их относительными позициями
+        const oldCreatures = this.activeCreatures.map(c => ({
+            ...c,
+            position: c.position ? { 
+                col: c.position.col, 
+                row: c.position.row 
+            } : null
+        }));
+        
+        // Сохраняем объекты
+        const oldObjects = this.hexes
+            .filter(h => h.object)
+            .map(h => ({ col: h.col, row: h.row, object: h.object }));
+        
+        // Меняем размер сетки
+        this.cols = size;
+        this.rows = size;
+        
+        // Генерируем новую сетку
+        this.generateHexGrid(this.cols, this.rows);
+        
+        // Восстанавливаем объекты (только если они в пределах новой сетки)
+        oldObjects.forEach(obj => {
+            if (obj.col < this.cols && obj.row < this.rows) {
+                const hex = this.hexes.find(h => h.col === obj.col && h.row === obj.row);
+                if (hex) {
+                    hex.object = obj.object;
+                }
+            }
+        });
+        
+        // Восстанавливаем существ (только если они в пределах новой сетки)
+        this.activeCreatures = [];
+        oldCreatures.forEach(creature => {
+            if (creature.position && 
+                creature.position.col < this.cols && 
+                creature.position.row < this.rows) {
+                
+                const hex = this.hexes.find(h => 
+                    h.col === creature.position.col && 
+                    h.row === creature.position.row
+                );
+                
+                if (hex) {
+                    // Создаем нового существа с тем же ID
+                    const newCreature = { ...creature };
+                    this.activeCreatures.push(newCreature);
+                    
+                    hex.creature = newCreature.templateId;
+                    hex.creatureId = newCreature.id;
+                    hex.occupied = true;
+                }
+            }
+        });
+        
+        // Центрируем view с учетом новых размеров
+        this.centerView();
+        
+        // Перерисовываем
         this.drawGrid();
         this.highlightSelected();
-        this.updateZoomDisplay();
+        this.updateCreaturesList();
+        this.updateTurnOrder();
     },
     
     updateZoomDisplay() {
@@ -1055,65 +1134,10 @@ const BattleModule = {
         this.hexSize = parseInt(size);
         document.getElementById('hexSizeValue').textContent = size;
         
-        // Сохраняем текущие существа и объекты
-        const oldHexes = [...this.hexes];
-        const oldCreatures = [...this.activeCreatures];
-        
         this.generateHexGrid(this.cols, this.rows);
-        
-        // Восстанавливаем существа и объекты (они уже должны быть в newHexes через generateHexGrid)
+        this.centerView();
         this.drawGrid();
         this.highlightSelected();
-        this.updateCreaturesList();
-        this.updateTurnOrder();
-    },
-    
-    setGridSize(size) {
-        size = parseInt(size);
-        
-        // Сохраняем текущие существа и объекты
-        const oldCreatures = this.activeCreatures.map(c => ({
-            ...c,
-            position: c.position ? { ...c.position } : null
-        }));
-        
-        const oldObjects = this.hexes
-            .filter(h => h.object)
-            .map(h => ({ col: h.col, row: h.row, object: h.object }));
-        
-        this.cols = size;
-        this.rows = size;
-        
-        // Генерируем новую сетку
-        this.generateHexGrid(this.cols, this.rows);
-        
-        // Восстанавливаем объекты
-        oldObjects.forEach(obj => {
-            const hex = this.hexes.find(h => h.col === obj.col && h.row === obj.row);
-            if (hex) {
-                hex.object = obj.object;
-            }
-        });
-        
-        // Восстанавливаем существ
-        this.activeCreatures = oldCreatures.filter(c => {
-            if (c.position) {
-                const hex = this.hexes.find(h => h.col === c.position.col && h.row === c.position.row);
-                if (hex) {
-                    hex.creature = c.templateId;
-                    hex.creatureId = c.id;
-                    hex.occupied = true;
-                    return true;
-                }
-            }
-            return false;
-        });
-        
-        this.centerView(); // Центрируем после изменения размера
-        this.drawGrid();
-        this.highlightSelected();
-        this.updateCreaturesList();
-        this.updateTurnOrder();
     },
     
     createControls() {
