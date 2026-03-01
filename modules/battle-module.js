@@ -1,4 +1,4 @@
-// modules/battle-module.js (полная версия с исправленными панелями)
+// modules/battle-module.js (с нумерацией)
 
 const BattleModule = {
     canvas: null,
@@ -31,6 +31,9 @@ const BattleModule = {
     moveModeActive: false,
     movingCreatureId: null,
     availableMoveHexes: [],
+    
+    // Настройки отображения
+    showNumbers: true, // показывать ли нумерацию
     
     creatures: [
         { id: 'human', name: '👤 Человек', color: '#4a7a9c', icon: '👤' },
@@ -146,6 +149,7 @@ const BattleModule = {
             this.drawHexagon(hex.x, hex.y, false);
         });
         
+        // Подсвечиваем доступные для движения клетки
         if (this.moveModeActive && this.availableMoveHexes.length > 0) {
             this.ctx.fillStyle = this.moveHighlightColor;
             this.ctx.globalAlpha = 0.3;
@@ -153,6 +157,18 @@ const BattleModule = {
                 this.drawHexagon(hex.x, hex.y, false);
             });
             this.ctx.globalAlpha = 1;
+            
+            // Нумеруем доступные клетки если включено
+            if (this.showNumbers) {
+                this.ctx.font = `${this.hexSize * 0.8}px Arial`;
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.shadowColor = '#000000';
+                this.ctx.shadowBlur = 4;
+                this.availableMoveHexes.forEach((hex, index) => {
+                    this.ctx.fillText(index + 1, hex.x, hex.y);
+                });
+                this.ctx.shadowBlur = 0;
+            }
         }
         
         this.hexes.forEach(hex => {
@@ -225,6 +241,17 @@ const BattleModule = {
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText(creature.icon, hex.x, hex.y);
+        
+        // Номер существа если включено и не мертв
+        if (this.showNumbers && !isDead && creatureData) {
+            const creatureIndex = this.activeCreatures.findIndex(c => c.id === hex.creatureId) + 1;
+            this.ctx.font = `${this.hexSize * 0.5}px Arial`;
+            this.ctx.fillStyle = '#ffffaa';
+            this.ctx.shadowColor = '#000000';
+            this.ctx.shadowBlur = 3;
+            this.ctx.fillText(`#${creatureIndex}`, hex.x - this.hexSize/2, hex.y - this.hexSize/2);
+            this.ctx.shadowBlur = 0;
+        }
         
         if (isDead) {
             this.ctx.strokeStyle = '#ff0000';
@@ -435,10 +462,20 @@ const BattleModule = {
             <div style="display: flex; gap: 10px; justify-content: center; flex-shrink: 0;">
                 <button class="btn btn-roll" onclick="BattleModule.startInitiative()">▶ Начать бой</button>
                 <button class="btn btn-roll" onclick="BattleModule.nextTurn()">⏭ Следующий ход</button>
+                <button class="btn btn-roll" id="toggleNumbersBtn" onclick="BattleModule.toggleNumbers()">🔢 ВЫКЛ</button>
             </div>
         `;
         
         container.appendChild(panel);
+    },
+    
+    toggleNumbers() {
+        this.showNumbers = !this.showNumbers;
+        const btn = document.getElementById('toggleNumbersBtn');
+        if (btn) {
+            btn.innerHTML = this.showNumbers ? '🔢 ВКЛ' : '🔢 ВЫКЛ';
+        }
+        this.drawGrid();
     },
     
     updateTurnOrder() {
@@ -465,12 +502,13 @@ const BattleModule = {
         sorted.forEach((creature, index) => {
             const isCurrent = this.turnActive && index === this.currentTurnIndex;
             const bgColor = isCurrent ? '#5a9c4a' : '#1a0f0b';
+            const creatureIndex = this.activeCreatures.findIndex(c => c.id === creature.id) + 1;
             
             html += `
                 <div style="background: ${bgColor}; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 20px;">${creature.icon}</span>
                     <div style="flex: 1;">
-                        <div style="font-weight: bold; color: #d4af37;">${creature.name}</div>
+                        <div style="font-weight: bold; color: #d4af37;">${creature.name} #${creatureIndex}</div>
                         <div style="font-size: 12px;">Инициатива: ${creature.currentInitiative}</div>
                     </div>
                     ${isCurrent ? '<span style="color: #ffffaa;">▶ ХОДИТ</span>' : ''}
@@ -519,7 +557,7 @@ const BattleModule = {
         panel.style.display = 'flex';
         
         let html = '';
-        this.activeCreatures.forEach(creature => {
+        this.activeCreatures.forEach((creature, index) => {
             const isDead = creature.currentHp <= 0;
             const hpPercent = isDead ? 0 : (creature.currentHp / creature.maxHp) * 100;
             const hpColor = hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000');
@@ -532,7 +570,7 @@ const BattleModule = {
                         <span style="font-size: 24px; ${isDead ? 'filter: grayscale(100%);' : ''}">${creature.icon}</span>
                         <div style="flex: 1;">
                             <div style="font-weight: bold; color: ${isDead ? '#aaaaaa' : '#d4af37'};">
-                                ${creature.name} ${isDead ? '💀' : ''}
+                                ${creature.name} #${index + 1} ${isDead ? '💀' : ''}
                             </div>
                             <div style="font-size: 12px; color: ${isDead ? '#888888' : '#e0d0c0'};">
                                 HP: ${creature.currentHp}/${creature.maxHp} | Иниц: ${creature.currentInitiative}
