@@ -1,4 +1,4 @@
-// modules/battle-module.js (ПОЛНАЯ ВЕРСИЯ)
+// modules/battle-module.js (исправленная версия)
 
 const BattleModule = {
     canvas: null,
@@ -70,6 +70,7 @@ const BattleModule = {
         
         this.ctx = this.canvas.getContext('2d');
         this.generateHexGrid(this.cols, this.rows);
+        this.centerView(); // Центрируем при загрузке
         this.drawGrid();
         this.bindEvents();
         this.createControls();
@@ -79,7 +80,23 @@ const BattleModule = {
         console.log('Battle module initialized');
     },
     
+    // Новый метод для центрирования
+    centerView() {
+        // Вычисляем центр поля
+        const hexWidth = this.hexSize * 1.732;
+        const vertSpacing = this.hexSize * 1.5;
+        const totalWidth = this.cols * hexWidth;
+        const totalHeight = this.rows * vertSpacing;
+        
+        // Центрируем относительно canvas
+        this.offsetX = (this.canvas.width / 2) - (totalWidth / 2) * this.scale;
+        this.offsetY = (this.canvas.height / 2) - (totalHeight / 2) * this.scale;
+    },
+    
     generateHexGrid(cols, rows) {
+        // Сохраняем существующие существа и объекты
+        const oldCreatures = [...this.hexes];
+        
         this.hexes = [];
         const hexWidth = this.hexSize * 1.732;
         const vertSpacing = this.hexSize * 1.5;
@@ -90,16 +107,34 @@ const BattleModule = {
                 const x = col * hexWidth + xOffset;
                 const y = row * vertSpacing;
                 
+                // Ищем старые данные для этого гекса
+                const oldHex = oldCreatures.find(h => h.col === col && h.row === row);
+                
                 this.hexes.push({
                     x, y,
                     col, row,
-                    occupied: false,
-                    creature: null,
-                    creatureId: null,
-                    object: null
+                    occupied: oldHex ? oldHex.occupied : false,
+                    creature: oldHex ? oldHex.creature : null,
+                    creatureId: oldHex ? oldHex.creatureId : null,
+                    object: oldHex ? oldHex.object : null
                 });
             }
         }
+        
+        // Обновляем позиции существ в activeCreatures (если они не изменились)
+        this.activeCreatures.forEach(creature => {
+            if (creature.position) {
+                const hex = this.hexes.find(h => 
+                    h.col === creature.position.col && 
+                    h.row === creature.position.row
+                );
+                if (hex) {
+                    hex.creature = creature.templateId;
+                    hex.creatureId = creature.id;
+                    hex.occupied = true;
+                }
+            }
+        });
     },
     
     drawGrid() {
@@ -345,7 +380,7 @@ const BattleModule = {
         });
     },
     
-    // Панель очередности ходов
+    // Панель очередности ходов с кнопкой закрытия
     createTurnOrderPanel() {
         const container = document.querySelector('#battle-tab');
         if (!container) return;
@@ -367,7 +402,11 @@ const BattleModule = {
         `;
         
         panel.innerHTML = `
-            <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">⚔️ ОЧЕРЕДНОСТЬ ХОДОВ</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="color: #d4af37; margin: 0;">⚔️ ОЧЕРЕДНОСТЬ ХОДОВ</h3>
+                <button onclick="document.getElementById('turnOrderPanel').style.display = 'none'" 
+                        style="background: none; border: none; color: #d4af37; font-size: 18px; cursor: pointer;">✖</button>
+            </div>
             <div id="turnOrderList" style="min-height: 50px; margin-bottom: 10px;"></div>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button class="btn btn-roll" onclick="BattleModule.startInitiative()">▶ Начать бой</button>
@@ -384,23 +423,20 @@ const BattleModule = {
         
         if (!panel || !listDiv) return;
         
-        if (this.activeCreatures.length === 0) {
+        // Показываем только если есть живые существа
+        const aliveCreatures = this.activeCreatures.filter(c => c.currentHp > 0);
+        
+        if (aliveCreatures.length === 0) {
             panel.style.display = 'none';
             return;
         }
         
         panel.style.display = 'block';
         
-        const sorted = [...this.activeCreatures]
-            .filter(c => c.currentHp > 0)
+        const sorted = [...aliveCreatures]
             .sort((a, b) => b.currentInitiative - a.currentInitiative);
         
         this.turnOrder = sorted.map(c => c.id);
-        
-        if (sorted.length === 0) {
-            listDiv.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Нет живых существ</p>';
-            return;
-        }
         
         let html = '';
         sorted.forEach((creature, index) => {
@@ -415,6 +451,88 @@ const BattleModule = {
                         <div style="font-size: 12px;">Инициатива: ${creature.currentInitiative}</div>
                     </div>
                     ${isCurrent ? '<span style="color: #ffffaa;">▶ ХОДИТ</span>' : ''}
+                </div>
+            `;
+        });
+        
+        listDiv.innerHTML = html;
+    },
+    
+    // Панель существ с кнопкой закрытия
+    createSidePanel() {
+        const container = document.querySelector('#battle-tab');
+        if (!container) return;
+        
+        const panel = document.createElement('div');
+        panel.id = 'battleCreaturesPanel';
+        panel.style.cssText = `
+            position: fixed;
+            left: 20px;
+            top: 200px;
+            width: 250px;
+            background: #2a1a0f;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            padding: 15px;
+            color: #e0d0c0;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        `;
+        
+        panel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="color: #d4af37; margin: 0;">👥 Существа на поле</h3>
+                <button onclick="document.getElementById('battleCreaturesPanel').style.display = 'none'" 
+                        style="background: none; border: none; color: #d4af37; font-size: 18px; cursor: pointer;">✖</button>
+            </div>
+            <div id="creaturesList" style="min-height: 100px;"></div>
+        `;
+        
+        container.appendChild(panel);
+    },
+    
+    updateCreaturesList() {
+        const panel = document.getElementById('battleCreaturesPanel');
+        const listDiv = document.getElementById('creaturesList');
+        
+        if (!panel || !listDiv) return;
+        
+        // Показываем только если есть существа
+        if (this.activeCreatures.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+        
+        panel.style.display = 'block';
+        
+        let html = '';
+        this.activeCreatures.forEach(creature => {
+            const isDead = creature.currentHp <= 0;
+            const hpPercent = isDead ? 0 : (creature.currentHp / creature.maxHp) * 100;
+            const hpColor = hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000');
+            
+            html += `
+                <div style="background: ${isDead ? '#330000' : '#1a0f0b'}; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513; cursor: pointer; ${isDead ? 'opacity: 0.7;' : ''}" 
+                     onclick="BattleModule.selectCreatureById('${creature.id}')"
+                     ondblclick="BattleModule.openCreaturePanel('${creature.id}')">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px; ${isDead ? 'filter: grayscale(100%);' : ''}">${creature.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; color: ${isDead ? '#aaaaaa' : '#d4af37'};">
+                                ${creature.name} ${isDead ? '💀' : ''}
+                            </div>
+                            <div style="font-size: 12px; color: ${isDead ? '#888888' : '#e0d0c0'};">
+                                HP: ${creature.currentHp}/${creature.maxHp} | Иниц: ${creature.currentInitiative}
+                            </div>
+                            ${!isDead ? `
+                                <div style="height: 4px; background: #330000; margin-top: 5px;">
+                                    <div style="height: 4px; width: ${hpPercent}%; background: ${hpColor};"></div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
             `;
         });
@@ -446,7 +564,6 @@ const BattleModule = {
         console.log('Следующий ход:', current?.name);
     },
     
-    // Панель персонажа
     openCreaturePanel(creatureId) {
         const creature = this.activeCreatures.find(c => c.id === creatureId);
         if (!creature) return;
@@ -711,82 +828,6 @@ const BattleModule = {
         }
     },
     
-    createSidePanel() {
-        const container = document.querySelector('#battle-tab');
-        if (!container) return;
-        
-        const panel = document.createElement('div');
-        panel.id = 'battleCreaturesPanel';
-        panel.style.cssText = `
-            position: fixed;
-            left: 20px;
-            top: 200px;
-            width: 250px;
-            background: #2a1a0f;
-            border: 2px solid #8b4513;
-            border-radius: 8px;
-            padding: 15px;
-            color: #e0d0c0;
-            max-height: 500px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        `;
-        
-        panel.innerHTML = `
-            <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">👥 Существа на поле</h3>
-            <div id="creaturesList" style="min-height: 100px;"></div>
-        `;
-        
-        container.appendChild(panel);
-    },
-    
-    updateCreaturesList() {
-        const panel = document.getElementById('battleCreaturesPanel');
-        const listDiv = document.getElementById('creaturesList');
-        
-        if (!panel || !listDiv) return;
-        
-        if (this.activeCreatures.length === 0) {
-            panel.style.display = 'none';
-            return;
-        }
-        
-        panel.style.display = 'block';
-        
-        let html = '';
-        this.activeCreatures.forEach(creature => {
-            const isDead = creature.currentHp <= 0;
-            const hpPercent = isDead ? 0 : (creature.currentHp / creature.maxHp) * 100;
-            const hpColor = hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000');
-            
-            html += `
-                <div style="background: ${isDead ? '#330000' : '#1a0f0b'}; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513; cursor: pointer; ${isDead ? 'opacity: 0.7;' : ''}" 
-                     onclick="BattleModule.selectCreatureById('${creature.id}')"
-                     ondblclick="BattleModule.openCreaturePanel('${creature.id}')">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 24px; ${isDead ? 'filter: grayscale(100%);' : ''}">${creature.icon}</span>
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; color: ${isDead ? '#aaaaaa' : '#d4af37'};">
-                                ${creature.name} ${isDead ? '💀' : ''}
-                            </div>
-                            <div style="font-size: 12px; color: ${isDead ? '#888888' : '#e0d0c0'};">
-                                HP: ${creature.currentHp}/${creature.maxHp} | Иниц: ${creature.currentInitiative}
-                            </div>
-                            ${!isDead ? `
-                                <div style="height: 4px; background: #330000; margin-top: 5px;">
-                                    <div style="height: 4px; width: ${hpPercent}%; background: ${hpColor};"></div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        listDiv.innerHTML = html;
-    },
-    
     selectCreatureById(id) {
         const creature = this.activeCreatures.find(c => c.id === id);
         if (creature && creature.position) {
@@ -953,9 +994,7 @@ const BattleModule = {
     },
     
     resetView() {
-        this.scale = 1;
-        this.offsetX = 500;
-        this.offsetY = 300;
+        this.centerView(); // Используем центрирование вместо фиксированных координат
         this.drawGrid();
         this.highlightSelected();
         this.updateZoomDisplay();
@@ -1015,22 +1054,66 @@ const BattleModule = {
     setHexSize(size) {
         this.hexSize = parseInt(size);
         document.getElementById('hexSizeValue').textContent = size;
+        
+        // Сохраняем текущие существа и объекты
+        const oldHexes = [...this.hexes];
+        const oldCreatures = [...this.activeCreatures];
+        
         this.generateHexGrid(this.cols, this.rows);
+        
+        // Восстанавливаем существа и объекты (они уже должны быть в newHexes через generateHexGrid)
         this.drawGrid();
         this.highlightSelected();
+        this.updateCreaturesList();
+        this.updateTurnOrder();
     },
     
     setGridSize(size) {
         size = parseInt(size);
+        
+        // Сохраняем текущие существа и объекты
+        const oldCreatures = this.activeCreatures.map(c => ({
+            ...c,
+            position: c.position ? { ...c.position } : null
+        }));
+        
+        const oldObjects = this.hexes
+            .filter(h => h.object)
+            .map(h => ({ col: h.col, row: h.row, object: h.object }));
+        
         this.cols = size;
         this.rows = size;
+        
+        // Генерируем новую сетку
         this.generateHexGrid(this.cols, this.rows);
+        
+        // Восстанавливаем объекты
+        oldObjects.forEach(obj => {
+            const hex = this.hexes.find(h => h.col === obj.col && h.row === obj.row);
+            if (hex) {
+                hex.object = obj.object;
+            }
+        });
+        
+        // Восстанавливаем существ
+        this.activeCreatures = oldCreatures.filter(c => {
+            if (c.position) {
+                const hex = this.hexes.find(h => h.col === c.position.col && h.row === c.position.row);
+                if (hex) {
+                    hex.creature = c.templateId;
+                    hex.creatureId = c.id;
+                    hex.occupied = true;
+                    return true;
+                }
+            }
+            return false;
+        });
+        
+        this.centerView(); // Центрируем после изменения размера
         this.drawGrid();
         this.highlightSelected();
-        
-        if (this.selectedHex) {
-            this.updateHexInfo(this.selectedHex);
-        }
+        this.updateCreaturesList();
+        this.updateTurnOrder();
     },
     
     createControls() {
