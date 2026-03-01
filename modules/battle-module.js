@@ -16,17 +16,22 @@ const BattleModule = {
     cols: 20,
     rows: 20,
     
-    // Новое: существа
-    creatures: {
-        'human': { name: '👤 Человек', color: '#4a7a9c', icon: '👤' },
-        'wolf': { name: '🐺 Волк', color: '#7c7c7c', icon: '🐺' },
-        'bear': { name: '🐻 Медведь', color: '#8b5a2b', icon: '🐻' },
-        'goblin': { name: '👺 Гоблин', color: '#2d5a27', icon: '👺' },
-        'orc': { name: '👹 Орк', color: '#4a2d1a', icon: '👹' },
-        'dragon': { name: '🐉 Дракон', color: '#b31e1e', icon: '🐉' }
-    },
-    currentCreature: 'human',  // выбранное существо
-    placementMode: false,      // режим расстановки
+    // Существа
+    creatures: [
+        { id: 'human', name: '👤 Человек', color: '#4a7a9c', icon: '👤' },
+        { id: 'wolf', name: '🐺 Волк', color: '#7c7c7c', icon: '🐺' },
+        { id: 'bear', name: '🐻 Медведь', color: '#8b5a2b', icon: '🐻' },
+        { id: 'goblin', name: '👺 Гоблин', color: '#2d5a27', icon: '👺' },
+        { id: 'orc', name: '👹 Орк', color: '#4a2d1a', icon: '👹' },
+        { id: 'dragon', name: '🐉 Дракон', color: '#b31e1e', icon: '🐉' },
+        { id: 'elf', name: '🧝 Эльф', color: '#2d7a4a', icon: '🧝' },
+        { id: 'dwarf', name: '⛰️ Дварф', color: '#6b4a2d', icon: '⛰️' },
+        { id: 'skeleton', name: '💀 Скелет', color: '#a0a0a0', icon: '💀' },
+        { id: 'ghost', name: '👻 Призрак', color: '#d0d0ff', icon: '👻' }
+    ],
+    currentCreature: 'human',
+    placementMode: false,
+    eraseMode: false,     // режим удаления
     
     init() {
         this.canvas = document.getElementById('battleCanvas');
@@ -56,7 +61,7 @@ const BattleModule = {
                     x, y,
                     col, row,
                     occupied: false,
-                    creature: null  // существо на гексе
+                    creature: null
                 });
             }
         }
@@ -116,9 +121,8 @@ const BattleModule = {
         }
     },
     
-    // Новое: рисование существа
     drawCreature(hex) {
-        const creature = this.creatures[hex.creature];
+        const creature = this.creatures.find(c => c.id === hex.creature);
         if (!creature) return;
         
         // Заливка цветом существа
@@ -185,8 +189,11 @@ const BattleModule = {
             
             const hex = this.findHexByPosition(x, y);
             if (hex) {
-                if (this.placementMode) {
-                    // Режим расстановки - ставим существо
+                if (this.eraseMode) {
+                    // Режим удаления
+                    this.eraseCreature(hex);
+                } else if (this.placementMode) {
+                    // Режим расстановки
                     this.placeCreature(hex);
                 } else {
                     // Обычный режим - выбираем гекс
@@ -217,132 +224,160 @@ const BattleModule = {
         });
     },
     
-    // Новое: создание панели управления существами
     createControls() {
         const panel = document.querySelector('#battle-tab .btn-roll')?.parentNode;
         if (!panel) return;
         
-        // Добавляем кнопки существ после существующих кнопок
+        // Контейнер для управления существами
         const creatureDiv = document.createElement('div');
-        creatureDiv.style.marginTop = '10px';
-        creatureDiv.style.padding = '10px';
+        creatureDiv.style.marginTop = '15px';
+        creatureDiv.style.padding = '15px';
         creatureDiv.style.background = '#2a1a0f';
         creatureDiv.style.borderRadius = '8px';
         creatureDiv.style.border = '1px solid #8b4513';
         
         const title = document.createElement('div');
         title.style.color = '#d4af37';
-        title.style.marginBottom = '10px';
-        title.innerHTML = '🐾 Существа:';
+        title.style.marginBottom = '15px';
+        title.style.fontSize = '1.2em';
+        title.innerHTML = '🐾 УПРАВЛЕНИЕ СУЩЕСТВАМИ';
         creatureDiv.appendChild(title);
         
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.style.display = 'flex';
-        buttonsDiv.style.gap = '10px';
-        buttonsDiv.style.flexWrap = 'wrap';
-        buttonsDiv.style.justifyContent = 'center';
-        
-        // Кнопки для каждого существа
-        Object.keys(this.creatures).forEach(key => {
-            const creature = this.creatures[key];
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-roll';
-            btn.innerHTML = `${creature.icon} ${creature.name}`;
-            btn.style.background = this.currentCreature === key ? '#8b4513' : '';
-            btn.onclick = () => this.selectCreature(key);
-            buttonsDiv.appendChild(btn);
-        });
+        // Верхний ряд кнопок режимов
+        const modeRow = document.createElement('div');
+        modeRow.style.display = 'flex';
+        modeRow.style.gap = '10px';
+        modeRow.style.marginBottom = '15px';
+        modeRow.style.justifyContent = 'center';
         
         // Кнопка режима расстановки
-        const modeBtn = document.createElement('button');
-        modeBtn.className = 'btn btn-plus';
-        modeBtn.id = 'placementModeBtn';
-        modeBtn.innerHTML = '📌 Режим расстановки: ВЫКЛ';
-        modeBtn.style.marginLeft = '10px';
-        modeBtn.onclick = () => this.togglePlacementMode();
+        const placeBtn = document.createElement('button');
+        placeBtn.className = 'btn btn-plus';
+        placeBtn.id = 'placementModeBtn';
+        placeBtn.innerHTML = '📌 РЕЖИМ: ВЫКЛ';
+        placeBtn.style.flex = '1';
+        placeBtn.onclick = () => this.togglePlacementMode();
+        modeRow.appendChild(placeBtn);
         
-        // Кнопка очистки гекса
-        const clearBtn = document.createElement('button');
-        clearBtn.className = 'btn btn-minus';
-        clearBtn.innerHTML = '🧹 Очистить гекс';
-        clearBtn.onclick = () => this.clearSelectedHex();
+        // Кнопка режима удаления
+        const eraseBtn = document.createElement('button');
+        eraseBtn.className = 'btn btn-minus';
+        eraseBtn.id = 'eraseModeBtn';
+        eraseBtn.innerHTML = '🧹 УДАЛЕНИЕ: ВЫКЛ';
+        eraseBtn.style.flex = '1';
+        eraseBtn.onclick = () => this.toggleEraseMode();
+        modeRow.appendChild(eraseBtn);
         
-        creatureDiv.appendChild(buttonsDiv);
+        creatureDiv.appendChild(modeRow);
         
-        const bottomDiv = document.createElement('div');
-        bottomDiv.style.marginTop = '10px';
-        bottomDiv.style.display = 'flex';
-        bottomDiv.style.gap = '10px';
-        bottomDiv.style.justifyContent = 'center';
-        bottomDiv.appendChild(modeBtn);
-        bottomDiv.appendChild(clearBtn);
+        // Выпадающий список существ
+        const selectRow = document.createElement('div');
+        selectRow.style.display = 'flex';
+        selectRow.style.gap = '10px';
+        selectRow.style.alignItems = 'center';
+        selectRow.style.marginBottom = '10px';
         
-        creatureDiv.appendChild(bottomDiv);
+        const selectLabel = document.createElement('span');
+        selectLabel.style.color = '#e0d0c0';
+        selectLabel.innerHTML = 'Выбрать существо:';
+        selectRow.appendChild(selectLabel);
+        
+        const select = document.createElement('select');
+        select.id = 'creatureSelect';
+        select.style.flex = '2';
+        select.style.padding = '8px';
+        select.style.background = '#1a0f0b';
+        select.style.color = '#e0d0c0';
+        select.style.border = '2px solid #8b4513';
+        select.style.borderRadius = '4px';
+        
+        this.creatures.forEach(creature => {
+            const option = document.createElement('option');
+            option.value = creature.id;
+            option.innerHTML = `${creature.icon} ${creature.name}`;
+            select.appendChild(option);
+        });
+        
+        select.onchange = (e) => this.selectCreature(e.target.value);
+        selectRow.appendChild(select);
+        creatureDiv.appendChild(selectRow);
+        
+        // Информация о режимах
+        const infoRow = document.createElement('div');
+        infoRow.style.marginTop = '10px';
+        infoRow.style.padding = '8px';
+        infoRow.style.background = '#1a0f0b';
+        infoRow.style.borderRadius = '4px';
+        infoRow.style.color = '#b89a7a';
+        infoRow.style.fontSize = '0.9em';
+        infoRow.style.textAlign = 'center';
+        infoRow.innerHTML = '💡 Режим расстановки: клик по гексу ставит существо<br>💡 Режим удаления: клик по гексу убирает существо';
+        
+        creatureDiv.appendChild(infoRow);
         panel.appendChild(creatureDiv);
     },
     
-    // Новое: выбор существа
-    selectCreature(key) {
-        this.currentCreature = key;
-        console.log('Выбрано существо:', this.creatures[key].name);
-        
-        // Подсвечиваем выбранную кнопку
-        const buttons = document.querySelectorAll('#battle-tab .btn-roll');
-        buttons.forEach(btn => {
-            if (btn.innerHTML.includes(this.creatures[key].icon)) {
-                btn.style.background = '#8b4513';
-            } else if (btn.innerHTML.includes('👤') || btn.innerHTML.includes('🐺') || 
-                       btn.innerHTML.includes('🐻') || btn.innerHTML.includes('👺') ||
-                       btn.innerHTML.includes('👹') || btn.innerHTML.includes('🐉')) {
-                btn.style.background = '';
-            }
-        });
+    selectCreature(id) {
+        this.currentCreature = id;
+        console.log('Выбрано существо:', this.creatures.find(c => c.id === id).name);
     },
     
-    // Новое: переключение режима расстановки
     togglePlacementMode() {
         this.placementMode = !this.placementMode;
-        const btn = document.getElementById('placementModeBtn');
-        if (btn) {
-            btn.innerHTML = this.placementMode ? '📌 Режим расстановки: ВКЛ' : '📌 Режим расстановки: ВЫКЛ';
-            btn.style.background = this.placementMode ? '#5a9c4a' : '';
+        if (this.placementMode) {
+            this.eraseMode = false; // выключаем удаление
+        }
+        this.updateModeButtons();
+    },
+    
+    toggleEraseMode() {
+        this.eraseMode = !this.eraseMode;
+        if (this.eraseMode) {
+            this.placementMode = false; // выключаем расстановку
+        }
+        this.updateModeButtons();
+    },
+    
+    updateModeButtons() {
+        const placeBtn = document.getElementById('placementModeBtn');
+        const eraseBtn = document.getElementById('eraseModeBtn');
+        
+        if (placeBtn) {
+            placeBtn.innerHTML = this.placementMode ? '📌 РЕЖИМ: ВКЛ' : '📌 РЕЖИМ: ВЫКЛ';
+            placeBtn.style.background = this.placementMode ? '#5a9c4a' : '';
+        }
+        
+        if (eraseBtn) {
+            eraseBtn.innerHTML = this.eraseMode ? '🧹 УДАЛЕНИЕ: ВКЛ' : '🧹 УДАЛЕНИЕ: ВЫКЛ';
+            eraseBtn.style.background = this.eraseMode ? '#b34a4a' : '';
         }
     },
     
-    // Новое: размещение существа
     placeCreature(hex) {
-        if (hex.creature === this.currentCreature) {
-            // Если то же существо - убираем
-            hex.creature = null;
-            hex.occupied = false;
-        } else {
-            // Ставим новое
-            hex.creature = this.currentCreature;
-            hex.occupied = true;
-        }
+        hex.creature = this.currentCreature;
+        hex.occupied = true;
         
         this.drawGrid();
         this.highlightSelected();
-        
-        const info = document.getElementById('hexInfo');
-        if (info) {
-            const creature = hex.creature ? this.creatures[hex.creature].name : 'пусто';
-            info.innerHTML = `Гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1}<br>Существо: ${creature}`;
+        this.updateHexInfo(hex);
+    },
+    
+    eraseCreature(hex) {
+        if (hex.creature) {
+            hex.creature = null;
+            hex.occupied = false;
+            
+            this.drawGrid();
+            this.highlightSelected();
+            this.updateHexInfo(hex);
         }
     },
     
-    // Новое: очистка выбранного гекса
-    clearSelectedHex() {
-        if (this.selectedHex) {
-            this.selectedHex.creature = null;
-            this.selectedHex.occupied = false;
-            this.drawGrid();
-            this.highlightSelected();
-            
-            const info = document.getElementById('hexInfo');
-            if (info) {
-                info.innerHTML = `Гекс: ряд ${this.selectedHex.row + 1}, колонка ${this.selectedHex.col + 1}<br>Существо: пусто`;
-            }
+    updateHexInfo(hex) {
+        const info = document.getElementById('hexInfo');
+        if (info) {
+            const creature = hex.creature ? this.creatures.find(c => c.id === hex.creature).name : 'пусто';
+            info.innerHTML = `Гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1}<br>Существо: ${creature}`;
         }
     },
     
@@ -427,12 +462,7 @@ const BattleModule = {
         this.selectedHex = hex;
         this.drawGrid();
         this.highlightSelected();
-        
-        const info = document.getElementById('hexInfo');
-        if (info) {
-            const creature = hex.creature ? this.creatures[hex.creature].name : 'пусто';
-            info.innerHTML = `Гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1} (из ${this.rows}x${this.cols})<br>Существо: ${creature}`;
-        }
+        this.updateHexInfo(hex);
     },
     
     setHexSize(size) {
@@ -451,10 +481,8 @@ const BattleModule = {
         this.drawGrid();
         this.highlightSelected();
         
-        const info = document.getElementById('hexInfo');
-        if (info && this.selectedHex) {
-            const creature = this.selectedHex.creature ? this.creatures[this.selectedHex.creature].name : 'пусто';
-            info.innerHTML = `Гекс: ряд ${this.selectedHex.row + 1}, колонка ${this.selectedHex.col + 1} (из ${this.rows}x${this.cols})<br>Существо: ${creature}`;
+        if (this.selectedHex) {
+            this.updateHexInfo(this.selectedHex);
         }
     }
 };
