@@ -8,7 +8,7 @@ const CreaturesDB = {
             hp: 100,
             maxHp: 100,
             ac: 12,
-            speed: 6,
+            speed: 5,
             description: 'Обычный человек'
         }
     },
