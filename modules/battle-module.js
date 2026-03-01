@@ -28,9 +28,8 @@ const BattleModule = {
         
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                // смещение для четных/нечетных рядов
-                const xOffset = (row % 2) * hexWidth / 2;
-                const x = col * hexWidth + xOffset + this.offsetX;
+                // смещение для четных/нечетных рядов (для островерхих гексов)
+                const x = col * hexWidth + (row % 2) * (hexWidth / 2) + this.offsetX;
                 const y = row * (this.hexSize * 1.5) + this.offsetY;
                 
                 this.hexes.push({
@@ -57,7 +56,8 @@ const BattleModule = {
     drawHexagon(x, y) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-            const angle = i * Math.PI / 3;
+            // поворот на 30 градусов для островерхих гексов
+            const angle = i * Math.PI / 3 - Math.PI / 6;
             const hx = x + this.hexSize * Math.cos(angle);
             const hy = y + this.hexSize * Math.sin(angle);
             
@@ -125,7 +125,28 @@ const BattleModule = {
         
         this.selectedHex = hex;
         this.highlightHex(hex);
+        
+        // обновляем информацию
+        const info = document.getElementById('hexInfo');
+        if (info) {
+            info.innerHTML = `Выбран гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1}`;
+        }
+        
         console.log(`Выбран гекс: ряд ${hex.row}, колонка ${hex.col}`);
+    },
+    
+    setHexSize(size) {
+        this.hexSize = parseInt(size);
+        document.getElementById('hexSizeValue').textContent = size;
+        this.generateHexGrid(10, 10);
+        this.drawGrid();
+    },
+    
+    resetView() {
+        this.offsetX = 100;
+        this.offsetY = 100;
+        this.generateHexGrid(10, 10);
+        this.drawGrid();
     }
 };
 
