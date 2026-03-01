@@ -9,6 +9,7 @@ const CreaturesDB = {
             maxHp: 100,
             ac: 12,
             speed: 5,
+            initiative: 10,  // добавил инициативу
             description: 'Обычный человек'
         }
     },
@@ -24,13 +25,17 @@ const CreaturesDB = {
         if (!template) return null;
         
         return {
-            id: id,
+            id: null, // будет присвоен позже в battle-module
+            templateId: id,
             name: template.name,
             icon: template.icon,
             currentHp: template.hp,
             maxHp: template.maxHp,
             ac: template.ac,
-            speed: template.speed
+            speed: template.speed,
+            initiative: template.initiative,      // базовая инициатива
+            currentInitiative: template.initiative, // текущая (можно менять)
+            position: null
         };
     }
 };
