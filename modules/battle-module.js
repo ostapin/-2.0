@@ -1,4 +1,4 @@
-// modules/battle-module.js (полная версия с исправлениями)
+// modules/battle-module.js (полная версия с исправленными панелями)
 
 const BattleModule = {
     canvas: null,
@@ -369,6 +369,40 @@ const BattleModule = {
         });
     },
     
+    createSidePanel() {
+        const container = document.querySelector('#battle-tab');
+        if (!container) return;
+        
+        const panel = document.createElement('div');
+        panel.id = 'battleCreaturesPanel';
+        panel.style.cssText = `
+            position: fixed;
+            left: 20px;
+            top: 200px;
+            width: 250px;
+            background: #2a1a0f;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            padding: 15px;
+            color: #e0d0c0;
+            z-index: 1000;
+            display: none;
+            max-height: 400px;
+            flex-direction: column;
+        `;
+        
+        panel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
+                <h3 style="color: #d4af37; margin: 0;">👥 Существа на поле</h3>
+                <button onclick="document.getElementById('battleCreaturesPanel').style.display = 'none'" 
+                        style="background: none; border: none; color: #d4af37; font-size: 18px; cursor: pointer;">✖</button>
+            </div>
+            <div id="creaturesList" style="min-height: 100px; overflow-y: auto; flex-grow: 1; padding-right: 5px;"></div>
+        `;
+        
+        container.appendChild(panel);
+    },
+    
     createTurnOrderPanel() {
         const container = document.querySelector('#battle-tab');
         if (!container) return;
@@ -387,16 +421,18 @@ const BattleModule = {
             color: #e0d0c0;
             z-index: 1000;
             display: none;
+            max-height: 400px;
+            flex-direction: column;
         `;
         
         panel.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
                 <h3 style="color: #d4af37; margin: 0;">⚔️ ОЧЕРЕДНОСТЬ ХОДОВ</h3>
                 <button onclick="document.getElementById('turnOrderPanel').style.display = 'none'" 
                         style="background: none; border: none; color: #d4af37; font-size: 18px; cursor: pointer;">✖</button>
             </div>
-            <div id="turnOrderList" style="min-height: 50px; margin-bottom: 10px;"></div>
-            <div style="display: flex; gap: 10px; justify-content: center;">
+            <div id="turnOrderList" style="min-height: 50px; overflow-y: auto; flex-grow: 1; margin-bottom: 10px; padding-right: 5px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-shrink: 0;">
                 <button class="btn btn-roll" onclick="BattleModule.startInitiative()">▶ Начать бой</button>
                 <button class="btn btn-roll" onclick="BattleModule.nextTurn()">⏭ Следующий ход</button>
             </div>
@@ -418,7 +454,7 @@ const BattleModule = {
             return;
         }
         
-        panel.style.display = 'block';
+        panel.style.display = 'flex';
         
         const sorted = [...aliveCreatures]
             .sort((a, b) => b.currentInitiative - a.currentInitiative);
@@ -469,40 +505,6 @@ const BattleModule = {
         console.log('Следующий ход:', current?.name);
     },
     
-    createSidePanel() {
-        const container = document.querySelector('#battle-tab');
-        if (!container) return;
-        
-        const panel = document.createElement('div');
-        panel.id = 'battleCreaturesPanel';
-        panel.style.cssText = `
-            position: fixed;
-            left: 20px;
-            top: 200px;
-            width: 250px;
-            background: #2a1a0f;
-            border: 2px solid #8b4513;
-            border-radius: 8px;
-            padding: 15px;
-            color: #e0d0c0;
-            max-height: 500px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        `;
-        
-        panel.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="color: #d4af37; margin: 0;">👥 Существа на поле</h3>
-                <button onclick="document.getElementById('battleCreaturesPanel').style.display = 'none'" 
-                        style="background: none; border: none; color: #d4af37; font-size: 18px; cursor: pointer;">✖</button>
-            </div>
-            <div id="creaturesList" style="min-height: 100px;"></div>
-        `;
-        
-        container.appendChild(panel);
-    },
-    
     updateCreaturesList() {
         const panel = document.getElementById('battleCreaturesPanel');
         const listDiv = document.getElementById('creaturesList');
@@ -514,7 +516,7 @@ const BattleModule = {
             return;
         }
         
-        panel.style.display = 'block';
+        panel.style.display = 'flex';
         
         let html = '';
         this.activeCreatures.forEach(creature => {
