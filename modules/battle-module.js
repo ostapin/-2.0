@@ -1,4 +1,4 @@
-// modules/battle-module.js (обновленная версия с окном характеристик)
+// modules/battle-module.js (обновленная версия)
 
 const BattleModule = {
     canvas: null,
@@ -6,6 +6,7 @@ const BattleModule = {
     hexSize: 40,
     gridColor: '#8b4513',
     highlightColor: '#d4af37',
+    moveHighlightColor: '#5a9c4a', // зеленый для доступных клеток
     selectedHex: null,
     hexes: [],
     offsetX: 500,
@@ -18,7 +19,12 @@ const BattleModule = {
     rows: 20,
     
     // Существа на поле
-    activeCreatures: [], // массив существ, которые сейчас на поле
+    activeCreatures: [],
+    
+    // Режимы
+    moveModeActive: false,        // режим выбора клетки для движения
+    movingCreatureId: null,       // кого двигаем
+    availableMoveHexes: [],       // доступные для движения гексы
     
     creatures: [
         { id: 'human', name: '👤 Человек', color: '#4a7a9c', icon: '👤' },
@@ -82,7 +88,7 @@ const BattleModule = {
                     col, row,
                     occupied: false,
                     creature: null,
-                    creatureId: null, // ID существа из activeCreatures
+                    creatureId: null,
                     object: null
                 });
             }
@@ -96,7 +102,7 @@ const BattleModule = {
         this.ctx.translate(this.offsetX, this.offsetY);
         this.ctx.scale(this.scale, this.scale);
         
-        // Рисуем гексы
+        // Рисуем все гексы (фон)
         this.ctx.strokeStyle = this.gridColor;
         this.ctx.lineWidth = 2 / this.scale;
         this.ctx.fillStyle = '#2a1a0f';
@@ -105,11 +111,15 @@ const BattleModule = {
             this.drawHexagon(hex.x, hex.y, false);
         });
         
-        this.ctx.strokeStyle = this.gridColor;
-        this.ctx.lineWidth = 2 / this.scale;
-        this.hexes.forEach(hex => {
-            this.drawHexagon(hex.x, hex.y, true);
-        });
+        // Подсвечиваем доступные для движения клетки
+        if (this.moveModeActive && this.availableMoveHexes.length > 0) {
+            this.ctx.fillStyle = this.moveHighlightColor;
+            this.ctx.globalAlpha = 0.3;
+            this.availableMoveHexes.forEach(hex => {
+                this.drawHexagon(hex.x, hex.y, false);
+            });
+            this.ctx.globalAlpha = 1;
+        }
         
         // Рисуем объекты
         this.hexes.forEach(hex => {
@@ -123,6 +133,13 @@ const BattleModule = {
             if (hex.creature) {
                 this.drawCreature(hex);
             }
+        });
+        
+        // Обводка гексов (поверх всего)
+        this.ctx.strokeStyle = this.gridColor;
+        this.ctx.lineWidth = 2 / this.scale;
+        this.hexes.forEach(hex => {
+            this.drawHexagon(hex.x, hex.y, true);
         });
         
         this.ctx.restore();
@@ -167,7 +184,7 @@ const BattleModule = {
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText(creature.icon, hex.x, hex.y);
         
-        // Полоска HP (если есть данные из БД)
+        // Полоска HP
         if (hex.creatureId) {
             const creatureData = this.activeCreatures.find(c => c.id === hex.creatureId);
             if (creatureData) {
@@ -177,11 +194,9 @@ const BattleModule = {
                 const barX = hex.x - barWidth/2;
                 const barY = hex.y - this.hexSize * 0.8;
                 
-                // Фон полоски
                 this.ctx.fillStyle = '#330000';
                 this.ctx.fillRect(barX, barY, barWidth, barHeight);
                 
-                // Текущее HP
                 this.ctx.fillStyle = hpPercent > 0.5 ? '#00aa00' : (hpPercent > 0.2 ? '#aaaa00' : '#aa0000');
                 this.ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
             }
@@ -255,7 +270,10 @@ const BattleModule = {
             
             const hex = this.findHexByPosition(x, y);
             if (hex) {
-                if (this.eraseMode) {
+                if (this.moveModeActive) {
+                    // Режим движения - пытаемся переместить
+                    this.tryMoveToHex(hex);
+                } else if (this.eraseMode) {
                     this.eraseHex(hex);
                 } else if (this.placementMode) {
                     this.placeOnHex(hex);
@@ -265,7 +283,7 @@ const BattleModule = {
             }
         });
         
-        // Двойной клик - открытие окна характеристик
+        // Двойной клик - открытие панели персонажа
         this.canvas.addEventListener('dblclick', (e) => {
             const rect = this.canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left - this.offsetX) / this.scale;
@@ -273,7 +291,7 @@ const BattleModule = {
             
             const hex = this.findHexByPosition(x, y);
             if (hex && hex.creatureId) {
-                this.openCreatureWindow(hex.creatureId);
+                this.openCreaturePanel(hex.creatureId);
             }
         });
         
@@ -297,6 +315,276 @@ const BattleModule = {
             this.drawGrid();
             this.highlightSelected();
         });
+    },
+    
+    // Панель персонажа (открывается двойным кликом)
+    openCreaturePanel(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        // Получаем скорость из базы данных
+        const template = CreaturesDB.get(creature.templateId);
+        const speed = template ? template.speed : 5;
+        
+        // Убираем предыдущую панель если была
+        const oldPanel = document.getElementById('creaturePanel');
+        if (oldPanel) oldPanel.remove();
+        
+        // Создаем панель
+        const panel = document.createElement('div');
+        panel.id = 'creaturePanel';
+        panel.style.cssText = `
+            position: fixed;
+            left: 300px;
+            top: 200px;
+            width: 250px;
+            background: #3d2418;
+            border: 3px solid #d4af37;
+            border-radius: 10px;
+            padding: 15px;
+            color: #e0d0c0;
+            z-index: 1001;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        `;
+        
+        const hpPercent = (creature.currentHp / creature.maxHp) * 100;
+        
+        panel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: #d4af37; margin: 0;">${creature.icon} ${creature.name}</h3>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #d4af37; font-size: 20px; cursor: pointer;">✖</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>❤️ HP:</span>
+                    <span>${creature.currentHp}/${creature.maxHp}</span>
+                </div>
+                <div style="height: 15px; background: #1a0f0b; border-radius: 8px; overflow: hidden;">
+                    <div style="height: 15px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+                <button class="btn btn-minus" style="flex: 1;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5</button>
+                <button class="btn btn-plus" style="flex: 1;" onclick="BattleModule.healCreature('${creature.id}', 5)">+5</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <input type="number" id="damageInput" value="10" min="1" style="width: 80px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; margin-right: 5px;">
+                <button class="btn btn-minus" onclick="BattleModule.damageCreature('${creature.id}', document.getElementById('damageInput').value)">Нанести урон</button>
+            </div>
+            
+            <div style="border-top: 1px solid #8b4513; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span>⚡ Скорость: ${speed} гексов</span>
+                    <button class="btn btn-roll" id="moveBtn" onclick="BattleModule.activateMoveMode('${creature.id}')">🚶 Движение</button>
+                </div>
+            </div>
+            
+            <div style="font-size: 12px; color: #b89a7a; text-align: center;">
+                🛡️ КБ: ${creature.ac || 12}
+            </div>
+        `;
+        
+        document.body.appendChild(panel);
+    },
+    
+    // Активация режима движения
+    activateMoveMode(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature || !creature.position) return;
+        
+        // Закрываем панель
+        const panel = document.getElementById('creaturePanel');
+        if (panel) panel.remove();
+        
+        // Получаем скорость из базы данных
+        const template = CreaturesDB.get(creature.templateId);
+        const speed = template ? template.speed : 5;
+        
+        // Находим текущий гекс существа
+        const currentHex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
+        if (!currentHex) return;
+        
+        // Включаем режим движения
+        this.moveModeActive = true;
+        this.movingCreatureId = creatureId;
+        
+        // Вычисляем доступные гексы
+        this.availableMoveHexes = this.findReachableHexes(currentHex, speed);
+        
+        // Подсвечиваем выбранное существо
+        this.selectedHex = currentHex;
+        
+        // Перерисовываем
+        this.drawGrid();
+        this.highlightSelected();
+        
+        console.log(`Режим движения активирован. Доступно гексов: ${this.availableMoveHexes.length}`);
+    },
+    
+    // Поиск доступных гексов в радиусе (поиск в ширину)
+    findReachableHexes(startHex, maxDistance) {
+        const reachable = [];
+        const visited = new Set();
+        const queue = [{ hex: startHex, dist: 0 }];
+        
+        const hexKey = (hex) => `${hex.col},${hex.row}`;
+        visited.add(hexKey(startHex));
+        
+        // Направления для гексагональной сетки (pointy-top)
+        // Для четных и нечетных рядов направления отличаются
+        const directions = [
+            { col: 1, row: 0 },   // вправо
+            { col: -1, row: 0 },  // влево
+            { col: 0, row: -1 },  // вверх
+            { col: 0, row: 1 },   // вниз
+            { col: 1, row: -1 },  // вверх-вправо
+            { col: -1, row: -1 }, // вверх-влево
+        ];
+        
+        while (queue.length > 0) {
+            const { hex, dist } = queue.shift();
+            
+            if (dist > 0 && dist <= maxDistance) {
+                // Проверяем, можно ли встать на этот гекс
+                if (!hex.object && !hex.creature) {
+                    reachable.push(hex);
+                }
+            }
+            
+            if (dist < maxDistance) {
+                // Для каждого соседа
+                directions.forEach(dir => {
+                    let newCol = hex.col + dir.col;
+                    let newRow = hex.row + dir.row;
+                    
+                    // Корректировка для нечетных рядов
+                    if (hex.row % 2 === 1) {
+                        if (dir.col === 1 && dir.row === -1) newCol = hex.col;
+                        if (dir.col === -1 && dir.row === -1) newCol = hex.col - 1;
+                    } else {
+                        if (dir.col === 1 && dir.row === -1) newCol = hex.col + 1;
+                        if (dir.col === -1 && dir.row === -1) newCol = hex.col;
+                    }
+                    
+                    // Проверяем границы
+                    if (newCol >= 0 && newCol < this.cols && newRow >= 0 && newRow < this.rows) {
+                        const neighbor = this.hexes.find(h => h.col === newCol && h.row === newRow);
+                        if (neighbor) {
+                            const key = hexKey(neighbor);
+                            if (!visited.has(key)) {
+                                visited.add(key);
+                                queue.push({ hex: neighbor, dist: dist + 1 });
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        return reachable;
+    },
+    
+    // Попытка переместить существо
+    tryMoveToHex(targetHex) {
+        if (!this.moveModeActive || !this.movingCreatureId) {
+            this.moveModeActive = false;
+            this.availableMoveHexes = [];
+            this.drawGrid();
+            return;
+        }
+        
+        // Проверяем, доступен ли целевой гекс
+        const isAvailable = this.availableMoveHexes.some(h => h.col === targetHex.col && h.row === targetHex.row);
+        
+        if (isAvailable) {
+            // Находим существо
+            const creature = this.activeCreatures.find(c => c.id === this.movingCreatureId);
+            if (creature && creature.position) {
+                // Очищаем старый гекс
+                const oldHex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
+                if (oldHex) {
+                    oldHex.creature = null;
+                    oldHex.creatureId = null;
+                    oldHex.occupied = false;
+                }
+                
+                // Занимаем новый гекс
+                targetHex.creature = creature.templateId;
+                targetHex.creatureId = creature.id;
+                targetHex.occupied = true;
+                
+                // Обновляем позицию существа
+                creature.position = { col: targetHex.col, row: targetHex.row };
+                
+                console.log(`Существо перемещено на [${targetHex.col}, ${targetHex.row}]`);
+            }
+        }
+        
+        // Выходим из режима движения
+        this.moveModeActive = false;
+        this.movingCreatureId = null;
+        this.availableMoveHexes = [];
+        
+        // Перерисовываем
+        this.drawGrid();
+        this.highlightSelected();
+    },
+    
+    // Нанесение урона
+    damageCreature(creatureId, amount) {
+        amount = parseInt(amount) || 0;
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        creature.currentHp = Math.max(0, creature.currentHp - amount);
+        
+        if (creature.currentHp === 0) {
+            // Существо умерло - убираем с карты
+            const hex = this.hexes.find(h => h.creatureId === creatureId);
+            if (hex) {
+                hex.creature = null;
+                hex.creatureId = null;
+                hex.occupied = false;
+            }
+            this.activeCreatures = this.activeCreatures.filter(c => c.id !== creatureId);
+            
+            // Закрываем панель
+            const panel = document.getElementById('creaturePanel');
+            if (panel) panel.remove();
+        }
+        
+        this.drawGrid();
+        this.updateCreaturesList();
+        
+        // Обновляем панель если открыта
+        const panel = document.getElementById('creaturePanel');
+        if (panel) {
+            const creatureId = panel.querySelector('button[onclick*="damageCreature"]')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (creatureId) {
+                this.openCreaturePanel(creatureId);
+            }
+        }
+    },
+    
+    // Лечение
+    healCreature(creatureId, amount) {
+        amount = parseInt(amount) || 0;
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        creature.currentHp = Math.min(creature.maxHp, creature.currentHp + amount);
+        
+        this.drawGrid();
+        this.updateCreaturesList();
+        
+        // Обновляем панель если открыта
+        const panel = document.getElementById('creaturePanel');
+        if (panel) {
+            this.openCreaturePanel(creatureId);
+        }
     },
     
     // Создание боковой панели со списком существ
@@ -349,7 +637,7 @@ const BattleModule = {
             html += `
                 <div style="background: #1a0f0b; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513; cursor: pointer;" 
                      onclick="BattleModule.selectCreatureById('${creature.id}')"
-                     ondblclick="BattleModule.openCreatureWindow('${creature.id}')">
+                     ondblclick="BattleModule.openCreaturePanel('${creature.id}')">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 24px;">${creature.icon}</span>
                         <div style="flex: 1;">
@@ -378,112 +666,6 @@ const BattleModule = {
         }
     },
     
-    // Открытие окна характеристик
-    openCreatureWindow(creatureId) {
-        const creature = this.activeCreatures.find(c => c.id === creatureId);
-        if (!creature) return;
-        
-        // Убираем предыдущее окно если было
-        const oldWindow = document.getElementById('creatureWindow');
-        if (oldWindow) oldWindow.remove();
-        
-        // Создаем окно
-        const window = document.createElement('div');
-        window.id = 'creatureWindow';
-        window.style.cssText = `
-            position: fixed;
-            left: 300px;
-            top: 200px;
-            width: 300px;
-            background: #3d2418;
-            border: 3px solid #d4af37;
-            border-radius: 10px;
-            padding: 20px;
-            color: #e0d0c0;
-            z-index: 1001;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        `;
-        
-        const hpPercent = (creature.currentHp / creature.maxHp) * 100;
-        
-        window.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="color: #d4af37; margin: 0;">${creature.icon} ${creature.name}</h2>
-                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #d4af37; font-size: 20px; cursor: pointer;">✖</button>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span>❤️ Здоровье:</span>
-                    <span>${creature.currentHp} / ${creature.maxHp}</span>
-                </div>
-                <div style="height: 20px; background: #1a0f0b; border-radius: 10px; overflow: hidden;">
-                    <div style="height: 20px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn btn-minus" style="flex: 1;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5 HP</button>
-                <button class="btn btn-plus" style="flex: 1;" onclick="BattleModule.healCreature('${creature.id}', 5)">+5 HP</button>
-            </div>
-            
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="damageAmount" value="10" min="1" style="flex: 1; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513;">
-                <button class="btn btn-minus" onclick="BattleModule.damageCreature('${creature.id}', document.getElementById('damageAmount').value)">Нанести урон</button>
-            </div>
-            
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #8b4513;">
-                <div>🛡️ Класс брони: ${creature.ac || 12}</div>
-                <div>⚡ Скорость: ${creature.speed || 6} гексов</div>
-            </div>
-        `;
-        
-        document.body.appendChild(window);
-    },
-    
-    // Нанесение урона
-    damageCreature(creatureId, amount) {
-        amount = parseInt(amount) || 0;
-        const creature = this.activeCreatures.find(c => c.id === creatureId);
-        if (!creature) return;
-        
-        creature.currentHp = Math.max(0, creature.currentHp - amount);
-        
-        if (creature.currentHp === 0) {
-            // Существо умерло - убираем с карты
-            const hex = this.hexes.find(h => h.creatureId === creatureId);
-            if (hex) {
-                hex.creature = null;
-                hex.creatureId = null;
-                hex.occupied = false;
-            }
-            this.activeCreatures = this.activeCreatures.filter(c => c.id !== creatureId);
-            
-            // Закрываем окно
-            const window = document.getElementById('creatureWindow');
-            if (window) window.remove();
-        }
-        
-        this.drawGrid();
-        this.updateCreaturesList();
-        
-        // Обновляем окно если открыто
-        this.openCreatureWindow(creatureId);
-    },
-    
-    // Лечение
-    healCreature(creatureId, amount) {
-        amount = parseInt(amount) || 0;
-        const creature = this.activeCreatures.find(c => c.id === creatureId);
-        if (!creature) return;
-        
-        creature.currentHp = Math.min(creature.maxHp, creature.currentHp + amount);
-        
-        this.drawGrid();
-        this.updateCreaturesList();
-        this.openCreatureWindow(creatureId);
-    },
-    
     placeOnHex(hex) {
         if (this.currentType === 'creature') {
             if (!hex.object) {
@@ -492,6 +674,7 @@ const BattleModule = {
                 if (creatureData) {
                     const creatureId = `${this.currentCreature}_${Date.now()}`;
                     creatureData.id = creatureId;
+                    creatureData.templateId = this.currentCreature;
                     creatureData.position = { col: hex.col, row: hex.row };
                     
                     this.activeCreatures.push(creatureData);
@@ -534,9 +717,9 @@ const BattleModule = {
         this.updateHexInfo(hex);
         this.updateCreaturesList();
         
-        // Закрываем окно если было открыто для этого существа
-        const window = document.getElementById('creatureWindow');
-        if (window) window.remove();
+        // Закрываем панель если была открыта для этого существа
+        const panel = document.getElementById('creaturePanel');
+        if (panel) panel.remove();
     },
     
     setType(type) {
@@ -564,6 +747,7 @@ const BattleModule = {
         this.placementMode = !this.placementMode;
         if (this.placementMode) {
             this.eraseMode = false;
+            this.moveModeActive = false; // выключаем движение
         }
         this.updateModeButtons();
     },
@@ -572,6 +756,7 @@ const BattleModule = {
         this.eraseMode = !this.eraseMode;
         if (this.eraseMode) {
             this.placementMode = false;
+            this.moveModeActive = false; // выключаем движение
         }
         this.updateModeButtons();
     },
@@ -716,7 +901,6 @@ const BattleModule = {
         }
     },
     
-    // Добавляем метод createControls, который был потерян
     createControls() {
         const panel = document.querySelector('#battle-tab .btn-roll')?.parentNode;
         if (!panel) return;
