@@ -369,21 +369,27 @@
         </div>
     </div>
 </div>
-    <!-- Вкладка боя -->
+  <!-- Вкладка боя -->
 <div id="battle-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">⚔️ СИСТЕМА БОЯ</h2>
     
     <!-- Панель управления -->
-    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 10px; background: #3d2418; border-radius: 8px;">
-        <button class="btn btn-roll" onclick="BattleModule.resetView()">🎯 Центрировать</button>
-        <span style="color: #e0d0c0;">Размер гекса:</span>
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 10px; background: #3d2418; border-radius: 8px; flex-wrap: wrap;">
+        <button class="btn btn-roll" onclick="BattleModule.zoomOut()">🔍-</button>
+        <button class="btn btn-roll" onclick="BattleModule.zoomIn()">🔍+</button>
+        <button class="btn btn-roll" onclick="BattleModule.resetView()">🎯 Сброс</button>
+        <span style="color: #d4af37;">Масштаб: <span id="battleZoomLevel">100%</span></span>
+        
+        <span style="color: #e0d0c0; margin-left: 20px;">Размер гекса:</span>
         <input type="range" id="hexSize" min="20" max="60" value="40" step="5" onchange="BattleModule.setHexSize(this.value)">
         <span id="hexSizeValue" style="color: #d4af37;">40</span>
+        
+        <span style="color: #e0d0c0; margin-left: 20px;">Alt+ЛКМ или СКМ - перетаскивание</span>
     </div>
 
     <!-- Поле боя -->
     <div style="text-align: center; background: #1a0f0b; padding: 20px; border-radius: 8px; border: 2px solid #8b4513;">
-        <canvas id="battleCanvas" width="900" height="600" style="border: 2px solid #8b4513; background: #2a1a0f; cursor: pointer;"></canvas>
+        <canvas id="battleCanvas" width="900" height="600" style="border: 2px solid #8b4513; background: #2a1a0f; cursor: crosshair;"></canvas>
     </div>
 
     <!-- Информация о выбранном гексе -->
@@ -459,6 +465,7 @@
 <script src="modules/battle-module.js"></script>
 </body>
 </html>
+
 
 
 
