@@ -369,22 +369,37 @@
         </div>
     </div>
 </div>
-  <!-- Вкладка боя -->
+ <!-- Вкладка боя -->
 <div id="battle-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">⚔️ СИСТЕМА БОЯ</h2>
     
     <!-- Панель управления -->
-    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 10px; background: #3d2418; border-radius: 8px; flex-wrap: wrap;">
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 15px; background: #3d2418; border-radius: 8px; flex-wrap: wrap;">
         <button class="btn btn-roll" onclick="BattleModule.zoomOut()">🔍-</button>
         <button class="btn btn-roll" onclick="BattleModule.zoomIn()">🔍+</button>
         <button class="btn btn-roll" onclick="BattleModule.resetView()">🎯 Сброс</button>
-        <span style="color: #d4af37;">Масштаб: <span id="battleZoomLevel">100%</span></span>
+        <span style="color: #d4af37; margin-left: 5px;">Масштаб: <span id="battleZoomLevel">100%</span></span>
         
         <span style="color: #e0d0c0; margin-left: 20px;">Размер гекса:</span>
         <input type="range" id="hexSize" min="20" max="60" value="40" step="5" onchange="BattleModule.setHexSize(this.value)">
         <span id="hexSizeValue" style="color: #d4af37;">40</span>
         
-        <span style="color: #e0d0c0; margin-left: 20px;">Alt+ЛКМ или СКМ - перетаскивание</span>
+        <span style="color: #e0d0c0; margin-left: 20px;">Размер поля:</span>
+        <select id="battleGridSize" onchange="BattleModule.setGridSize(this.value)" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; padding: 5px; border-radius: 4px;">
+            <option value="10">10 x 10</option>
+            <option value="15">15 x 15</option>
+            <option value="20" selected>20 x 20</option>
+            <option value="30">30 x 30</option>
+            <option value="50">50 x 50</option>
+            <option value="80">80 x 80</option>
+            <option value="100">100 x 100</option>
+            <option value="150">150 x 150</option>
+            <option value="200">200 x 200</option>
+        </select>
+        
+        <div style="width: 100%; margin-top: 5px; text-align: center; color: #b89a7a; font-size: 0.9em;">
+            <span>Alt+ЛКМ или средняя кнопка - перетаскивание поля</span>
+        </div>
     </div>
 
     <!-- Поле боя -->
@@ -465,6 +480,7 @@
 <script src="modules/battle-module.js"></script>
 </body>
 </html>
+
 
 
 
