@@ -718,16 +718,13 @@ const BattleModule = {
                 <button class="btn btn-small" style="padding: 4px 10px;" onclick="BattleModule.updateInitiative('${creature.id}')">✓</button>
             </div>
             
-            ${!isDead ? `
-                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                    <button class="btn btn-minus" style="flex: 1; padding: 6px 5px; font-size: 13px;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5 HP</button>
-                    <button class="btn btn-plus" style="flex: 1; padding: 6px 5px; font-size: 13px;" onclick="BattleModule.healCreature('${creature.id}', 5)">+5 HP</button>
-                </div>
-                
-                <div style="margin-bottom: 15px; display: flex; gap: 8px; align-items: center;">
-                    <input type="number" id="damageInput" value="10" min="1" style="width: 60px; padding: 6px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-                    <button class="btn btn-minus" style="flex: 2; padding: 6px; font-size: 13px;" onclick="BattleModule.damageCreature('${creature.id}', document.getElementById('damageInput').value)">Нанести урон</button>
-                </div>
+           ${!isDead ? `
+    <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+        <button class="btn btn-minus" style="flex: 1; padding: 4px 2px; font-size: 12px;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5 HP</button>
+        <button class="btn btn-plus" style="flex: 1; padding: 4px 2px; font-size: 12px;" onclick="BattleModule.healCreature('${creature.id}', 5)">+5 HP</button>
+        <input type="number" id="damageInput" value="10" min="1" style="width: 50px; padding: 4px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px; font-size: 12px; text-align: center;">
+        <button class="btn btn-minus" style="flex: 1; padding: 4px 2px; font-size: 12px;" onclick="BattleModule.damageCreature('${creature.id}', document.getElementById('damageInput').value)">Урон</button>
+    </div>
                 
                 ${equipHtml}
                 
