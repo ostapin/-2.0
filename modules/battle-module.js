@@ -1,4 +1,4 @@
-// modules/battle-module.js (полная версия с навыками)
+// modules/battle-module.js (полная версия с исправленным окном персонажа)
 
 const BattleModule = {
     canvas: null,
@@ -607,119 +607,120 @@ const BattleModule = {
         listDiv.innerHTML = html;
     },
     
-    // modules/battle-module.js (исправленная версия с нормальным окном навыков)
-
-openCreaturePanel(creatureId) {
-    const creature = this.activeCreatures.find(c => c.id === creatureId);
-    if (!creature) return;
-    
-    const template = CreaturesDB.get(creature.templateId);
-    const speed = template ? template.speed : 5;
-    
-    if (!creature.skills) {
-        creature.skills = { ...this.defaultSkills };
-    }
-    
-    const oldPanel = document.getElementById('creaturePanel');
-    if (oldPanel) oldPanel.remove();
-    
-    const panel = document.createElement('div');
-    panel.id = 'creaturePanel';
-    panel.style.cssText = `
-        position: fixed;
-        left: 300px;
-        top: 100px;
-        width: 350px;
-        max-width: 90vw;
-        background: #3d2418;
-        border: 3px solid #d4af37;
-        border-radius: 10px;
-        padding: 20px;
-        color: #e0d0c0;
-        z-index: 1001;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        max-height: 80vh;
-        overflow-y: auto;
-    `;
-    
-    const hpPercent = (creature.currentHp / creature.maxHp) * 100;
-    const isDead = creature.currentHp <= 0;
-    
-    let skillsHtml = '';
-    if (!isDead) {
-        const sortedSkills = Object.keys(creature.skills).sort();
-        sortedSkills.forEach(skill => {
-            skillsHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 5px; background: #1a0f0b; border-radius: 4px;">
-                    <span style="font-size: 13px;">${skill}</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button class="btn btn-small" style="padding: 2px 8px; font-size: 14px;" onclick="BattleModule.modifySkill('${creature.id}', '${skill}', -1)">-</button>
-                        <span id="skill_${creature.id}_${skill}" style="min-width: 30px; text-align: center; font-weight: bold;">${creature.skills[skill]}</span>
-                        <button class="btn btn-small" style="padding: 2px 8px; font-size: 14px;" onclick="BattleModule.modifySkill('${creature.id}', '${skill}', 1)">+</button>
+    // ИСПРАВЛЕННЫЙ МЕТОД openCreaturePanel
+    openCreaturePanel(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        const template = CreaturesDB.get(creature.templateId);
+        const speed = template ? template.speed : 5;
+        
+        // Инициализируем навыки, если их нет
+        if (!creature.skills) {
+            creature.skills = { ...this.defaultSkills };
+        }
+        
+        const oldPanel = document.getElementById('creaturePanel');
+        if (oldPanel) oldPanel.remove();
+        
+        const panel = document.createElement('div');
+        panel.id = 'creaturePanel';
+        panel.style.cssText = `
+            position: fixed;
+            left: 300px;
+            top: 100px;
+            width: 350px;
+            max-width: 90vw;
+            background: #3d2418;
+            border: 3px solid #d4af37;
+            border-radius: 10px;
+            padding: 20px;
+            color: #e0d0c0;
+            z-index: 1001;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+        `;
+        
+        const hpPercent = (creature.currentHp / creature.maxHp) * 100;
+        const isDead = creature.currentHp <= 0;
+        
+        // Генерируем HTML для навыков
+        let skillsHtml = '';
+        if (!isDead) {
+            const sortedSkills = Object.keys(creature.skills).sort();
+            sortedSkills.forEach(skill => {
+                skillsHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 5px; background: #1a0f0b; border-radius: 4px;">
+                        <span style="font-size: 13px;">${skill}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button class="btn btn-small" style="padding: 2px 8px; font-size: 14px;" onclick="BattleModule.modifySkill('${creature.id}', '${skill}', -1)">-</button>
+                            <span id="skill_${creature.id}_${skill}" style="min-width: 30px; text-align: center; font-weight: bold;">${creature.skills[skill]}</span>
+                            <button class="btn btn-small" style="padding: 2px 8px; font-size: 14px;" onclick="BattleModule.modifySkill('${creature.id}', '${skill}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        panel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; background: #3d2418; padding-bottom: 10px; border-bottom: 1px solid #8b4513;">
+                <h3 style="color: #d4af37; margin: 0;">${creature.icon} ${creature.name}</h3>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #d4af37; font-size: 24px; cursor: pointer; padding: 0 5px;">✖</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>❤️ Здоровье:</span>
+                    <span>${creature.currentHp}/${creature.maxHp}</span>
+                </div>
+                <div style="height: 15px; background: #1a0f0b; border-radius: 8px; overflow: hidden;">
+                    <div style="height: 15px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; background: #2a1a0f; padding: 10px; border-radius: 6px;">
+                <span style="min-width: 80px;">⚡ Инициатива:</span>
+                <input type="number" id="initiativeInput" value="${creature.currentInitiative}" min="1" max="30" style="width: 70px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                <button class="btn btn-small" onclick="BattleModule.updateInitiative('${creature.id}')">✓</button>
+            </div>
+            
+            ${!isDead ? `
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-minus" style="flex: 1; padding: 8px;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5 HP</button>
+                    <button class="btn btn-plus" style="flex: 1; padding: 8px;" onclick="BattleModule.healCreature('${creature.id}', 5)">+5 HP</button>
+                </div>
+                
+                <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="damageInput" value="10" min="1" style="width: 80px; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                    <button class="btn btn-minus" style="flex: 1; padding: 8px;" onclick="BattleModule.damageCreature('${creature.id}', document.getElementById('damageInput').value)">Нанести урон</button>
+                </div>
+                
+                <div style="margin-bottom: 15px; background: #2a1a0f; padding: 10px; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>⚡ Скорость: <strong>${speed}</strong> гексов</span>
+                        <button class="btn btn-roll" style="padding: 8px 15px;" onclick="BattleModule.activateMoveMode('${creature.id}')">🚶 Движение</button>
                     </div>
                 </div>
-            `;
-        });
-    }
-    
-    panel.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; background: #3d2418; padding-bottom: 10px; border-bottom: 1px solid #8b4513;">
-            <h3 style="color: #d4af37; margin: 0;">${creature.icon} ${creature.name}</h3>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #d4af37; font-size: 24px; cursor: pointer; padding: 0 5px;">✖</button>
-        </div>
-        
-        <div style="margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span>❤️ Здоровье:</span>
-                <span>${creature.currentHp}/${creature.maxHp}</span>
-            </div>
-            <div style="height: 15px; background: #1a0f0b; border-radius: 8px; overflow: hidden;">
-                <div style="height: 15px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; background: #2a1a0f; padding: 10px; border-radius: 6px;">
-            <span style="min-width: 80px;">⚡ Инициатива:</span>
-            <input type="number" id="initiativeInput" value="${creature.currentInitiative}" min="1" max="30" style="width: 70px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-            <button class="btn btn-small" onclick="BattleModule.updateInitiative('${creature.id}')">✓</button>
-        </div>
-        
-        ${!isDead ? `
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn btn-minus" style="flex: 1; padding: 8px;" onclick="BattleModule.damageCreature('${creature.id}', 5)">-5 HP</button>
-                <button class="btn btn-plus" style="flex: 1; padding: 8px;" onclick="BattleModule.healCreature('${creature.id}', 5)">+5 HP</button>
-            </div>
-            
-            <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="damageInput" value="10" min="1" style="width: 80px; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-                <button class="btn btn-minus" style="flex: 1; padding: 8px;" onclick="BattleModule.damageCreature('${creature.id}', document.getElementById('damageInput').value)">Нанести урон</button>
-            </div>
-            
-            <div style="margin-bottom: 15px; background: #2a1a0f; padding: 10px; border-radius: 6px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>⚡ Скорость: <strong>${speed}</strong> гексов</span>
-                    <button class="btn btn-roll" style="padding: 8px 15px;" onclick="BattleModule.activateMoveMode('${creature.id}')">🚶 Движение</button>
+                
+                <div style="margin-top: 10px; border-top: 2px solid #8b4513; padding-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #2a1a0f; padding: 10px; border-radius: 6px;">
+                        <span style="font-size: 16px; color: #d4af37; font-weight: bold;">📊 НАВЫКИ (всего 13)</span>
+                        <button class="btn btn-roll" style="padding: 5px 15px;" onclick="BattleModule.toggleSkills('${creature.id}')">Показать/скрыть</button>
+                    </div>
+                    <div id="skillsList_${creature.id}" style="display: none; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                        ${skillsHtml}
+                    </div>
                 </div>
-            </div>
+            ` : '<div style="color: #ff6666; text-align: center; padding: 20px; font-size: 18px;">💀 СУЩЕСТВО МЕРТВО</div>'}
             
-            <div style="margin-top: 10px; border-top: 2px solid #8b4513; padding-top: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #2a1a0f; padding: 10px; border-radius: 6px;">
-                    <span style="font-size: 16px; color: #d4af37; font-weight: bold;">📊 НАВЫКИ (всего 13)</span>
-                    <button class="btn btn-roll" style="padding: 5px 15px;" onclick="BattleModule.toggleSkills('${creature.id}')">Показать/скрыть</button>
-                </div>
-                <div id="skillsList_${creature.id}" style="display: none; max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                    ${skillsHtml}
-                </div>
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #8b4513; font-size: 14px; color: #b89a7a; text-align: center;">
+                🛡️ Класс брони: ${creature.ac || 12}
             </div>
-        ` : '<div style="color: #ff6666; text-align: center; padding: 20px; font-size: 18px;">💀 СУЩЕСТВО МЕРТВО</div>'}
+        `;
         
-        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #8b4513; font-size: 14px; color: #b89a7a; text-align: center;">
-            🛡️ Класс брони: ${creature.ac || 12}
-        </div>
-    `;
-    
-    document.body.appendChild(panel);
-}
+        document.body.appendChild(panel);
+    },
     
     toggleSkills(creatureId) {
         const skillsDiv = document.getElementById(`skillsList_${creatureId}`);
@@ -949,7 +950,7 @@ openCreaturePanel(creatureId) {
                     creatureData.id = creatureId;
                     creatureData.templateId = this.currentCreature;
                     creatureData.position = { col: hex.col, row: hex.row };
-                    creatureData.skills = { ...this.defaultSkills }; // Добавляем навыки
+                    creatureData.skills = { ...this.defaultSkills };
                     
                     this.activeCreatures.push(creatureData);
                     
