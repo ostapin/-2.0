@@ -1,4 +1,4 @@
-// modules/battle-module.js (полная версия с работающей экипировкой)
+// modules/battle-module.js (полная версия с исправленной системой атак)
 
 const BattleModule = {
     canvas: null,
@@ -27,11 +27,13 @@ const BattleModule = {
     
     moveModeActive: false,
     attackModeActive: false,
+    rangedAttackModeActive: false,
     preparingAttackCreatureId: null,
     preparedAttackType: null,
     movingCreatureId: null,
     availableMoveHexes: [],
     availableAttackTargets: [],
+    availableRangedTargets: [],
     
     showNumbers: true,
     
@@ -205,6 +207,26 @@ const BattleModule = {
             }
         }
         
+        if (this.rangedAttackModeActive && this.availableRangedTargets.length > 0) {
+            this.ctx.fillStyle = this.attackHighlightColor;
+            this.ctx.globalAlpha = 0.3;
+            this.availableRangedTargets.forEach(hex => {
+                this.drawHexagon(hex.x, hex.y, false);
+            });
+            this.ctx.globalAlpha = 1;
+            
+            if (this.showNumbers) {
+                this.ctx.font = `${this.hexSize * 0.8}px Arial`;
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.shadowColor = '#000000';
+                this.ctx.shadowBlur = 4;
+                this.availableRangedTargets.forEach((hex, index) => {
+                    this.ctx.fillText(index + 1, hex.x, hex.y);
+                });
+                this.ctx.shadowBlur = 0;
+            }
+        }
+        
         this.hexes.forEach(hex => {
             if (hex.object) {
                 this.drawObject(hex);
@@ -280,6 +302,12 @@ const BattleModule = {
             this.ctx.font = `${this.hexSize * 0.8}px Arial`;
             this.ctx.fillStyle = '#ffaa00';
             this.ctx.fillText('⚔️', hex.x + this.hexSize/2, hex.y);
+        }
+        
+        if (creatureData && creatureData.hasPreparedAttack) {
+            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
+            this.ctx.fillStyle = '#ff5500';
+            this.ctx.fillText('⚡', hex.x + this.hexSize/2, hex.y - this.hexSize/3);
         }
         
         if (this.showNumbers && !isDead && creatureData) {
@@ -390,6 +418,8 @@ const BattleModule = {
             if (hex) {
                 if (this.attackModeActive) {
                     this.tryAttackTarget(hex);
+                } else if (this.rangedAttackModeActive) {
+                    this.tryRangedAttack(hex);
                 } else if (this.moveModeActive) {
                     this.tryMoveToHex(hex);
                 } else if (this.eraseMode) {
@@ -548,13 +578,15 @@ const BattleModule = {
             const isCurrent = this.turnActive && index === this.currentTurnIndex;
             const bgColor = isCurrent ? '#5a9c4a' : '#1a0f0b';
             const creatureIndex = this.activeCreatures.findIndex(c => c.id === creature.id) + 1;
-            const isPreparing = creature.isPreparingAttack ? ' ⚔️' : '';
+            let statusIcon = '';
+            if (creature.isPreparingAttack) statusIcon = ' ⚔️';
+            else if (creature.hasPreparedAttack) statusIcon = ' ⚡';
             
             html += `
                 <div style="background: ${bgColor}; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 20px;">${creature.icon}</span>
                     <div style="flex: 1;">
-                        <div style="font-weight: bold; color: #d4af37;">${creature.name} #${creatureIndex}${isPreparing}</div>
+                        <div style="font-weight: bold; color: #d4af37;">${creature.name} #${creatureIndex}${statusIcon}</div>
                         <div style="font-size: 12px;">Инициатива: ${creature.currentInitiative}</div>
                     </div>
                     ${isCurrent ? '<span style="color: #ffffaa;">▶ ХОДИТ</span>' : ''}
@@ -580,13 +612,23 @@ const BattleModule = {
     nextTurn() {
         if (!this.turnActive || this.turnOrder.length === 0) return;
         
+        // Проверяем, есть ли у текущего существа подготовленная атака
+        const currentId = this.turnOrder[this.currentTurnIndex];
+        const currentCreature = this.activeCreatures.find(c => c.id === currentId);
+        
+        if (currentCreature && currentCreature.hasPreparedAttack) {
+            // Если есть подготовленная атака, не переключаем ход автоматически
+            console.log(`${currentCreature.name} может использовать подготовленную атаку`);
+            return;
+        }
+        
         this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnOrder.length;
         this.updateTurnOrder();
         this.drawGrid();
         
-        const currentId = this.turnOrder[this.currentTurnIndex];
-        const current = this.activeCreatures.find(c => c.id === currentId);
-        console.log('Следующий ход:', current?.name);
+        const newCurrentId = this.turnOrder[this.currentTurnIndex];
+        const newCurrent = this.activeCreatures.find(c => c.id === newCurrentId);
+        console.log('Следующий ход:', newCurrent?.name);
     },
     
     updateCreaturesList() {
@@ -607,7 +649,9 @@ const BattleModule = {
             const isDead = creature.currentHp <= 0;
             const hpPercent = isDead ? 0 : (creature.currentHp / creature.maxHp) * 100;
             const hpColor = hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000');
-            const isPreparing = creature.isPreparingAttack ? ' ⚔️' : '';
+            let statusIcon = '';
+            if (creature.isPreparingAttack) statusIcon = ' ⚔️';
+            else if (creature.hasPreparedAttack) statusIcon = ' ⚡';
             
             html += `
                 <div style="background: ${isDead ? '#330000' : '#1a0f0b'}; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513; cursor: pointer; ${isDead ? 'opacity: 0.7;' : ''}" 
@@ -617,7 +661,7 @@ const BattleModule = {
                         <span style="font-size: 24px; ${isDead ? 'filter: grayscale(100%);' : ''}">${creature.icon}</span>
                         <div style="flex: 1;">
                             <div style="font-weight: bold; color: ${isDead ? '#aaaaaa' : '#d4af37'};">
-                                ${creature.name} #${index + 1}${isPreparing} ${isDead ? '💀' : ''}
+                                ${creature.name} #${index + 1}${statusIcon} ${isDead ? '💀' : ''}
                             </div>
                             <div style="font-size: 12px; color: ${isDead ? '#888888' : '#e0d0c0'};">
                                 HP: ${creature.currentHp}/${creature.maxHp} | Иниц: ${creature.currentInitiative}
@@ -662,6 +706,7 @@ const BattleModule = {
         
         if (creature.isPreparingAttack === undefined) {
             creature.isPreparingAttack = false;
+            creature.hasPreparedAttack = false;
             creature.preparedAttackType = null;
         }
         
@@ -690,7 +735,7 @@ const BattleModule = {
         const hpPercent = (creature.currentHp / creature.maxHp) * 100;
         const isDead = creature.currentHp <= 0;
         
-        const ac = 10; // Временно
+        const ac = 10;
         
         const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
         
@@ -721,6 +766,16 @@ const BattleModule = {
             
             Object.entries(weapon.attacks).forEach(([key, attack]) => {
                 const isPreparing = creature.isPreparingAttack && creature.preparedAttackType === key;
+                const hasPrepared = creature.hasPreparedAttack && creature.preparedAttackType === key;
+                let buttonText = '';
+                if (hasPrepared) {
+                    buttonText = 'Использовать';
+                } else if (isPreparing) {
+                    buttonText = 'Готовится...';
+                } else {
+                    buttonText = attack.cost === 2 ? 'Подготовить' : 'Атаковать';
+                }
+                
                 attackHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 5px; background: #1a0f0b; border-radius: 4px;">
                         <div>
@@ -728,9 +783,11 @@ const BattleModule = {
                             <span style="font-size: 11px; color: #b89a7a;"> (${attack.cost} ход)</span>
                         </div>
                         ${isPreparing ? '<span style="color: #ffaa00;">⚔️ ГОТОВИТСЯ</span>' : ''}
+                        ${hasPrepared ? '<span style="color: #ff5500;">⚡ ГОТОВО</span>' : ''}
                         <button class="btn btn-roll" style="padding: 4px 8px; font-size: 11px;" 
-                                onclick="BattleModule.prepareAttack('${creature.id}', '${key}')">
-                            ${attack.cost === 2 ? 'Подготовить' : 'Атаковать'}
+                                onclick="BattleModule.prepareAttack('${creature.id}', '${key}')"
+                                ${isPreparing ? 'disabled' : ''}>
+                            ${buttonText}
                         </button>
                     </div>
                 `;
@@ -768,7 +825,7 @@ const BattleModule = {
                     <span>${creature.currentHp}/${creature.maxHp}</span>
                 </div>
                 <div style="height: 12px; background: #1a0f0b; border-radius: 6px; overflow: hidden;">
-                <div style="height: 12px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
+                    <div style="height: 12px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
                 </div>
             </div>
             
@@ -949,6 +1006,32 @@ const BattleModule = {
             return;
         }
         
+        // Если у существа уже есть подготовленная атака, используем её
+        if (creature.hasPreparedAttack && creature.preparedAttackType === attackType) {
+            const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
+            if (!weapon) return;
+            
+            const attack = weapon.attacks[attackType];
+            if (!attack) return;
+            
+            // Определяем тип атаки (ближняя или дальняя)
+            if (attackType === 'shoot' || attackType === 'thrown') {
+                this.activateRangedAttackMode(creatureId, attackType);
+            } else {
+                this.activateAttackMode(creatureId, attackType);
+            }
+            
+            // Сбрасываем подготовку
+            creature.hasPreparedAttack = false;
+            creature.isPreparingAttack = false;
+            creature.preparedAttackType = null;
+            
+            const panel = document.getElementById('creaturePanel');
+            if (panel) panel.remove();
+            
+            return;
+        }
+        
         const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
         if (!weapon) {
             alert('Нет оружия!');
@@ -962,9 +1045,16 @@ const BattleModule = {
         if (panel) panel.remove();
         
         if (attack.cost === 1) {
-            this.activateAttackMode(creatureId, attackType);
+            // Атака в 1 ход - сразу выбираем цель
+            if (attackType === 'shoot' || attackType === 'thrown') {
+                this.activateRangedAttackMode(creatureId, attackType);
+            } else {
+                this.activateAttackMode(creatureId, attackType);
+            }
         } else {
+            // Атака в 2 хода - подготовка
             creature.isPreparingAttack = true;
+            creature.hasPreparedAttack = false;
             creature.preparedAttackType = attackType;
             this.updateTurnOrder();
             this.drawGrid();
@@ -980,10 +1070,27 @@ const BattleModule = {
         if (!creature || !creature.position) return;
         
         this.attackModeActive = true;
+        this.rangedAttackModeActive = false;
         this.movingCreatureId = creatureId;
         this.preparedAttackType = attackType;
         
         this.availableAttackTargets = this.findAttackTargets(creature.position);
+        this.availableRangedTargets = [];
+        
+        this.drawGrid();
+    },
+    
+    activateRangedAttackMode(creatureId, attackType) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature || !creature.position) return;
+        
+        this.attackModeActive = false;
+        this.rangedAttackModeActive = true;
+        this.movingCreatureId = creatureId;
+        this.preparedAttackType = attackType;
+        
+        this.availableRangedTargets = this.findRangedTargets(creature.position);
+        this.availableAttackTargets = [];
         
         this.drawGrid();
     },
@@ -1029,6 +1136,98 @@ const BattleModule = {
         return targets;
     },
     
+    findRangedTargets(position) {
+        const targets = [];
+        const maxRange = 50;
+        
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+                if (col === position.col && row === position.row) continue;
+                
+                const hex = this.hexes.find(h => h.col === col && h.row === row);
+                if (!hex || !hex.creatureId) continue;
+                
+                const targetCreature = this.activeCreatures.find(c => c.id === hex.creatureId);
+                if (!targetCreature || targetCreature.currentHp <= 0) continue;
+                
+                // Проверяем расстояние
+                const distance = this.getHexDistance(position, {col, row});
+                if (distance > maxRange) continue;
+                
+                // Проверяем линию видимости
+                const firstTarget = this.checkLineOfSight(position, {col, row});
+                if (firstTarget && firstTarget.col === col && firstTarget.row === row) {
+                    targets.push(hex);
+                }
+            }
+        }
+        
+        return targets;
+    },
+    
+    getHexDistance(pos1, pos2) {
+        const dx = Math.abs(pos1.col - pos2.col);
+        const dy = Math.abs(pos1.row - pos2.row);
+        
+        if (pos1.row % 2 === 0) {
+            return Math.max(dx, dy);
+        } else {
+            return Math.max(dx, dy);
+        }
+    },
+    
+    checkLineOfSight(start, end) {
+        const points = this.getLinePoints(start, end);
+        
+        for (let i = 1; i < points.length - 1; i++) {
+            const point = points[i];
+            const hex = this.hexes.find(h => h.col === point.col && h.row === point.row);
+            
+            if (hex && hex.object) {
+                return null;
+            }
+            
+            if (hex && hex.creatureId) {
+                return hex;
+            }
+        }
+        
+        const endHex = this.hexes.find(h => h.col === end.col && h.row === end.row);
+        return endHex;
+    },
+    
+    getLinePoints(start, end) {
+        const points = [];
+        let x0 = start.col;
+        let y0 = start.row;
+        let x1 = end.col;
+        let y1 = end.row;
+        
+        const dx = Math.abs(x1 - x0);
+        const dy = Math.abs(y1 - y0);
+        const sx = x0 < x1 ? 1 : -1;
+        const sy = y0 < y1 ? 1 : -1;
+        let err = dx - dy;
+        
+        while (true) {
+            points.push({col: x0, row: y0});
+            
+            if (x0 === x1 && y0 === y1) break;
+            
+            const e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+        
+        return points;
+    },
+    
     tryAttackTarget(targetHex) {
         if (!this.attackModeActive || !this.movingCreatureId) {
             this.attackModeActive = false;
@@ -1060,6 +1259,37 @@ const BattleModule = {
         }
     },
     
+    tryRangedAttack(targetHex) {
+        if (!this.rangedAttackModeActive || !this.movingCreatureId) {
+            this.rangedAttackModeActive = false;
+            this.availableRangedTargets = [];
+            this.drawGrid();
+            return;
+        }
+        
+        const isTarget = this.availableRangedTargets.some(h => h.col === targetHex.col && h.row === targetHex.row);
+        
+        if (isTarget) {
+            const attacker = this.activeCreatures.find(c => c.id === this.movingCreatureId);
+            const defender = this.activeCreatures.find(c => c.id === targetHex.creatureId);
+            
+            if (attacker && defender) {
+                this.performAttack(attacker, defender, this.preparedAttackType);
+            }
+        }
+        
+        this.rangedAttackModeActive = false;
+        this.movingCreatureId = null;
+        this.preparedAttackType = null;
+        this.availableRangedTargets = [];
+        
+        this.drawGrid();
+        
+        if (this.turnActive) {
+            this.nextTurn();
+        }
+    },
+    
     performAttack(attacker, defender, attackType) {
         const weapon = attacker.equipment.weapon ? ItemsDB.get(attacker.equipment.weapon) : null;
         if (!weapon) return;
@@ -1083,6 +1313,15 @@ const BattleModule = {
         
         if (defender.currentHp === 0) {
             console.log(`${defender.name} погиб!`);
+            
+            // Очищаем гекс
+            const hex = this.hexes.find(h => h.creatureId === defender.id);
+            if (hex) {
+                hex.creature = null;
+                hex.creatureId = null;
+                hex.occupied = false;
+            }
+            
             this.updateTurnOrder();
         }
         
@@ -1267,6 +1506,16 @@ const BattleModule = {
         if (creature.currentHp === 0) {
             console.log(`Существо ${creature.name} погибло`);
             creature.isPreparingAttack = false;
+            creature.hasPreparedAttack = false;
+            
+            // Очищаем гекс
+            const hex = this.hexes.find(h => h.creatureId === creature.id);
+            if (hex) {
+                hex.creature = null;
+                hex.creatureId = null;
+                hex.occupied = false;
+            }
+            
             this.updateTurnOrder();
             
             const panel = document.getElementById('creaturePanel');
@@ -1321,6 +1570,7 @@ const BattleModule = {
                     creatureData.position = { col: hex.col, row: hex.row };
                     creatureData.skills = { ...this.defaultSkills };
                     creatureData.isPreparingAttack = false;
+                    creatureData.hasPreparedAttack = false;
                     creatureData.preparedAttackType = null;
                     creatureData.equipment = {
                         weapon: null,
@@ -1407,6 +1657,7 @@ const BattleModule = {
             this.eraseMode = false;
             this.moveModeActive = false;
             this.attackModeActive = false;
+            this.rangedAttackModeActive = false;
         }
         this.updateModeButtons();
     },
@@ -1417,6 +1668,7 @@ const BattleModule = {
             this.placementMode = false;
             this.moveModeActive = false;
             this.attackModeActive = false;
+            this.rangedAttackModeActive = false;
         }
         this.updateModeButtons();
     },
@@ -1488,6 +1740,7 @@ const BattleModule = {
         this.selectedHex = null;
         this.moveModeActive = false;
         this.attackModeActive = false;
+        this.rangedAttackModeActive = false;
         
         this.hexes.forEach(hex => {
             hex.creature = null;
