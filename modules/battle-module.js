@@ -1,4 +1,4 @@
-// modules/battle-module.js (полная версия с системой атак)
+// modules/battle-module.js (полная версия с работающей экипировкой)
 
 const BattleModule = {
     canvas: null,
@@ -7,7 +7,7 @@ const BattleModule = {
     gridColor: '#8b4513',
     highlightColor: '#d4af37',
     moveHighlightColor: '#5a9c4a',
-    attackHighlightColor: '#b34a4a', // красный для атаки
+    attackHighlightColor: '#b34a4a',
     currentTurnHighlight: '#ffaa00',
     selectedHex: null,
     hexes: [],
@@ -20,27 +20,21 @@ const BattleModule = {
     cols: 20,
     rows: 20,
     
-    // Существа на поле
     activeCreatures: [],
-    
-    // Очередность ходов
     turnOrder: [],
     currentTurnIndex: -1,
     turnActive: false,
     
-    // Режимы
     moveModeActive: false,
     attackModeActive: false,
     preparingAttackCreatureId: null,
     preparedAttackType: null,
     movingCreatureId: null,
     availableMoveHexes: [],
-    availableAttackTargets: [], // доступные цели для атаки
+    availableAttackTargets: [],
     
-    // Настройки отображения
     showNumbers: true,
     
-    // Навыки по умолчанию для человека
     defaultSkills: {
         'Тяжёлая броня': 10,
         'Лёгкая броня': 10,
@@ -171,7 +165,6 @@ const BattleModule = {
             this.drawHexagon(hex.x, hex.y, false);
         });
         
-        // Подсвечиваем доступные для движения клетки
         if (this.moveModeActive && this.availableMoveHexes.length > 0) {
             this.ctx.fillStyle = this.moveHighlightColor;
             this.ctx.globalAlpha = 0.3;
@@ -192,7 +185,6 @@ const BattleModule = {
             }
         }
         
-        // Подсвечиваем доступные цели для атаки
         if (this.attackModeActive && this.availableAttackTargets.length > 0) {
             this.ctx.fillStyle = this.attackHighlightColor;
             this.ctx.globalAlpha = 0.3;
@@ -284,7 +276,6 @@ const BattleModule = {
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText(creature.icon, hex.x, hex.y);
         
-        // Показываем иконку подготовки к атаке
         if (creatureData && creatureData.isPreparingAttack) {
             this.ctx.font = `${this.hexSize * 0.8}px Arial`;
             this.ctx.fillStyle = '#ffaa00';
@@ -645,7 +636,6 @@ const BattleModule = {
         listDiv.innerHTML = html;
     },
     
-    // ИСПРАВЛЕННЫЙ МЕТОД openCreaturePanel
     openCreaturePanel(creatureId) {
         const creature = this.activeCreatures.find(c => c.id === creatureId);
         if (!creature) return;
@@ -653,25 +643,23 @@ const BattleModule = {
         const template = CreaturesDB.get(creature.templateId);
         const speed = template ? template.speed : 5;
         
-        // Инициализируем навыки, если их нет
         if (!creature.skills) {
             creature.skills = { ...this.defaultSkills };
         }
         
-        // Инициализируем экипировку, если её нет
         if (!creature.equipment) {
             creature.equipment = {
                 weapon: null,
+                weaponMaterial: null,
                 armor: null,
                 shield: null,
                 helmet: null,
                 boots: null,
-                arrows: null,
-                arrowMaterial: null
+                arrows: 0,
+                arrowMaterial: 'steel'
             };
         }
         
-        // Инициализируем состояние подготовки к атаке
         if (creature.isPreparingAttack === undefined) {
             creature.isPreparingAttack = false;
             creature.preparedAttackType = null;
@@ -702,32 +690,28 @@ const BattleModule = {
         const hpPercent = (creature.currentHp / creature.maxHp) * 100;
         const isDead = creature.currentHp <= 0;
         
-        // Рассчитываем класс брони из экипировки
-        const ac = ItemsDB.calculateAC(creature.equipment);
+        const ac = 10; // Временно
         
-        // Получаем информацию об оружии
         const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
         
-        // Генерируем HTML для экипировки
         let equipHtml = '';
         if (!isDead) {
             equipHtml = `
                 <div style="margin-bottom: 15px; background: #2a1a0f; padding: 12px; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="color: #d4af37; font-weight: bold;">🛡️ ЭКИПИРОВКА (АС: ${ac})</span>
+                        <span style="color: #d4af37; font-weight: bold;">🛡️ ЭКИПИРОВКА</span>
                         <button class="btn btn-roll" style="padding: 4px 10px; font-size: 12px;" onclick="BattleModule.openEquipmentPanel('${creature.id}')">✏️ Сменить</button>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; font-size: 12px;">
-                        <div><span style="color: #b89a7a;">Оружие:</span> ${creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon)?.name || 'пусто' : 'пусто'}</div>
-                        <div><span style="color: #b89a7a;">Броня:</span> ${creature.equipment.armor ? ItemsDB.get(creature.equipment.armor)?.name || 'пусто' : 'пусто'}</div>
-                        <div><span style="color: #b89a7a;">Щит:</span> ${creature.equipment.shield ? ItemsDB.get(creature.equipment.shield)?.name || 'пусто' : 'пусто'}</div>
-                        <div><span style="color: #b89a7a;">Стрелы:</span> ${creature.equipment.arrows ? `${creature.equipment.arrows} шт` : 'нет'}</div>
+                        <div><span style="color: #b89a7a;">Оружие:</span> ${creature.equipment.weapon ? (ItemsDB.get(creature.equipment.weapon)?.name || 'пусто') + ' (' + (ItemsDB.materials[creature.equipment.weaponMaterial]?.name || 'сталь') + ')' : 'пусто'}</div>
+                        <div><span style="color: #b89a7a;">Броня:</span> пусто</div>
+                        <div><span style="color: #b89a7a;">Щит:</span> пусто</div>
+                        <div><span style="color: #b89a7a;">Стрелы:</span> ${creature.equipment.arrows || 0} шт (${creature.equipment.arrowMaterial ? ItemsDB.materials[creature.equipment.arrowMaterial]?.name : 'сталь'})</div>
                     </div>
                 </div>
             `;
         }
         
-        // Генерируем HTML для атак
         let attackHtml = '';
         if (!isDead && weapon) {
             attackHtml = `
@@ -755,7 +739,6 @@ const BattleModule = {
             attackHtml += `</div>`;
         }
         
-        // Генерируем HTML для навыков
         let skillsHtml = '';
         if (!isDead) {
             const sortedSkills = Object.keys(creature.skills).sort();
@@ -785,7 +768,7 @@ const BattleModule = {
                     <span>${creature.currentHp}/${creature.maxHp}</span>
                 </div>
                 <div style="height: 12px; background: #1a0f0b; border-radius: 6px; overflow: hidden;">
-                    <div style="height: 12px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
+                    <div style="height: 12px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000');}"></div>
                 </div>
             </div>
             
@@ -828,12 +811,139 @@ const BattleModule = {
         document.body.appendChild(panel);
     },
     
-    // Новый метод для подготовки атаки
+    openEquipmentPanel(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        const oldPanel = document.getElementById('equipmentPanel');
+        if (oldPanel) oldPanel.remove();
+        
+        const panel = document.createElement('div');
+        panel.id = 'equipmentPanel';
+        panel.style.cssText = `
+            position: fixed;
+            left: 700px;
+            top: 100px;
+            width: 350px;
+            background: #3d2418;
+            border: 3px solid #d4af37;
+            border-radius: 10px;
+            padding: 20px;
+            color: #e0d0c0;
+            z-index: 1002;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+        `;
+        
+        let weaponsHtml = '';
+        Object.entries(ItemsDB.items).forEach(([id, item]) => {
+            if (item.type === 'weapon') {
+                weaponsHtml += `
+                    <div style="background: #1a0f0b; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513;">
+                        <div style="font-weight: bold; color: #d4af37; margin-bottom: 5px;">${item.name}</div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">${item.description}</div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            ${Object.keys(ItemsDB.materials).map(materialId => {
+                                const material = ItemsDB.materials[materialId];
+                                return `
+                                    <button class="btn btn-small" style="padding: 4px 8px; font-size: 11px;" 
+                                            onclick="BattleModule.equipWeapon('${creature.id}', '${id}', '${materialId}')">
+                                        ${material.name}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        weaponsHtml += `
+            <div style="background: #1a0f0b; margin-top: 15px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513;">
+                <div style="font-weight: bold; color: #d4af37; margin-bottom: 5px;">Стрелы</div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <select id="arrowMaterialSelect" style="flex: 1; padding: 6px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513;">
+                        ${Object.entries(ItemsDB.materials).map(([id, material]) => 
+                            `<option value="${id}" ${creature.equipment?.arrowMaterial === id ? 'selected' : ''}>${material.name}</option>`
+                        ).join('')}
+                    </select>
+                    <input type="number" id="arrowCount" value="${creature.equipment?.arrows || 10}" min="1" max="100" style="width: 60px; padding: 6px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513;">
+                    <button class="btn btn-roll" style="padding: 6px 12px;" onclick="BattleModule.equipArrows('${creature.id}')">Добавить</button>
+                </div>
+            </div>
+        `;
+        
+        panel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: #d4af37; margin: 0;">🛡️ ВЫБОР ОРУЖИЯ</h3>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #d4af37; font-size: 20px; cursor: pointer;">✖</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <button class="btn btn-minus" style="width: 100%; padding: 8px;" onclick="BattleModule.unequipWeapon('${creature.id}')">Снять оружие</button>
+            </div>
+            ${weaponsHtml}
+        `;
+        
+        document.body.appendChild(panel);
+    },
+    
+    equipWeapon(creatureId, weaponId, materialId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        if (!creature.equipment) {
+            creature.equipment = {};
+        }
+        
+        creature.equipment.weapon = weaponId;
+        creature.equipment.weaponMaterial = materialId;
+        
+        const panel = document.getElementById('equipmentPanel');
+        if (panel) panel.remove();
+        
+        this.openCreaturePanel(creatureId);
+    },
+    
+    equipArrows(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        const materialSelect = document.getElementById('arrowMaterialSelect');
+        const countInput = document.getElementById('arrowCount');
+        
+        if (!creature.equipment) {
+            creature.equipment = {};
+        }
+        
+        creature.equipment.arrows = parseInt(countInput.value) || 10;
+        creature.equipment.arrowMaterial = materialSelect.value;
+        
+        const panel = document.getElementById('equipmentPanel');
+        if (panel) panel.remove();
+        
+        this.openCreaturePanel(creatureId);
+    },
+    
+    unequipWeapon(creatureId) {
+        const creature = this.activeCreatures.find(c => c.id === creatureId);
+        if (!creature) return;
+        
+        if (creature.equipment) {
+            creature.equipment.weapon = null;
+            creature.equipment.weaponMaterial = null;
+        }
+        
+        const panel = document.getElementById('equipmentPanel');
+        if (panel) panel.remove();
+        
+        this.openCreaturePanel(creatureId);
+    },
+    
     prepareAttack(creatureId, attackType) {
         const creature = this.activeCreatures.find(c => c.id === creatureId);
         if (!creature || creature.currentHp <= 0) return;
         
-        // Проверяем, что это его ход
         if (this.turnActive && this.turnOrder[this.currentTurnIndex] !== creatureId) {
             alert('Сейчас не ход этого существа!');
             return;
@@ -848,28 +958,23 @@ const BattleModule = {
         const attack = weapon.attacks[attackType];
         if (!attack) return;
         
-        // Закрываем панель
         const panel = document.getElementById('creaturePanel');
         if (panel) panel.remove();
         
         if (attack.cost === 1) {
-            // Атака в 1 ход - сразу ищем цель
             this.activateAttackMode(creatureId, attackType);
         } else {
-            // Атака в 2 хода - подготовка
             creature.isPreparingAttack = true;
             creature.preparedAttackType = attackType;
             this.updateTurnOrder();
             this.drawGrid();
             
-            // Переходим к следующему ходу
             if (this.turnActive) {
                 this.nextTurn();
             }
         }
     },
     
-    // Активация режима атаки
     activateAttackMode(creatureId, attackType) {
         const creature = this.activeCreatures.find(c => c.id === creatureId);
         if (!creature || !creature.position) return;
@@ -878,19 +983,16 @@ const BattleModule = {
         this.movingCreatureId = creatureId;
         this.preparedAttackType = attackType;
         
-        // Находим доступные цели (соседние гексы с существами)
         this.availableAttackTargets = this.findAttackTargets(creature.position);
         
         this.drawGrid();
     },
     
-    // Поиск доступных целей для атаки
     findAttackTargets(position) {
         const targets = [];
         const currentHex = this.hexes.find(h => h.col === position.col && h.row === position.row);
         if (!currentHex) return targets;
         
-        // Соседние гексы
         let neighbors = [];
         if (currentHex.row % 2 === 0) {
             neighbors = [
@@ -927,7 +1029,6 @@ const BattleModule = {
         return targets;
     },
     
-    // Попытка атаковать цель
     tryAttackTarget(targetHex) {
         if (!this.attackModeActive || !this.movingCreatureId) {
             this.attackModeActive = false;
@@ -954,13 +1055,11 @@ const BattleModule = {
         
         this.drawGrid();
         
-        // Переходим к следующему ходу
         if (this.turnActive) {
             this.nextTurn();
         }
     },
     
-    // Выполнение атаки
     performAttack(attacker, defender, attackType) {
         const weapon = attacker.equipment.weapon ? ItemsDB.get(attacker.equipment.weapon) : null;
         if (!weapon) return;
@@ -968,22 +1067,18 @@ const BattleModule = {
         const attack = weapon.attacks[attackType];
         if (!attack) return;
         
-        // Получаем материал оружия (пока сталь по умолчанию)
         const material = attacker.equipment.weaponMaterial || 'steel';
         
         let damage = attack.materialDamage[material] || 0;
         
-        // Если это лук, добавляем урон стрелы
         if (weapon.ammoType === 'arrow' && attacker.equipment.arrows > 0) {
-            const arrowDamage = ItemsDB.get('arrow').materialDamage[material] || 0;
+            const arrowDamage = ItemsDB.get('arrow').materialDamage[attacker.equipment.arrowMaterial || 'steel'] || 0;
             damage += arrowDamage;
             attacker.equipment.arrows--;
         }
         
-        // Применяем урон
         defender.currentHp = Math.max(0, defender.currentHp - damage);
         
-        // Логируем
         console.log(`${attacker.name} атакует ${defender.name} на ${damage} урона`);
         
         if (defender.currentHp === 0) {
@@ -1018,14 +1113,6 @@ const BattleModule = {
         if (skillSpan) {
             skillSpan.textContent = creature.skills[skillName];
         }
-    },
-    
-    openEquipmentPanel(creatureId) {
-        const creature = this.activeCreatures.find(c => c.id === creatureId);
-        if (!creature) return;
-        
-        // Здесь будет окно выбора экипировки (сделаем позже)
-        alert('Окно выбора экипировки будет позже');
     },
     
     updateInitiative(creatureId) {
@@ -1235,6 +1322,16 @@ const BattleModule = {
                     creatureData.skills = { ...this.defaultSkills };
                     creatureData.isPreparingAttack = false;
                     creatureData.preparedAttackType = null;
+                    creatureData.equipment = {
+                        weapon: null,
+                        weaponMaterial: null,
+                        armor: null,
+                        shield: null,
+                        helmet: null,
+                        boots: null,
+                        arrows: 0,
+                        arrowMaterial: 'steel'
+                    };
                     
                     this.activeCreatures.push(creatureData);
                     
