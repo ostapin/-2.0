@@ -768,7 +768,7 @@ const BattleModule = {
                     <span>${creature.currentHp}/${creature.maxHp}</span>
                 </div>
                 <div style="height: 12px; background: #1a0f0b; border-radius: 6px; overflow: hidden;">
-                    <div style="height: 12px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000');}"></div>
+                <div style="height: 12px; width: ${hpPercent}%; background: ${hpPercent > 50 ? '#00aa00' : (hpPercent > 20 ? '#aaaa00' : '#aa0000')};"></div>
                 </div>
             </div>
             
