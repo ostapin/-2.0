@@ -70,4 +70,5 @@ function searchMetals() {
     // Показываем секцию если скрыта
     document.getElementById('glossaryMetals').style.display = 'block';
 }
-
+// Загружаем данные при старте
+document.addEventListener('DOMContentLoaded', loadGlossary);
