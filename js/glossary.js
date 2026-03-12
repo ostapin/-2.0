@@ -73,3 +73,7 @@ function searchMetals() {
 
 // Загружаем данные при старте
 document.addEventListener('DOMContentLoaded', loadGlossary);
+function openGlossaryTab() {
+    openTab('glossary');
+    showMetals(); // сразу показываем металлы
+}
