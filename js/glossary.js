@@ -1,12 +1,31 @@
+// Глобальная переменная для хранения всех металлов
+let allMetals = [];
+
 function loadGlossary() {
-    const metalsDiv = document.getElementById('glossaryMetals');
-    if (!metalsDiv) return;
+    // Загружаем данные из metalsData
+    allMetals = Object.values(metalsData);
+}
+
+function showMetals() {
+    const metalsSection = document.getElementById('glossaryMetals');
+    const metalsList = document.getElementById('metalsList');
+    
+    if (!metalsSection || !metalsList) return;
+    
+    // Показываем секцию
+    metalsSection.style.display = 'block';
+    
+    // Рендерим металлы
+    renderMetals(allMetals);
+}
+
+function renderMetals(metals) {
+    const metalsList = document.getElementById('metalsList');
+    if (!metalsList) return;
     
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
-    // Перебираем все металлы из metalsData
-    for (let key in metalsData) {
-        const metal = metalsData[key];
+    metals.forEach(metal => {
         html += `
             <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
                 <h3 style="color: #d4af37; margin-bottom: 10px;">${metal.name}</h3>
@@ -22,22 +41,35 @@ function loadGlossary() {
                 <p style="color: #e0d0c0; margin-top: 10px; font-style: italic;">${metal.description}</p>
             </div>
         `;
-    }
+    });
     
     html += '</div>';
-    metalsDiv.innerHTML = html;
+    metalsList.innerHTML = html;
 }
 
-// Загружаем при открытии вкладки
-document.addEventListener('DOMContentLoaded', function() {
-    // Проверяем, активна ли вкладка глоссария
-    if (document.getElementById('glossary-tab').classList.contains('active')) {
-        loadGlossary();
+function searchMetals() {
+    const searchText = document.getElementById('glossarySearch').value.toLowerCase();
+    
+    if (searchText.length < 2) {
+        // Если мало символов, показываем пусто
+        document.getElementById('metalsList').innerHTML = '<p style="color: #8b7d6b; text-align: center;">Введите минимум 2 символа для поиска</p>';
+        return;
     }
-});
-
-// Функция для вызова из кнопки таба
-function openGlossaryTab() {
-    openTab('glossary');
-    loadGlossary();
+    
+    const filtered = allMetals.filter(metal => 
+        metal.name.toLowerCase().includes(searchText) || 
+        metal.description.toLowerCase().includes(searchText)
+    );
+    
+    if (filtered.length === 0) {
+        document.getElementById('metalsList').innerHTML = '<p style="color: #8b7d6b; text-align: center;">Ничего не найдено</p>';
+    } else {
+        renderMetals(filtered);
+    }
+    
+    // Показываем секцию если скрыта
+    document.getElementById('glossaryMetals').style.display = 'block';
 }
+
+// Загружаем данные при старте
+document.addEventListener('DOMContentLoaded', loadGlossary);
