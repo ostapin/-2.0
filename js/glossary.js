@@ -6,6 +6,16 @@ function loadGlossary() {
     allMetals = Object.values(metalsData);
 }
 
+function formatResistance(value) {
+    if (typeof value === 'string' && value.includes('%')) {
+        return value; // уже процент
+    }
+    if (typeof value === 'number') {
+        return (value * 100) + '%'; // 0.05 → 5%
+    }
+    return value || '0%';
+}
+
 function showMetals() {
     const metalsSection = document.getElementById('glossaryMetals');
     const metalsList = document.getElementById('metalsList');
@@ -33,7 +43,7 @@ function renderMetals(metals) {
                     <div><span style="color: #b89a7a;">Состояние:</span> ${metal.stats.required_condition || '—'}</div>
                     <div><span style="color: #b89a7a;">МП:</span> ${metal.stats.magic_potential}</div>
                     <div><span style="color: #b89a7a;">Прочность:</span> ${metal.stats.durability}</div>
-                    <div><span style="color: #b89a7a;">Сопротивление:</span> ${metal.stats.resistance}</div>
+                    <div><span style="color: #b89a7a;">Сопротивление:</span> ${formatResistance(metal.stats.resistance)}</div>
                     <div><span style="color: #b89a7a;">Вес:</span> ${metal.stats.weight || '—'}</div>
                     <div><span style="color: #b89a7a;">Цвет:</span> ${metal.stats.color}</div>
                     <div><span style="color: #b89a7a;">Цена слитка:</span> ${metal.price_per_ingot}</div>
@@ -70,5 +80,6 @@ function searchMetals() {
     // Показываем секцию если скрыта
     document.getElementById('glossaryMetals').style.display = 'block';
 }
+
 // Загружаем данные при старте
 document.addEventListener('DOMContentLoaded', loadGlossary);
