@@ -152,10 +152,40 @@ function repairSkills() {
 
 // Функции для работы с вкладками
 function openTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(tabName + '-tab').classList.add('active');
-    document.querySelector(`.tab-btn[onclick*="${tabName}"]`).classList.add('active');
+    // Скрываем все вкладки
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Убираем активный класс со всех кнопок
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Показываем выбранную вкладку
+    const tabElement = document.getElementById(tabName + '-tab');
+    if (tabElement) {
+        tabElement.classList.add('active');
+    } else {
+        console.warn('Вкладка не найдена:', tabName + '-tab');
+        return;
+    }
+    
+    // Активируем кнопку
+    const buttons = document.querySelectorAll('.tab-btn');
+    let buttonFound = false;
+    
+    buttons.forEach(btn => {
+        const onclick = btn.getAttribute('onclick') || '';
+        if (onclick.includes(`'${tabName}'`) || onclick.includes(`"${tabName}"`)) {
+            btn.classList.add('active');
+            buttonFound = true;
+        }
+    });
+    
+    if (!buttonFound) {
+        console.warn('Кнопка для вкладки не найдена:', tabName);
+    }
 }
 
 // Функции для работы с буфером обмена
