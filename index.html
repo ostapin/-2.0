@@ -370,32 +370,24 @@
         </div>
     </div>
 </div>
-       <!-- Вкладка глоссария -->
+      <!-- Вкладка глоссария -->
 <div id="glossary-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📚 ГЛОССАРИЙ МИРА</h2>
     
+    <!-- Поиск -->
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="glossarySearch" class="search-box" placeholder="🔍 Поиск по металлам..." oninput="searchMetals()">
+    </div>
+    
+    <!-- Кнопка показа металлов -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="btn btn-roll" onclick="showMetals()" style="background: #8b4513;">⚒️ Показать все металлы</button>
+    </div>
+    
     <!-- Металлы -->
-    <div class="skills-section">
+    <div id="glossaryMetals" class="skills-section" style="display: none;">
         <div class="section-title">⚒️ Металлы и руды</div>
-        <div id="glossaryMetals" class="glossary-content">
-            <p style="color: #8b7d6b;">Загрузка...</p>
-        </div>
-    </div>
-
-    <!-- Цены -->
-    <div class="skills-section">
-        <div class="section-title">💰 Цены и экономика</div>
-        <div id="glossaryPrices" class="glossary-content">
-            <p style="color: #8b7d6b;">Загрузка...</p>
-        </div>
-    </div>
-
-    <!-- Материалы -->
-    <div class="skills-section">
-        <div class="section-title">🪵 Материалы</div>
-        <div id="glossaryMaterials" class="glossary-content">
-            <p style="color: #8b7d6b;">Загрузка...</p>
-        </div>
+        <div id="metalsList" class="glossary-content"></div>
     </div>
 </div>
  <!-- Вкладка боя -->
@@ -512,6 +504,7 @@
     <script src="js/glossary.js"></script>
 </body>
 </html>
+
 
 
 
