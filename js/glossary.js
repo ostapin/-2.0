@@ -23,20 +23,22 @@ function loadGlossary() {
 function getCurrencyIdFromString(priceString) {
     const str = priceString.toLowerCase();
     
-    // Металлы (первые)
+    // Металлы (монеты)
     if (str.includes('мед')) return 'copper';
     if (str.includes('сереб')) return 'silver';
     if (str.includes('золот')) return 'gold';
     if (str.includes('платин')) return 'platinum';
     
-    // Сферы
-    if (str.includes('янтар') || str.includes('amber')) return 'amber_sphere';
+    // Специфичные сферы (проверяем сначала)
     if (str.includes('кров')) return 'blood_sphere';
     if (str.includes('льд') || str.includes('ice')) return 'ice_sphere';
     if (str.includes('огн') || str.includes('fire')) return 'fire_sphere';
     if (str.includes('земл') || str.includes('earth')) return 'earth_sphere';
     if (str.includes('вод') || str.includes('water')) return 'water_sphere';
     if (str.includes('молн') || str.includes('lightning')) return 'lightning_sphere';
+    
+    // Янтарная сфера (или просто "сфера")
+    if (str.includes('янтар') || str.includes('amber') || str.includes('сфер')) return 'amber_sphere';
     
     // Кристаллы эфира
     if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
