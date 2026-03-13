@@ -458,11 +458,43 @@
         </div>
     </div>
     
-    <!-- Отдельные секции (для навигации) -->
+       <!-- Отдельные секции (для навигации) -->
     <div id="glossaryMetals" style="display: none;"></div>
     <div id="glossaryWeapons" style="display: none;"></div>
     <div id="glossaryArmor" style="display: none;"></div>
-</div>
+</div> <!-- Закрытие глоссария -->
+
+<!-- Вкладка боя -->
+<div id="battle-tab" class="tab-content">
+    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">⚔️ СИСТЕМА БОЯ</h2>
+    
+    <!-- Панель управления -->
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 15px; background: #3d2418; border-radius: 8px; flex-wrap: wrap;">
+        <button class="btn btn-roll" onclick="BattleModule.zoomOut()">🔍-</button>
+        <button class="btn btn-roll" onclick="BattleModule.zoomIn()">🔍+</button>
+        <button class="btn btn-roll" onclick="BattleModule.resetView()">🎯 Сброс</button>
+        <span style="color: #d4af37; margin-left: 5px;">Масштаб: <span id="battleZoomLevel">100%</span></span>
+        
+        <span style="color: #e0d0c0; margin-left: 20px;">Размер гекса:</span>
+        <input type="range" id="hexSize" min="20" max="60" value="40" step="5" onchange="BattleModule.setHexSize(this.value)">
+        <span id="hexSizeValue" style="color: #d4af37;">40</span>
+        
+        <span style="color: #e0d0c0; margin-left: 20px;">Размер поля:</span>
+        <select id="battleGridSize" onchange="BattleModule.setGridSize(this.value)" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; padding: 5px; border-radius: 4px;">
+            <option value="10">10 x 10</option>
+            <option value="15">15 x 15</option>
+            <option value="20" selected>20 x 20</option>
+            <option value="30">30 x 30</option>
+            <option value="50">50 x 50</option>
+            <option value="80">80 x 80</option>
+            <option value="100">100 x 100</option>
+            <option value="150">150 x 150</option>
+            <option value="200">200 x 200</option>
+        </select>
+        
+        <div style="width: 100%; margin-top: 5px; text-align: center; color: #b89a7a; font-size: 0.9em;">
+            <span>Alt+ЛКМ или средняя кнопка - перетаскивание поля</span>
+        </div>
     </div>
 
     <!-- Поле боя -->
@@ -475,7 +507,8 @@
         Гекс не выбран
     </div>
 </div>
-   <!-- Вкладка рисовалки -->
+
+<!-- Вкладка рисовалки -->
 <div id="draw-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">🎨 РИСОВАЛКА</h2>
     
@@ -503,55 +536,60 @@
         </div>
     </div>
 </div>
-    <!-- Подключаем Firebase -->
+
+<!-- Подключаем Firebase и скрипты -->
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-     <!-- Подключение JavaScript файлов -->
-    <script src="js/utils.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/races-data.js"></script>
-    <script src="modules/race-module.js"></script>
-    <script src="modules/height-module.js"></script>
-    <script src="modules/skills-module.js"></script>
-    <script src="modules/character-module.js"></script>
-    <script src="modules/inventory-module.js"></script>
-    <script src="js/character.js"></script>
-    <script src="js/skills-system.js"></script>
-    <script src="js/inventory.js"></script>
-    <script src="js/magic-system.js"></script>
-    
-    <!-- Система аккаунтов и синхронизации -->
-    <script src="js/firebase-config.js"></script>
-    <script src="js/online-sync.js"></script>
-    <script src="js/sync-manager.js"></script>
-   <script src="js/account-manager.js?v=2"></script>
-    <script src="js/auth.js"></script>
-    
-    <!-- Основные системы -->
-    <script src="js/main.js"></script>
-    <script src="js/calendar-system.js"></script>
-    <script src="js/map-system.js"></script>
-    <script src="modules/settings/settings-module.js"></script>
-       <script src="modules/settings/avatar-system.js"></script>
-    <script src="modules/master-panel.js"></script>
-    <script src="modules/account-switcher.js"></script>
-    <!-- Рисовалка -->
-    <script src="modules/draw-module.js"></script>
-    <script src="js/draw.js"></script>
-    <!-- Модуль боя и база данных -->
+
+<!-- Подключение JavaScript файлов -->
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/races-data.js"></script>
+<script src="modules/race-module.js"></script>
+<script src="modules/height-module.js"></script>
+<script src="modules/skills-module.js"></script>
+<script src="modules/character-module.js"></script>
+<script src="modules/inventory-module.js"></script>
+<script src="js/character.js"></script>
+<script src="js/skills-system.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/magic-system.js"></script>
+
+<!-- Система аккаунтов и синхронизации -->
+<script src="js/firebase-config.js"></script>
+<script src="js/online-sync.js"></script>
+<script src="js/sync-manager.js"></script>
+<script src="js/account-manager.js?v=2"></script>
+<script src="js/auth.js"></script>
+
+<!-- Основные системы -->
+<script src="js/main.js"></script>
+<script src="js/calendar-system.js"></script>
+<script src="js/map-system.js"></script>
+<script src="modules/settings/settings-module.js"></script>
+<script src="modules/settings/avatar-system.js"></script>
+<script src="modules/master-panel.js"></script>
+<script src="modules/account-switcher.js"></script>
+
+<!-- Рисовалка -->
+<script src="modules/draw-module.js"></script>
+<script src="js/draw.js"></script>
+
+<!-- Модуль боя и база данных -->
 <script src="modules/battle-module.js"></script>
 <script src="modules/creatures-db.js"></script>
 <script src="modules/items-db.js"></script>
-    <!-- Глоссарий -->
+
+<!-- Глоссарий -->
 <script src="modules/glossary/metals.js"></script>
 <script src="modules/glossary/weapons.js"></script>
 <script src="modules/glossary/armor.js"></script>
-<script src="js/glossary.js"></script>
 <script src="modules/glossary/currency.js"></script>
+<script src="js/glossary.js"></script>
+
 </body>
 </html>
-
 
 
 
