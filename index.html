@@ -370,36 +370,72 @@
         </div>
     </div>
 </div>
-      <!-- Вкладка глоссария -->
+     <!-- Вкладка глоссария -->
 <div id="glossary-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📚 ГЛОССАРИЙ МИРА</h2>
     
-    <!-- Поиск -->
-    <div style="margin-bottom: 20px;">
-        <input type="text" id="glossarySearch" class="search-box" placeholder="🔍 Поиск по металлам..." oninput="searchMetals()">
+    <!-- Фильтры и поиск -->
+    <div style="background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+            <!-- Категория -->
+            <div>
+                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Категория:</label>
+                <select id="glossaryCategory" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                    <option value="all">🔍 Все</option>
+                    <option value="metals">⚒️ Металлы</option>
+                    <option value="weapons">⚔️ Оружие</option>
+                    <option value="armor">🛡️ Броня</option>
+                </select>
+            </div>
+            
+            <!-- Цена от -->
+            <div>
+                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Цена от:</label>
+                <input type="number" id="priceMin" class="stat-input" placeholder="0" style="width: 100%;">
+            </div>
+            
+            <!-- Цена до -->
+            <div>
+                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Цена до:</label>
+                <input type="number" id="priceMax" class="stat-input" placeholder="10000" style="width: 100%;">
+            </div>
+            
+            <!-- Сортировка -->
+            <div>
+                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Сортировка:</label>
+                <select id="glossarySort" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                    <option value="name_asc">📝 По названию (А-Я)</option>
+                    <option value="name_desc">📝 По названию (Я-А)</option>
+                    <option value="price_asc">💰 Цена (возрастание)</option>
+                    <option value="price_desc">💰 Цена (убывание)</option>
+                    <option value="durability_asc">🔨 Прочность (возрастание)</option>
+                    <option value="durability_desc">🔨 Прочность (убывание)</option>
+                    <option value="mp_asc">✨ МП (возрастание)</option>
+                    <option value="mp_desc">✨ МП (убывание)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Поиск -->
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="glossarySearch" class="search-box" placeholder="🔍 Поиск по названию..." style="flex: 1;" oninput="applyFilters()">
+            <button class="btn btn-roll" onclick="applyFilters()" style="background: #8b4513;">🔍 Найти</button>
+            <button class="btn btn-minus" onclick="resetFilters()">🔄 Сброс</button>
+        </div>
     </div>
     
-    <!-- Кнопка показа металлов -->
-    <div style="text-align: center; margin-bottom: 20px;">
-        <button class="btn btn-roll" onclick="showMetals()" style="background: #8b4513;">⚒️ Показать все металлы</button>
+    <!-- Результаты -->
+    <div id="glossaryResults" class="skills-section">
+        <div class="section-title">📋 Результаты поиска</div>
+        <div id="resultsList" class="glossary-content">
+            <p style="color: #8b7d6b; text-align: center;">Выберите категорию и нажмите поиск</p>
+        </div>
     </div>
     
-    <!-- Металлы -->
-<div id="glossaryMetals" class="skills-section" style="display: none;">
-    <div class="section-title">⚒️ Металлы и руды</div>
-    <div id="metalsList" class="glossary-content"></div>
-</div>
-
-<!-- Оружие -->
-<div id="glossaryWeapons" class="skills-section" style="display: none;">
-    <div class="section-title" id="weaponsTitle">⚔️ Оружие</div>
-    <div id="weaponsList" class="glossary-content"></div>
-</div>
-
-<!-- Броня -->
-<div id="glossaryArmor" class="skills-section" style="display: none;">
-    <div class="section-title" id="armorTitle">🛡️ Броня</div>
-    <div id="armorList" class="glossary-content"></div>
+    <!-- Отдельные секции (для навигации) -->
+    <div id="glossaryMetals" style="display: none;"></div>
+    <div id="glossaryWeapons" style="display: none;"></div>
+    <div id="glossaryArmor" style="display: none;"></div>
 </div>
 </div>
  <!-- Вкладка боя -->
@@ -520,6 +556,7 @@
 <script src="js/glossary.js"></script>
 </body>
 </html>
+
 
 
 
