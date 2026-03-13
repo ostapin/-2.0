@@ -20,6 +20,16 @@ function formatResistance(value) {
     return value || '0%';
 }
 
+function parseResistanceValue(value) {
+    if (typeof value === 'string' && value.includes('%')) {
+        return parseFloat(value) / 100;
+    }
+    if (typeof value === 'number') {
+        return value;
+    }
+    return 0;
+}
+
 // ===== МЕТАЛЛЫ =====
 function showMetals() {
     const metalsSection = document.getElementById('glossaryMetals');
@@ -98,12 +108,15 @@ function showWeaponsForMetal(metalId) {
         // Расчет характеристик
         const damage = (weapon.base_damage || 0) + metal.stats.durability;
         const durability = (weapon.base_durability || 0) + metal.stats.durability;
+        const magic_potential = metal.stats.magic_potential * (weapon.craft_slots || 1);
         
         // Расчет цены
         let price = 0;
-        const priceMatch = metal.price_per_ingot.match(/(\d+)/);
+        let currency = '';
+        const priceMatch = metal.price_per_ingot.match(/(\d+)\s*(.+)/);
         if (priceMatch) {
-            const metalPrice = parseInt(priceMatch[0]);
+            const metalPrice = parseInt(priceMatch[1]);
+            currency = priceMatch[2];
             price = metalPrice * (weapon.craft_slots || 1);
         }
         
@@ -113,7 +126,8 @@ function showWeaponsForMetal(metalId) {
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
                     <div><span style="color: #b89a7a;">Урон:</span> ${damage}</div>
                     <div><span style="color: #b89a7a;">Прочность:</span> ${durability}</div>
-                    <div><span style="color: #b89a7a;">Цена:</span> ${price} ${metal.price_per_ingot.split(' ')[1] || ''}</div>
+                    <div><span style="color: #b89a7a;">МП:</span> ${magic_potential} (${magic_potential * 5}% усиления)</div>
+                    <div><span style="color: #b89a7a;">Цена:</span> ${price} ${currency}</div>
                     <div><span style="color: #b89a7a;">Крафт:</span> ${weapon.craft_slots} слитков ${weapon.leather ? `+ ${weapon.leather} кожи` : ''}</div>
                 </div>
             </div>
@@ -149,11 +163,22 @@ function showArmorForMetal(metalId) {
         const defense = (armor.base_defense || 0) + metal.stats.durability;
         const durability = (armor.base_durability || 0) + metal.stats.durability;
         
+        // Магический потенциал (все слитки)
+        const magic_potential = metal.stats.magic_potential * (armor.craft_slots || 1);
+        
+        // Сопротивление (30% слитков, макс 10)
+        let effectiveSlots = Math.floor((armor.craft_slots || 1) * 0.3);
+        if (effectiveSlots > 10) effectiveSlots = 10;
+        const resistanceValue = parseResistanceValue(metal.stats.resistance);
+        const resistance = Math.round(resistanceValue * effectiveSlots * 100) + '%';
+        
         // Расчет цены
         let price = 0;
-        const priceMatch = metal.price_per_ingot.match(/(\d+)/);
+        let currency = '';
+        const priceMatch = metal.price_per_ingot.match(/(\d+)\s*(.+)/);
         if (priceMatch) {
-            const metalPrice = parseInt(priceMatch[0]);
+            const metalPrice = parseInt(priceMatch[1]);
+            currency = priceMatch[2];
             price = metalPrice * (armor.craft_slots || 1);
         }
         
@@ -163,7 +188,9 @@ function showArmorForMetal(metalId) {
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
                     <div><span style="color: #b89a7a;">Защита:</span> ${defense}</div>
                     <div><span style="color: #b89a7a;">Прочность:</span> ${durability}</div>
-                    <div><span style="color: #b89a7a;">Цена:</span> ${price} ${metal.price_per_ingot.split(' ')[1] || ''}</div>
+                    <div><span style="color: #b89a7a;">МП:</span> ${magic_potential} (${magic_potential * 5}% усиления)</div>
+                    <div><span style="color: #b89a7a;">Сопротивление:</span> ${resistance}</div>
+                    <div><span style="color: #b89a7a;">Цена:</span> ${price} ${currency}</div>
                     <div><span style="color: #b89a7a;">Крафт:</span> ${armor.craft_slots} слитков ${armor.leather ? `+ ${armor.leather} кожи` : ''}</div>
                 </div>
             </div>
