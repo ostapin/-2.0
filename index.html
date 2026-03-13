@@ -370,22 +370,14 @@
         </div>
     </div>
 </div>
- <!-- Вкладка глоссария -->
+<!-- Вкладка глоссария -->
 <div id="glossary-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📚 ГЛОССАРИЙ МИРА</h2>
     
-    <!-- Вкладки внутри глоссария -->
-    <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
-        <button class="tab-btn-small" onclick="showGlossaryCategory('metals')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">⚒️ Металлы</button>
-        <button class="tab-btn-small" onclick="showGlossaryCategory('weapons')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">⚔️ Оружие</button>
-        <button class="tab-btn-small" onclick="showGlossaryCategory('armor')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">🛡️ Броня</button>
-        <button class="tab-btn-small" onclick="showGlossaryCategory('currency')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">💰 Валюта</button>
-    </div>
-    
-    <!-- Фильтры и поиск (для металлов/оружия/брони) -->
+    <!-- Фильтры и поиск -->
     <div id="glossaryFilters" style="background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
-            <!-- Категория -->
+            <!-- Категория (с добавленной валютой) -->
             <div>
                 <label style="color: #d4af37; display: block; margin-bottom: 5px;">Категория:</label>
                 <select id="glossaryCategory" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
@@ -393,10 +385,11 @@
                     <option value="metals">⚒️ Металлы</option>
                     <option value="weapons">⚔️ Оружие</option>
                     <option value="armor">🛡️ Броня</option>
+                    <option value="currency">💰 Валюта</option>
                 </select>
             </div>
             
-            <!-- Валюта -->
+            <!-- Валюта (для фильтра цен) -->
             <div>
                 <label style="color: #d4af37; display: block; margin-bottom: 5px;">Валюта:</label>
                 <select id="priceCurrency" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
@@ -457,12 +450,6 @@
         </div>
     </div>
     
-    <!-- Секция валют (показывается вместо фильтров) -->
-    <div id="currencySection" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #d4af37; text-align: center; margin-bottom: 15px;">💰 Курсы валют</h3>
-        <div id="currencyList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;"></div>
-    </div>
-    
     <!-- Результаты -->
     <div id="glossaryResults" class="skills-section">
         <div class="section-title" id="resultsTitle">📋 Результаты</div>
@@ -476,38 +463,6 @@
     <div id="glossaryWeapons" style="display: none;"></div>
     <div id="glossaryArmor" style="display: none;"></div>
 </div>
-</div>
- <!-- Вкладка боя -->
-<div id="battle-tab" class="tab-content">
-    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">⚔️ СИСТЕМА БОЯ</h2>
-    
-    <!-- Панель управления -->
-    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 15px; background: #3d2418; border-radius: 8px; flex-wrap: wrap;">
-        <button class="btn btn-roll" onclick="BattleModule.zoomOut()">🔍-</button>
-        <button class="btn btn-roll" onclick="BattleModule.zoomIn()">🔍+</button>
-        <button class="btn btn-roll" onclick="BattleModule.resetView()">🎯 Сброс</button>
-        <span style="color: #d4af37; margin-left: 5px;">Масштаб: <span id="battleZoomLevel">100%</span></span>
-        
-        <span style="color: #e0d0c0; margin-left: 20px;">Размер гекса:</span>
-        <input type="range" id="hexSize" min="20" max="60" value="40" step="5" onchange="BattleModule.setHexSize(this.value)">
-        <span id="hexSizeValue" style="color: #d4af37;">40</span>
-        
-        <span style="color: #e0d0c0; margin-left: 20px;">Размер поля:</span>
-        <select id="battleGridSize" onchange="BattleModule.setGridSize(this.value)" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; padding: 5px; border-radius: 4px;">
-            <option value="10">10 x 10</option>
-            <option value="15">15 x 15</option>
-            <option value="20" selected>20 x 20</option>
-            <option value="30">30 x 30</option>
-            <option value="50">50 x 50</option>
-            <option value="80">80 x 80</option>
-            <option value="100">100 x 100</option>
-            <option value="150">150 x 150</option>
-            <option value="200">200 x 200</option>
-        </select>
-        
-        <div style="width: 100%; margin-top: 5px; text-align: center; color: #b89a7a; font-size: 0.9em;">
-            <span>Alt+ЛКМ или средняя кнопка - перетаскивание поля</span>
-        </div>
     </div>
 
     <!-- Поле боя -->
