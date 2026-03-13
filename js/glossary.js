@@ -2,12 +2,107 @@
 let allMetals = [];
 let allWeapons = [];
 let allArmor = [];
+let allItems = []; // Объединенный массив всех предметов
 
 function loadGlossary() {
     // Загружаем данные
     allMetals = Object.values(metalsData);
     allWeapons = Object.values(weaponsData);
     allArmor = Object.values(armorData);
+    
+    // Создаем объединенный массив предметов
+    buildAllItems();
+}
+
+function buildAllItems() {
+    allItems = [];
+    
+    // Добавляем металлы
+    allMetals.forEach(metal => {
+        allItems.push({
+            id: metal.id,
+            type: 'metal',
+            category: 'Металл',
+            name: metal.name,
+            description: metal.description,
+            price: extractPrice(metal.price_per_ingot),
+            currency: extractCurrency(metal.price_per_ingot),
+            durability: metal.stats.durability,
+            magic_potential: metal.stats.magic_potential,
+            resistance: metal.stats.resistance,
+            metal: metal
+        });
+    });
+    
+    // Добавляем оружие (для каждого металла)
+    allMetals.forEach(metal => {
+        allWeapons.forEach(weapon => {
+            const slots = weapon.craft_slots || 1;
+            const price = extractPrice(metal.price_per_ingot) * slots;
+            const currency = extractCurrency(metal.price_per_ingot);
+            const durability = (weapon.base_durability || 0) + metal.stats.durability;
+            const magic_potential = metal.stats.magic_potential * slots;
+            
+            allItems.push({
+                id: `${metal.id}_${weapon.name}`,
+                type: 'weapon',
+                category: 'Оружие',
+                name: `${metal.name} ${weapon.name}`,
+                description: `Оружие из ${metal.name}`,
+                price: price,
+                currency: currency,
+                durability: durability,
+                magic_potential: magic_potential,
+                damage: (weapon.base_damage || 0) + metal.stats.durability,
+                metal: metal,
+                weapon: weapon
+            });
+        });
+    });
+    
+    // Добавляем броню (для каждого металла)
+    allMetals.forEach(metal => {
+        allArmor.forEach(armor => {
+            const slots = armor.craft_slots || 1;
+            const price = extractPrice(metal.price_per_ingot) * slots;
+            const currency = extractCurrency(metal.price_per_ingot);
+            const durability = (armor.base_durability || 0) + metal.stats.durability;
+            const magic_potential = metal.stats.magic_potential * slots;
+            
+            // Сопротивление (30% слитков, макс 10)
+            let effectiveSlots = Math.floor(slots * 0.3);
+            if (effectiveSlots > 10) effectiveSlots = 10;
+            const resistanceValue = parseResistanceValue(metal.stats.resistance);
+            const resistance = resistanceValue * effectiveSlots;
+            
+            allItems.push({
+                id: `${metal.id}_${armor.name}`,
+                type: 'armor',
+                category: 'Броня',
+                name: `${metal.name} ${armor.name}`,
+                description: `Броня из ${metal.name}`,
+                price: price,
+                currency: currency,
+                durability: durability,
+                magic_potential: magic_potential,
+                defense: (armor.base_defense || 0) + metal.stats.durability,
+                resistance: resistance,
+                resistance_text: Math.round(resistance * 100) + '%',
+                metal: metal,
+                armor: armor
+            });
+        });
+    });
+}
+
+function extractPrice(priceString) {
+    const match = priceString.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+}
+
+function extractCurrency(priceString) {
+    const match = priceString.match(/\d+\s*(.+)/);
+    return match ? match[1] : '';
 }
 
 function formatResistance(value) {
@@ -30,201 +125,166 @@ function parseResistanceValue(value) {
     return 0;
 }
 
-// ===== МЕТАЛЛЫ =====
-function showMetals() {
-    const metalsSection = document.getElementById('glossaryMetals');
-    const metalsList = document.getElementById('metalsList');
+function applyFilters() {
+    const category = document.getElementById('glossaryCategory').value;
+    const searchText = document.getElementById('glossarySearch').value.toLowerCase();
+    const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
+    const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
+    const sortBy = document.getElementById('glossarySort').value;
     
-    if (!metalsSection || !metalsList) return;
+    let filtered = [...allItems];
     
-    metalsSection.style.display = 'block';
-    document.getElementById('glossaryWeapons').style.display = 'none';
-    document.getElementById('glossaryArmor').style.display = 'none';
+    // Фильтр по категории
+    if (category !== 'all') {
+        if (category === 'metals') filtered = filtered.filter(item => item.type === 'metal');
+        if (category === 'weapons') filtered = filtered.filter(item => item.type === 'weapon');
+        if (category === 'armor') filtered = filtered.filter(item => item.type === 'armor');
+    }
     
-    renderMetals(allMetals);
+    // Фильтр по поиску
+    if (searchText.length >= 2) {
+        filtered = filtered.filter(item => 
+            item.name.toLowerCase().includes(searchText) || 
+            item.description.toLowerCase().includes(searchText)
+        );
+    }
+    
+    // Фильтр по цене
+    filtered = filtered.filter(item => 
+        item.price >= priceMin && item.price <= priceMax
+    );
+    
+    // Сортировка
+    filtered.sort((a, b) => {
+        switch(sortBy) {
+            case 'name_asc': return a.name.localeCompare(b.name);
+            case 'name_desc': return b.name.localeCompare(a.name);
+            case 'price_asc': return a.price - b.price;
+            case 'price_desc': return b.price - a.price;
+            case 'durability_asc': return (a.durability || 0) - (b.durability || 0);
+            case 'durability_desc': return (b.durability || 0) - (a.durability || 0);
+            case 'mp_asc': return (a.magic_potential || 0) - (b.magic_potential || 0);
+            case 'mp_desc': return (b.magic_potential || 0) - (a.magic_potential || 0);
+            default: return 0;
+        }
+    });
+    
+    renderResults(filtered);
 }
 
-function renderMetals(metals) {
-    const metalsList = document.getElementById('metalsList');
-    if (!metalsList) return;
+function renderResults(items) {
+    const resultsList = document.getElementById('resultsList');
+    if (!resultsList) return;
+    
+    if (items.length === 0) {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Ничего не найдено</p>';
+        return;
+    }
     
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
-    metals.forEach(metal => {
-        let skillsHtml = '';
-        if (metal.skills && metal.skills.length > 0) {
-            skillsHtml = '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #8b4513;">';
-            skillsHtml += '<span style="color: #d4af37; font-weight: bold;">✨ Особые свойства:</span>';
-            skillsHtml += '<ul style="margin-top: 5px; padding-left: 20px;">';
-            metal.skills.forEach(skill => {
-                skillsHtml += `<li style="color: #e0d0c0; margin-bottom: 3px;">${skill}</li>`;
-            });
-            skillsHtml += '</ul></div>';
+    items.forEach(item => {
+        if (item.type === 'metal') {
+            // Отображение металла
+            let skillsHtml = '';
+            if (item.metal.skills && item.metal.skills.length > 0) {
+                skillsHtml = '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #8b4513;">';
+                skillsHtml += '<span style="color: #d4af37; font-weight: bold;">✨ Особые свойства:</span>';
+                skillsHtml += '<ul style="margin-top: 5px; padding-left: 20px;">';
+                item.metal.skills.forEach(skill => {
+                    skillsHtml += `<li style="color: #e0d0c0; margin-bottom: 3px;">${skill}</li>`;
+                });
+                skillsHtml += '</ul></div>';
+            }
+            
+            html += `
+                <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                    <h3 style="color: #d4af37; margin-bottom: 10px;">⚒️ ${item.name}</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-small" onclick="showWeaponsForMetal('${item.metal.id}')" style="background: #8b4513;">⚔️ Оружие</button>
+                        <button class="btn btn-small" onclick="showArmorForMetal('${item.metal.id}')" style="background: #8b4513;">🛡️ Броня</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                        <div><span style="color: #b89a7a;">МП:</span> ${item.magic_potential}</div>
+                        <div><span style="color: #b89a7a;">Прочность:</span> ${item.durability}</div>
+                        <div><span style="color: #b89a7a;">Сопротивление:</span> ${formatResistance(item.resistance)}</div>
+                        <div><span style="color: #b89a7a;">Цена:</span> ${item.price} ${item.currency}</div>
+                    </div>
+                    <p style="color: #e0d0c0; margin-top: 10px; font-style: italic;">${item.description}</p>
+                    ${skillsHtml}
+                </div>
+            `;
+        } else if (item.type === 'weapon') {
+            // Отображение оружия
+            html += `
+                <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                    <h3 style="color: #d4af37; margin-bottom: 10px;">⚔️ ${item.name}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                        <div><span style="color: #b89a7a;">Урон:</span> ${item.damage}</div>
+                        <div><span style="color: #b89a7a;">Прочность:</span> ${item.durability}</div>
+                        <div><span style="color: #b89a7a;">МП:</span> ${item.magic_potential} (${item.magic_potential * 5}% усиления)</div>
+                        <div><span style="color: #b89a7a;">Цена:</span> ${item.price} ${item.currency}</div>
+                    </div>
+                </div>
+            `;
+        } else if (item.type === 'armor') {
+            // Отображение брони
+            html += `
+                <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                    <h3 style="color: #d4af37; margin-bottom: 10px;">🛡️ ${item.name}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                        <div><span style="color: #b89a7a;">Защита:</span> ${item.defense}</div>
+                        <div><span style="color: #b89a7a;">Прочность:</span> ${item.durability}</div>
+                        <div><span style="color: #b89a7a;">МП:</span> ${item.magic_potential} (${item.magic_potential * 5}% усиления)</div>
+                        <div><span style="color: #b89a7a;">Сопротивление:</span> ${item.resistance_text}</div>
+                        <div><span style="color: #b89a7a;">Цена:</span> ${item.price} ${item.currency}</div>
+                    </div>
+                </div>
+            `;
         }
-        
-        html += `
-            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">${metal.name}</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="showWeaponsForMetal('${metal.id}')" style="background: #8b4513;">⚔️ Оружие</button>
-                    <button class="btn btn-small" onclick="showArmorForMetal('${metal.id}')" style="background: #8b4513;">🛡️ Броня</button>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px;">
-                    <div><span style="color: #b89a7a;">МП:</span> ${metal.stats.magic_potential}</div>
-                    <div><span style="color: #b89a7a;">Прочность:</span> ${metal.stats.durability}</div>
-                    <div><span style="color: #b89a7a;">Сопротивление:</span> ${formatResistance(metal.stats.resistance)}</div>
-                    <div><span style="color: #b89a7a;">Цвет:</span> ${metal.stats.color}</div>
-                    <div><span style="color: #b89a7a;">Цена слитка:</span> ${metal.price_per_ingot}</div>
-                </div>
-                <p style="color: #e0d0c0; margin-top: 10px; font-style: italic;">${metal.description}</p>
-                ${skillsHtml}
-            </div>
-        `;
     });
     
     html += '</div>';
-    metalsList.innerHTML = html;
+    resultsList.innerHTML = html;
 }
 
-// ===== ОРУЖИЕ =====
+function resetFilters() {
+    document.getElementById('glossaryCategory').value = 'all';
+    document.getElementById('glossarySearch').value = '';
+    document.getElementById('priceMin').value = '';
+    document.getElementById('priceMax').value = '';
+    document.getElementById('glossarySort').value = 'name_asc';
+    
+    applyFilters();
+}
+
+// Старые функции для обратной совместимости
+function showMetals() {
+    document.getElementById('glossaryCategory').value = 'metals';
+    applyFilters();
+}
+
 function showWeaponsForMetal(metalId) {
     const metal = metalsData[metalId];
     if (!metal) return;
     
-    const weaponsSection = document.getElementById('glossaryWeapons');
-    const weaponsList = document.getElementById('weaponsList');
-    
-    if (!weaponsSection || !weaponsList) return;
-    
-    weaponsSection.style.display = 'block';
-    document.getElementById('glossaryMetals').style.display = 'none';
-    document.getElementById('glossaryArmor').style.display = 'none';
-    
-    document.getElementById('weaponsTitle').innerHTML = `⚔️ Оружие из ${metal.name}`;
-    
-    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
-    
-    allWeapons.forEach(weapon => {
-        // Расчет характеристик
-        const damage = (weapon.base_damage || 0) + metal.stats.durability;
-        const durability = (weapon.base_durability || 0) + metal.stats.durability;
-        const magic_potential = metal.stats.magic_potential * (weapon.craft_slots || 1);
-        
-        // Расчет цены
-        let price = 0;
-        let currency = '';
-        const priceMatch = metal.price_per_ingot.match(/(\d+)\s*(.+)/);
-        if (priceMatch) {
-            const metalPrice = parseInt(priceMatch[1]);
-            currency = priceMatch[2];
-            price = metalPrice * (weapon.craft_slots || 1);
-        }
-        
-        html += `
-            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">${metal.name} ${weapon.name}</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
-                    <div><span style="color: #b89a7a;">Урон:</span> ${damage}</div>
-                    <div><span style="color: #b89a7a;">Прочность:</span> ${durability}</div>
-                    <div><span style="color: #b89a7a;">МП:</span> ${magic_potential} (${magic_potential * 5}% усиления)</div>
-                    <div><span style="color: #b89a7a;">Цена:</span> ${price} ${currency}</div>
-                    <div><span style="color: #b89a7a;">Крафт:</span> ${weapon.craft_slots} слитков ${weapon.leather ? `+ ${weapon.leather} кожи` : ''}</div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '<div style="text-align: center; margin-top: 20px;"><button class="btn btn-roll" onclick="showMetals()">🔙 Назад к металлам</button></div>';
-    html += '</div>';
-    
-    weaponsList.innerHTML = html;
+    document.getElementById('glossaryCategory').value = 'weapons';
+    document.getElementById('glossarySearch').value = metal.name;
+    applyFilters();
 }
 
-// ===== БРОНЯ =====
 function showArmorForMetal(metalId) {
     const metal = metalsData[metalId];
     if (!metal) return;
     
-    const armorSection = document.getElementById('glossaryArmor');
-    const armorList = document.getElementById('armorList');
-    
-    if (!armorSection || !armorList) return;
-    
-    armorSection.style.display = 'block';
-    document.getElementById('glossaryMetals').style.display = 'none';
-    document.getElementById('glossaryWeapons').style.display = 'none';
-    
-    document.getElementById('armorTitle').innerHTML = `🛡️ Броня из ${metal.name}`;
-    
-    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
-    
-    allArmor.forEach(armor => {
-        // Расчет характеристик
-        const defense = (armor.base_defense || 0) + metal.stats.durability;
-        const durability = (armor.base_durability || 0) + metal.stats.durability;
-        
-        // Магический потенциал (все слитки)
-        const magic_potential = metal.stats.magic_potential * (armor.craft_slots || 1);
-        
-        // Сопротивление (30% слитков, макс 10)
-        let effectiveSlots = Math.floor((armor.craft_slots || 1) * 0.3);
-        if (effectiveSlots > 10) effectiveSlots = 10;
-        const resistanceValue = parseResistanceValue(metal.stats.resistance);
-        const resistance = Math.round(resistanceValue * effectiveSlots * 100) + '%';
-        
-        // Расчет цены
-        let price = 0;
-        let currency = '';
-        const priceMatch = metal.price_per_ingot.match(/(\d+)\s*(.+)/);
-        if (priceMatch) {
-            const metalPrice = parseInt(priceMatch[1]);
-            currency = priceMatch[2];
-            price = metalPrice * (armor.craft_slots || 1);
-        }
-        
-        html += `
-            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">${metal.name} ${armor.name}</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
-                    <div><span style="color: #b89a7a;">Защита:</span> ${defense}</div>
-                    <div><span style="color: #b89a7a;">Прочность:</span> ${durability}</div>
-                    <div><span style="color: #b89a7a;">МП:</span> ${magic_potential} (${magic_potential * 5}% усиления)</div>
-                    <div><span style="color: #b89a7a;">Сопротивление:</span> ${resistance}</div>
-                    <div><span style="color: #b89a7a;">Цена:</span> ${price} ${currency}</div>
-                    <div><span style="color: #b89a7a;">Крафт:</span> ${armor.craft_slots} слитков ${armor.leather ? `+ ${armor.leather} кожи` : ''}</div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '<div style="text-align: center; margin-top: 20px;"><button class="btn btn-roll" onclick="showMetals()">🔙 Назад к металлам</button></div>';
-    html += '</div>';
-    
-    armorList.innerHTML = html;
+    document.getElementById('glossaryCategory').value = 'armor';
+    document.getElementById('glossarySearch').value = metal.name;
+    applyFilters();
 }
 
 function searchMetals() {
-    const searchText = document.getElementById('glossarySearch').value.toLowerCase();
-    
-    if (searchText.length < 2) {
-        document.getElementById('metalsList').innerHTML = '<p style="color: #8b7d6b; text-align: center;">Введите минимум 2 символа для поиска</p>';
-        return;
-    }
-    
-    const filtered = allMetals.filter(metal => 
-        metal.name.toLowerCase().includes(searchText) || 
-        metal.description.toLowerCase().includes(searchText)
-    );
-    
-    if (filtered.length === 0) {
-        document.getElementById('metalsList').innerHTML = '<p style="color: #8b7d6b; text-align: center;">Ничего не найдено</p>';
-    } else {
-        renderMetals(filtered);
-    }
-    
-    document.getElementById('glossaryMetals').style.display = 'block';
-    document.getElementById('glossaryWeapons').style.display = 'none';
-    document.getElementById('glossaryArmor').style.display = 'none';
+    document.getElementById('glossaryCategory').value = 'metals';
+    applyFilters();
 }
 
 // Загружаем данные при старте
