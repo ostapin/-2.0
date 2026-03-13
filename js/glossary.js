@@ -2,7 +2,8 @@
 let allMetals = [];
 let allWeapons = [];
 let allArmor = [];
-let allItems = []; // Объединенный массив всех предметов
+let allItems = [];
+let currencyRates = {};
 
 function loadGlossary() {
     // Загружаем данные
@@ -10,89 +11,42 @@ function loadGlossary() {
     allWeapons = Object.values(weaponsData);
     allArmor = Object.values(armorData);
     
+    // Загружаем курсы валют
+    if (typeof currencyData !== 'undefined') {
+        currencyRates = currencyData;
+    }
+    
     // Создаем объединенный массив предметов
     buildAllItems();
 }
 
-function buildAllItems() {
-    allItems = [];
-    
-    // Добавляем металлы
-    allMetals.forEach(metal => {
-        allItems.push({
-            id: metal.id,
-            type: 'metal',
-            category: 'Металл',
-            name: metal.name,
-            description: metal.description,
-            price: extractPrice(metal.price_per_ingot),
-            currency: extractCurrency(metal.price_per_ingot),
-            durability: metal.stats.durability,
-            magic_potential: metal.stats.magic_potential,
-            resistance: metal.stats.resistance,
-            metal: metal
-        });
-    });
-    
-    // Добавляем оружие (для каждого металла)
-    allMetals.forEach(metal => {
-        allWeapons.forEach(weapon => {
-            const slots = weapon.craft_slots || 1;
-            const price = extractPrice(metal.price_per_ingot) * slots;
-            const currency = extractCurrency(metal.price_per_ingot);
-            const durability = (weapon.base_durability || 0) + metal.stats.durability;
-            const magic_potential = metal.stats.magic_potential * slots;
-            
-            allItems.push({
-                id: `${metal.id}_${weapon.name}`,
-                type: 'weapon',
-                category: 'Оружие',
-                name: `${metal.name} ${weapon.name}`,
-                description: `Оружие из ${metal.name}`,
-                price: price,
-                currency: currency,
-                durability: durability,
-                magic_potential: magic_potential,
-                damage: (weapon.base_damage || 0) + metal.stats.durability,
-                metal: metal,
-                weapon: weapon
-            });
-        });
-    });
-    
-    // Добавляем броню (для каждого металла)
-    allMetals.forEach(metal => {
-        allArmor.forEach(armor => {
-            const slots = armor.craft_slots || 1;
-            const price = extractPrice(metal.price_per_ingot) * slots;
-            const currency = extractCurrency(metal.price_per_ingot);
-            const durability = (armor.base_durability || 0) + metal.stats.durability;
-            const magic_potential = metal.stats.magic_potential * slots;
-            
-            // Сопротивление (30% слитков, макс 10)
-            let effectiveSlots = Math.floor(slots * 0.3);
-            if (effectiveSlots > 10) effectiveSlots = 10;
-            const resistanceValue = parseResistanceValue(metal.stats.resistance);
-            const resistance = resistanceValue * effectiveSlots;
-            
-            allItems.push({
-                id: `${metal.id}_${armor.name}`,
-                type: 'armor',
-                category: 'Броня',
-                name: `${metal.name} ${armor.name}`,
-                description: `Броня из ${metal.name}`,
-                price: price,
-                currency: currency,
-                durability: durability,
-                magic_potential: magic_potential,
-                defense: (armor.base_defense || 0) + metal.stats.durability,
-                resistance: resistance,
-                resistance_text: Math.round(resistance * 100) + '%',
-                metal: metal,
-                armor: armor
-            });
-        });
-    });
+function getCurrencyIdFromString(priceString) {
+    const str = priceString.toLowerCase();
+    if (str.includes('мед')) return 'copper';
+    if (str.includes('сереб')) return 'silver';
+    if (str.includes('зол')) return 'gold';
+    if (str.includes('платин')) return 'platinum';
+    if (str.includes('янтар')) return 'amber_sphere';
+    if (str.includes('крови')) return 'blood_sphere';
+    if (str.includes('льда')) return 'ice_sphere';
+    if (str.includes('огня')) return 'fire_sphere';
+    if (str.includes('земли')) return 'earth_sphere';
+    if (str.includes('воды')) return 'water_sphere';
+    if (str.includes('молнии')) return 'lightning_sphere';
+    if (str.includes('бесцветный')) return 'colorless_ether';
+    return 'copper';
+}
+
+function convertToBaseValue(amount, currencyId) {
+    const currency = currencyRates[currencyId];
+    if (!currency) return amount;
+    return amount * currency.base_value;
+}
+
+function formatPrice(amount, currencyId) {
+    const currency = currencyRates[currencyId];
+    if (!currency) return `${amount}`;
+    return `${amount} ${currency.name}`;
 }
 
 function extractPrice(priceString) {
@@ -125,6 +79,100 @@ function parseResistanceValue(value) {
     return 0;
 }
 
+function buildAllItems() {
+    allItems = [];
+    
+    // Добавляем металлы
+    allMetals.forEach(metal => {
+        const priceAmount = extractPrice(metal.price_per_ingot);
+        const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
+        const baseValue = convertToBaseValue(priceAmount, currencyId);
+        
+        allItems.push({
+            id: metal.id,
+            type: 'metal',
+            category: 'Металл',
+            name: metal.name,
+            description: metal.description,
+            price: priceAmount,
+            currency: currencyId,
+            base_value: baseValue,
+            durability: metal.stats.durability,
+            magic_potential: metal.stats.magic_potential,
+            resistance: metal.stats.resistance,
+            metal: metal
+        });
+    });
+    
+    // Добавляем оружие (для каждого металла)
+    allMetals.forEach(metal => {
+        const priceAmount = extractPrice(metal.price_per_ingot);
+        const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
+        
+        allWeapons.forEach(weapon => {
+            const slots = weapon.craft_slots || 1;
+            const itemPrice = priceAmount * slots;
+            const baseValue = convertToBaseValue(itemPrice, currencyId);
+            const durability = (weapon.base_durability || 0) + metal.stats.durability;
+            const magic_potential = metal.stats.magic_potential * slots;
+            
+            allItems.push({
+                id: `${metal.id}_${weapon.name}`,
+                type: 'weapon',
+                category: 'Оружие',
+                name: `${metal.name} ${weapon.name}`,
+                description: `Оружие из ${metal.name}`,
+                price: itemPrice,
+                currency: currencyId,
+                base_value: baseValue,
+                durability: durability,
+                magic_potential: magic_potential,
+                damage: (weapon.base_damage || 0) + metal.stats.durability,
+                metal: metal,
+                weapon: weapon
+            });
+        });
+    });
+    
+    // Добавляем броню (для каждого металла)
+    allMetals.forEach(metal => {
+        const priceAmount = extractPrice(metal.price_per_ingot);
+        const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
+        
+        allArmor.forEach(armor => {
+            const slots = armor.craft_slots || 1;
+            const itemPrice = priceAmount * slots;
+            const baseValue = convertToBaseValue(itemPrice, currencyId);
+            const durability = (armor.base_durability || 0) + metal.stats.durability;
+            const magic_potential = metal.stats.magic_potential * slots;
+            
+            // Сопротивление (30% слитков, макс 10)
+            let effectiveSlots = Math.floor(slots * 0.3);
+            if (effectiveSlots > 10) effectiveSlots = 10;
+            const resistanceValue = parseResistanceValue(metal.stats.resistance);
+            const resistance = resistanceValue * effectiveSlots;
+            
+            allItems.push({
+                id: `${metal.id}_${armor.name}`,
+                type: 'armor',
+                category: 'Броня',
+                name: `${metal.name} ${armor.name}`,
+                description: `Броня из ${metal.name}`,
+                price: itemPrice,
+                currency: currencyId,
+                base_value: baseValue,
+                durability: durability,
+                magic_potential: magic_potential,
+                defense: (armor.base_defense || 0) + metal.stats.durability,
+                resistance: resistance,
+                resistance_text: Math.round(resistance * 100) + '%',
+                metal: metal,
+                armor: armor
+            });
+        });
+    });
+}
+
 function applyFilters() {
     const category = document.getElementById('glossaryCategory').value;
     const searchText = document.getElementById('glossarySearch').value.toLowerCase();
@@ -149,18 +197,18 @@ function applyFilters() {
         );
     }
     
-    // Фильтр по цене
-    filtered = filtered.filter(item => 
-        item.price >= priceMin && item.price <= priceMax
-    );
+    // Фильтр по цене (конвертируем в базовую валюту)
+    filtered = filtered.filter(item => {
+        return item.base_value >= priceMin && item.base_value <= priceMax;
+    });
     
     // Сортировка
     filtered.sort((a, b) => {
         switch(sortBy) {
             case 'name_asc': return a.name.localeCompare(b.name);
             case 'name_desc': return b.name.localeCompare(a.name);
-            case 'price_asc': return a.price - b.price;
-            case 'price_desc': return b.price - a.price;
+            case 'price_asc': return a.base_value - b.base_value;
+            case 'price_desc': return b.base_value - a.base_value;
             case 'durability_asc': return (a.durability || 0) - (b.durability || 0);
             case 'durability_desc': return (b.durability || 0) - (a.durability || 0);
             case 'mp_asc': return (a.magic_potential || 0) - (b.magic_potential || 0);
@@ -184,6 +232,8 @@ function renderResults(items) {
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
     items.forEach(item => {
+        const formattedPrice = formatPrice(item.price, item.currency);
+        
         if (item.type === 'metal') {
             // Отображение металла
             let skillsHtml = '';
@@ -208,7 +258,7 @@ function renderResults(items) {
                         <div><span style="color: #b89a7a;">МП:</span> ${item.magic_potential}</div>
                         <div><span style="color: #b89a7a;">Прочность:</span> ${item.durability}</div>
                         <div><span style="color: #b89a7a;">Сопротивление:</span> ${formatResistance(item.resistance)}</div>
-                        <div><span style="color: #b89a7a;">Цена:</span> ${item.price} ${item.currency}</div>
+                        <div><span style="color: #b89a7a;">Цена:</span> ${formattedPrice}</div>
                     </div>
                     <p style="color: #e0d0c0; margin-top: 10px; font-style: italic;">${item.description}</p>
                     ${skillsHtml}
@@ -223,7 +273,7 @@ function renderResults(items) {
                         <div><span style="color: #b89a7a;">Урон:</span> ${item.damage}</div>
                         <div><span style="color: #b89a7a;">Прочность:</span> ${item.durability}</div>
                         <div><span style="color: #b89a7a;">МП:</span> ${item.magic_potential} (${item.magic_potential * 5}% усиления)</div>
-                        <div><span style="color: #b89a7a;">Цена:</span> ${item.price} ${item.currency}</div>
+                        <div><span style="color: #b89a7a;">Цена:</span> ${formattedPrice}</div>
                     </div>
                 </div>
             `;
@@ -237,7 +287,7 @@ function renderResults(items) {
                         <div><span style="color: #b89a7a;">Прочность:</span> ${item.durability}</div>
                         <div><span style="color: #b89a7a;">МП:</span> ${item.magic_potential} (${item.magic_potential * 5}% усиления)</div>
                         <div><span style="color: #b89a7a;">Сопротивление:</span> ${item.resistance_text}</div>
-                        <div><span style="color: #b89a7a;">Цена:</span> ${item.price} ${item.currency}</div>
+                        <div><span style="color: #b89a7a;">Цена:</span> ${formattedPrice}</div>
                     </div>
                 </div>
             `;
