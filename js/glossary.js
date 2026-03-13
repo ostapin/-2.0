@@ -23,7 +23,7 @@ function loadGlossary() {
 function getCurrencyIdFromString(priceString) {
     const str = priceString.toLowerCase();
     
-    // Металлы (монеты)
+    // Металлы
     if (str.includes('мед')) return 'copper';
     if (str.includes('сереб')) return 'silver';
     if (str.includes('золот')) return 'gold';
@@ -65,11 +65,6 @@ function extractPrice(priceString) {
     return match ? parseInt(match[1]) : 0;
 }
 
-function extractCurrency(priceString) {
-    const match = priceString.match(/\d+\s*(.+)/);
-    return match ? match[1] : '';
-}
-
 function formatResistance(value) {
     if (typeof value === 'string' && value.includes('%')) {
         return value;
@@ -99,8 +94,6 @@ function buildAllItems() {
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
         const baseValue = convertToBaseValue(priceAmount, currencyId);
         
-        console.log(`Металл ${metal.name}: ${priceAmount} ${currencyId} = ${baseValue} медных`); // Для отладки
-        
         allItems.push({
             id: metal.id,
             type: 'metal',
@@ -121,11 +114,12 @@ function buildAllItems() {
     allMetals.forEach(metal => {
         const priceAmount = extractPrice(metal.price_per_ingot);
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
+        const metalBaseValue = convertToBaseValue(priceAmount, currencyId);
         
         allWeapons.forEach(weapon => {
             const slots = weapon.craft_slots || 1;
             const itemPrice = priceAmount * slots;
-            const baseValue = convertToBaseValue(itemPrice, currencyId);
+            const baseValue = metalBaseValue * slots;
             const durability = (weapon.base_durability || 0) + metal.stats.durability;
             const magic_potential = metal.stats.magic_potential * slots;
             
@@ -151,11 +145,12 @@ function buildAllItems() {
     allMetals.forEach(metal => {
         const priceAmount = extractPrice(metal.price_per_ingot);
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
+        const metalBaseValue = convertToBaseValue(priceAmount, currencyId);
         
         allArmor.forEach(armor => {
             const slots = armor.craft_slots || 1;
             const itemPrice = priceAmount * slots;
-            const baseValue = convertToBaseValue(itemPrice, currencyId);
+            const baseValue = metalBaseValue * slots;
             const durability = (armor.base_durability || 0) + metal.stats.durability;
             const magic_potential = metal.stats.magic_potential * slots;
             
@@ -184,14 +179,21 @@ function buildAllItems() {
             });
         });
     });
+    
+    console.log('Всего предметов:', allItems.length); // Для отладки
 }
 
 function applyFilters() {
     const category = document.getElementById('glossaryCategory').value;
     const searchText = document.getElementById('glossarySearch').value.toLowerCase();
-    const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
-    const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
+    const priceCurrency = document.getElementById('priceCurrency').value;
+    const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
+    const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
     const sortBy = document.getElementById('glossarySort').value;
+    
+    // Конвертируем введенный диапазон в базовую валюту
+    const minBase = convertToBaseValue(priceMin, priceCurrency);
+    const maxBase = convertToBaseValue(priceMax, priceCurrency);
     
     let filtered = [...allItems];
     
@@ -210,9 +212,9 @@ function applyFilters() {
         );
     }
     
-    // Фильтр по цене (конвертируем в базовую валюту)
+    // Фильтр по цене (в базовой валюте)
     filtered = filtered.filter(item => {
-        return item.base_value >= priceMin && item.base_value <= priceMax;
+        return item.base_value >= minBase && item.base_value <= maxBase;
     });
     
     // Сортировка
@@ -314,6 +316,7 @@ function renderResults(items) {
 function resetFilters() {
     document.getElementById('glossaryCategory').value = 'all';
     document.getElementById('glossarySearch').value = '';
+    document.getElementById('priceCurrency').value = 'copper';
     document.getElementById('priceMin').value = '';
     document.getElementById('priceMax').value = '';
     document.getElementById('glossarySort').value = 'name_asc';
