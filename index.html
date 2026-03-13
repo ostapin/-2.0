@@ -370,12 +370,20 @@
         </div>
     </div>
 </div>
-  <!-- Вкладка глоссария -->
+ <!-- Вкладка глоссария -->
 <div id="glossary-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📚 ГЛОССАРИЙ МИРА</h2>
     
-    <!-- Фильтры и поиск -->
-    <div style="background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <!-- Вкладки внутри глоссария -->
+    <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="tab-btn-small" onclick="showGlossaryCategory('metals')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">⚒️ Металлы</button>
+        <button class="tab-btn-small" onclick="showGlossaryCategory('weapons')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">⚔️ Оружие</button>
+        <button class="tab-btn-small" onclick="showGlossaryCategory('armor')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">🛡️ Броня</button>
+        <button class="tab-btn-small" onclick="showGlossaryCategory('currency')" style="background: #3d2418; color: #e0d0c0; padding: 8px 15px; border: 2px solid #8b4513; border-radius: 4px; cursor: pointer;">💰 Валюта</button>
+    </div>
+    
+    <!-- Фильтры и поиск (для металлов/оружия/брони) -->
+    <div id="glossaryFilters" style="background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
             <!-- Категория -->
             <div>
@@ -449,9 +457,15 @@
         </div>
     </div>
     
+    <!-- Секция валют (показывается вместо фильтров) -->
+    <div id="currencySection" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #d4af37; text-align: center; margin-bottom: 15px;">💰 Курсы валют</h3>
+        <div id="currencyList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;"></div>
+    </div>
+    
     <!-- Результаты -->
     <div id="glossaryResults" class="skills-section">
-        <div class="section-title">📋 Результаты поиска</div>
+        <div class="section-title" id="resultsTitle">📋 Результаты</div>
         <div id="resultsList" class="glossary-content">
             <p style="color: #8b7d6b; text-align: center;">Выберите категорию и нажмите поиск</p>
         </div>
@@ -582,6 +596,7 @@
 <script src="modules/glossary/currency.js"></script>
 </body>
 </html>
+
 
 
 
