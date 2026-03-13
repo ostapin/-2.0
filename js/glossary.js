@@ -29,22 +29,22 @@ function getCurrencyIdFromString(priceString) {
     if (str.includes('золот')) return 'gold';
     if (str.includes('платин')) return 'platinum';
     
-   // Кристаллы эфира (проверяем до сфер!)
-if (str.includes('кристалл эфира') || str.includes('кристаллов эфира')) {
-    if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
-    return 'colored_ether'; // цветной кристалл эфира
-}
-
-// Специфичные сферы
-if (str.includes('кров')) return 'blood_sphere';
-if (str.includes('льд') || str.includes('ice')) return 'ice_sphere';
-if (str.includes('огн') || str.includes('fire')) return 'fire_sphere';
-if (str.includes('земл') || str.includes('earth')) return 'earth_sphere';
-if (str.includes('вод') || str.includes('water')) return 'water_sphere';
-if (str.includes('молн') || str.includes('lightning')) return 'lightning_sphere';
-
-// Янтарная сфера (или просто "сфера")
-if (str.includes('янтар') || str.includes('amber') || str.includes('сфер')) return 'amber_sphere';
+    // Кристаллы эфира (проверяем до сфер!)
+    if (str.includes('кристалл эфира') || str.includes('кристаллов эфира')) {
+        if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
+        return 'colored_ether'; // цветной кристалл эфира
+    }
+    
+    // Специфичные сферы
+    if (str.includes('кров')) return 'blood_sphere';
+    if (str.includes('льд') || str.includes('ice')) return 'ice_sphere';
+    if (str.includes('огн') || str.includes('fire')) return 'fire_sphere';
+    if (str.includes('земл') || str.includes('earth')) return 'earth_sphere';
+    if (str.includes('вод') || str.includes('water')) return 'water_sphere';
+    if (str.includes('молн') || str.includes('lightning')) return 'lightning_sphere';
+    
+    // Янтарная сфера (или просто "сфера")
+    if (str.includes('янтар') || str.includes('amber') || str.includes('сфер')) return 'amber_sphere';
     
     // По умолчанию - медные
     return 'copper';
@@ -181,8 +181,6 @@ function buildAllItems() {
             });
         });
     });
-    
-    console.log('Всего предметов:', allItems.length); // Для отладки
 }
 
 function applyFilters() {
@@ -242,7 +240,7 @@ function renderResults(items) {
     if (!resultsList) return;
     
     if (items.length === 0) {
-        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Ничего не найдено</p>';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Ничего не найдено</p>';
         return;
     }
     
