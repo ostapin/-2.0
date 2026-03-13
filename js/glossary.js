@@ -22,18 +22,27 @@ function loadGlossary() {
 
 function getCurrencyIdFromString(priceString) {
     const str = priceString.toLowerCase();
+    
+    // Металлы (первые)
     if (str.includes('мед')) return 'copper';
     if (str.includes('сереб')) return 'silver';
-    if (str.includes('зол')) return 'gold';
+    if (str.includes('золот')) return 'gold';
     if (str.includes('платин')) return 'platinum';
-    if (str.includes('янтар')) return 'amber_sphere';
-    if (str.includes('крови')) return 'blood_sphere';
-    if (str.includes('льда')) return 'ice_sphere';
-    if (str.includes('огня')) return 'fire_sphere';
-    if (str.includes('земли')) return 'earth_sphere';
-    if (str.includes('воды')) return 'water_sphere';
-    if (str.includes('молнии')) return 'lightning_sphere';
-    if (str.includes('бесцветный')) return 'colorless_ether';
+    
+    // Сферы
+    if (str.includes('янтар') || str.includes('amber')) return 'amber_sphere';
+    if (str.includes('кров')) return 'blood_sphere';
+    if (str.includes('льд') || str.includes('ice')) return 'ice_sphere';
+    if (str.includes('огн') || str.includes('fire')) return 'fire_sphere';
+    if (str.includes('земл') || str.includes('earth')) return 'earth_sphere';
+    if (str.includes('вод') || str.includes('water')) return 'water_sphere';
+    if (str.includes('молн') || str.includes('lightning')) return 'lightning_sphere';
+    
+    // Кристаллы эфира
+    if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
+    if (str.includes('цветн') || str.includes('colored')) return 'colored_ether';
+    
+    // По умолчанию - медные
     return 'copper';
 }
 
@@ -87,6 +96,8 @@ function buildAllItems() {
         const priceAmount = extractPrice(metal.price_per_ingot);
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
         const baseValue = convertToBaseValue(priceAmount, currencyId);
+        
+        console.log(`Металл ${metal.name}: ${priceAmount} ${currencyId} = ${baseValue} медных`); // Для отладки
         
         allItems.push({
             id: metal.id,
