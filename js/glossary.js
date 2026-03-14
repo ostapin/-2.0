@@ -225,9 +225,27 @@ function renderCurrencies(currencies) {
         const nextCurrency = allCurrencies[index + 1];
         
         let rateText = '';
-       if (nextCurrency) {
-    const rate = nextCurrency.base_value / currency.base_value;
-    rateText = `<div><span style="color: #b89a7a;">${rate} ${currency.name} =</span> 1 ${nextCurrency.name}</div>`;
+        if (nextCurrency) {
+            const rate = nextCurrency.base_value / currency.base_value;
+            rateText = `<div><span style="color: #b89a7a;">${rate} ${currency.name} =</span> 1 ${nextCurrency.name}</div>`;
+        }
+        
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">💰 ${currency.name}</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                    <div><span style="color: #b89a7a;">1 ${currency.name} =</span> ${currency.base_value} 🟤 Медных</div>
+                    ${rateText}
+                </div>
+                <p style="color: #e0d0c0; margin-top: 10px; font-style: italic; border-top: 1px solid #8b4513; padding-top: 10px;">
+                    ${currency.description || 'Нет описания'}
+                </p>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    resultsList.innerHTML = html;
 }
         
         // Показываем также сколько это в медных
