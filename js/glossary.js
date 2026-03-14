@@ -183,8 +183,78 @@ function buildAllItems() {
     });
 }
 
+function showCurrencyList() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    const filtersDiv = document.getElementById('glossaryFilters');
+    
+    if (!resultsList) return;
+    
+    // Скрываем фильтры для валют
+    if (filtersDiv) {
+        filtersDiv.style.display = 'none';
+    }
+    
+    resultsTitle.innerHTML = '💰 Список валют';
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+    
+    // Получаем все валюты из currencyRates
+    const currencies = Object.values(currencyRates);
+    
+    // Сортируем по порядку
+    currencies.sort((a, b) => a.order - b.order);
+    
+    currencies.forEach((currency, index) => {
+        // Находим следующую валюту для отображения курса
+        const nextCurrency = currencies[index + 1];
+        
+        let rateText = '';
+        if (nextCurrency) {
+            const rate = nextCurrency.base_value / currency.base_value;
+            rateText = `<div><span style="color: #b89a7a;">1 ${currency.name} =</span> ${rate} ${nextCurrency.name}</div>`;
+        }
+        
+        // Показываем также сколько это в медных
+        const copperRate = currency.base_value;
+        
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">💰 ${currency.name}</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                    <div><span style="color: #b89a7a;">1 ${currency.name} =</span> ${copperRate} 🟤 Медных</div>
+                    ${rateText}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '<div style="text-align: center; margin-top: 20px;"><button class="btn btn-roll" onclick="resetFilters()">🔙 Назад</button></div>';
+    html += '</div>';
+    
+    resultsList.innerHTML = html;
+}
+
 function applyFilters() {
     const category = document.getElementById('glossaryCategory').value;
+    const filtersDiv = document.getElementById('glossaryFilters');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    // Если выбрана категория "Валюта" - показываем список валют и скрываем фильтры
+    if (category === 'currency') {
+        if (filtersDiv) {
+            filtersDiv.style.display = 'none';
+        }
+        showCurrencyList();
+        return;
+    }
+    
+    // Иначе показываем фильтры
+    if (filtersDiv) {
+        filtersDiv.style.display = 'block';
+    }
+    resultsTitle.innerHTML = '📋 Результаты';
+    
     const searchText = document.getElementById('glossarySearch').value.toLowerCase();
     const priceCurrency = document.getElementById('priceCurrency').value;
     const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
@@ -314,6 +384,15 @@ function renderResults(items) {
 }
 
 function resetFilters() {
+    const filtersDiv = document.getElementById('glossaryFilters');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    // Показываем фильтры
+    if (filtersDiv) {
+        filtersDiv.style.display = 'block';
+    }
+    resultsTitle.innerHTML = '📋 Результаты';
+    
     document.getElementById('glossaryCategory').value = 'all';
     document.getElementById('glossarySearch').value = '';
     document.getElementById('priceCurrency').value = 'copper';
