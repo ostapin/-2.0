@@ -225,10 +225,10 @@ function renderCurrencies(currencies) {
         const nextCurrency = allCurrencies[index + 1];
         
         let rateText = '';
-        if (nextCurrency) {
-            const rate = nextCurrency.base_value / currency.base_value;
-            rateText = `<div><span style="color: #b89a7a;">1 ${currency.name} =</span> ${rate} ${nextCurrency.name}</div>`;
-        }
+       if (nextCurrency) {
+    const rate = nextCurrency.base_value / currency.base_value;
+    rateText = `<div><span style="color: #b89a7a;">${rate} ${currency.name} =</span> 1 ${nextCurrency.name}</div>`;
+}
         
         // Показываем также сколько это в медных
         const copperRate = currency.base_value;
