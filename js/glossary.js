@@ -4,6 +4,7 @@ let allWeapons = [];
 let allArmor = [];
 let allItems = [];
 let currencyRates = {};
+let allCurrencies = [];
 
 function loadGlossary() {
     // Загружаем данные
@@ -14,6 +15,8 @@ function loadGlossary() {
     // Загружаем курсы валют
     if (typeof currencyData !== 'undefined') {
         currencyRates = currencyData;
+        allCurrencies = Object.values(currencyData);
+        allCurrencies.sort((a, b) => a.order - b.order);
     }
     
     // Создаем объединенный массив предметов
@@ -32,7 +35,7 @@ function getCurrencyIdFromString(priceString) {
     // Кристаллы эфира (проверяем до сфер!)
     if (str.includes('кристалл эфира') || str.includes('кристаллов эфира')) {
         if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
-        return 'colored_ether'; // цветной кристалл эфира
+        return 'colored_ether';
     }
     
     // Специфичные сферы
@@ -46,7 +49,6 @@ function getCurrencyIdFromString(priceString) {
     // Янтарная сфера (или просто "сфера")
     if (str.includes('янтар') || str.includes('amber') || str.includes('сфер')) return 'amber_sphere';
     
-    // По умолчанию - медные
     return 'copper';
 }
 
@@ -183,31 +185,44 @@ function buildAllItems() {
     });
 }
 
-function showCurrencyList() {
+function filterCurrencies(searchText, minBase, maxBase) {
+    let filtered = [...allCurrencies];
+    
+    // Фильтр по поиску (если есть текст)
+    if (searchText && searchText.length >= 2) {
+        filtered = filtered.filter(currency => 
+            currency.name.toLowerCase().includes(searchText)
+        );
+    }
+    
+    // Фильтр по цене (конвертируем в медные)
+    if (minBase > 0 || maxBase < Infinity) {
+        filtered = filtered.filter(currency => {
+            return currency.base_value >= minBase && currency.base_value <= maxBase;
+        });
+    }
+    
+    return filtered;
+}
+
+function renderCurrencies(currencies) {
     const resultsList = document.getElementById('resultsList');
     const resultsTitle = document.getElementById('resultsTitle');
-    const filtersDiv = document.getElementById('glossaryFilters');
     
     if (!resultsList) return;
     
-    // Скрываем фильтры для валют
-    if (filtersDiv) {
-        filtersDiv.style.display = 'none';
-    }
+    resultsTitle.innerHTML = '💰 Валюта';
     
-    resultsTitle.innerHTML = '💰 Список валют';
+    if (currencies.length === 0) {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Ничего не найдено</p>';
+        return;
+    }
     
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
-    // Получаем все валюты из currencyRates
-    const currencies = Object.values(currencyRates);
-    
-    // Сортируем по порядку
-    currencies.sort((a, b) => a.order - b.order);
-    
     currencies.forEach((currency, index) => {
         // Находим следующую валюту для отображения курса
-        const nextCurrency = currencies[index + 1];
+        const nextCurrency = allCurrencies[index + 1];
         
         let rateText = '';
         if (nextCurrency) {
@@ -229,32 +244,12 @@ function showCurrencyList() {
         `;
     });
     
-    html += '<div style="text-align: center; margin-top: 20px;"><button class="btn btn-roll" onclick="resetFilters()">🔙 Назад</button></div>';
     html += '</div>';
-    
     resultsList.innerHTML = html;
 }
 
 function applyFilters() {
     const category = document.getElementById('glossaryCategory').value;
-    const filtersDiv = document.getElementById('glossaryFilters');
-    const resultsTitle = document.getElementById('resultsTitle');
-    
-    // Если выбрана категория "Валюта" - показываем список валют и скрываем фильтры
-    if (category === 'currency') {
-        if (filtersDiv) {
-            filtersDiv.style.display = 'none';
-        }
-        showCurrencyList();
-        return;
-    }
-    
-    // Иначе показываем фильтры
-    if (filtersDiv) {
-        filtersDiv.style.display = 'block';
-    }
-    resultsTitle.innerHTML = '📋 Результаты';
-    
     const searchText = document.getElementById('glossarySearch').value.toLowerCase();
     const priceCurrency = document.getElementById('priceCurrency').value;
     const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
@@ -265,6 +260,14 @@ function applyFilters() {
     const minBase = convertToBaseValue(priceMin, priceCurrency);
     const maxBase = convertToBaseValue(priceMax, priceCurrency);
     
+    // Если выбрана категория "Валюта"
+    if (category === 'currency') {
+        const filteredCurrencies = filterCurrencies(searchText, minBase, maxBase);
+        renderCurrencies(filteredCurrencies);
+        return;
+    }
+    
+    // Для остальных категорий
     let filtered = [...allItems];
     
     // Фильтр по категории
@@ -307,7 +310,11 @@ function applyFilters() {
 
 function renderResults(items) {
     const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
     if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '📋 Результаты';
     
     if (items.length === 0) {
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Ничего не найдено</p>';
@@ -384,15 +391,6 @@ function renderResults(items) {
 }
 
 function resetFilters() {
-    const filtersDiv = document.getElementById('glossaryFilters');
-    const resultsTitle = document.getElementById('resultsTitle');
-    
-    // Показываем фильтры
-    if (filtersDiv) {
-        filtersDiv.style.display = 'block';
-    }
-    resultsTitle.innerHTML = '📋 Результаты';
-    
     document.getElementById('glossaryCategory').value = 'all';
     document.getElementById('glossarySearch').value = '';
     document.getElementById('priceCurrency').value = 'copper';
