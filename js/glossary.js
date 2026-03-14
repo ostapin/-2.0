@@ -247,24 +247,6 @@ function renderCurrencies(currencies) {
     html += '</div>';
     resultsList.innerHTML = html;
 }
-        
-        // Показываем также сколько это в медных
-        const copperRate = currency.base_value;
-        
-        html += `
-            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">💰 ${currency.name}</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
-                    <div><span style="color: #b89a7a;">1 ${currency.name} =</span> ${copperRate} 🟤 Медных</div>
-                    ${rateText}
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    resultsList.innerHTML = html;
-}
 
 function applyFilters() {
     const category = document.getElementById('glossaryCategory').value;
