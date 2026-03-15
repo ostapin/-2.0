@@ -2,6 +2,7 @@
 let allMetals = [];
 let allWeapons = [];
 let allArmor = [];
+let allCreatures = [];
 let allItems = [];
 let currencyRates = {};
 let allCurrencies = [];
@@ -11,6 +12,11 @@ function loadGlossary() {
     allMetals = Object.values(metalsData);
     allWeapons = Object.values(weaponsData);
     allArmor = Object.values(armorData);
+    
+    // Загружаем животных
+    if (typeof creaturesData !== 'undefined') {
+        allCreatures = Object.values(creaturesData);
+    }
     
     // Загружаем курсы валют
     if (typeof currencyData !== 'undefined') {
@@ -248,6 +254,52 @@ function renderCurrencies(currencies) {
     resultsList.innerHTML = html;
 }
 
+function filterCreatures(searchText) {
+    let filtered = [...allCreatures];
+    
+    // Фильтр по поиску (если есть текст)
+    if (searchText && searchText.length >= 2) {
+        filtered = filtered.filter(creature => 
+            creature.name.toLowerCase().includes(searchText) || 
+            creature.description.toLowerCase().includes(searchText)
+        );
+    }
+    
+    return filtered;
+}
+
+function renderCreatures(creatures) {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '🐾 Животные';
+    
+    if (creatures.length === 0) {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Ничего не найдено</p>';
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+    
+    creatures.forEach(creature => {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">🐾 ${creature.name}</h3>
+                <p style="color: #e0d0c0; margin-bottom: 10px; font-style: italic;">${creature.description}</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                    <div><span style="color: #b89a7a;">Цена за тушу:</span> ${creature.price_carcass}</div>
+                    <div><span style="color: #b89a7a;">Цена за живого:</span> ${creature.price_alive}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    resultsList.innerHTML = html;
+}
+
 function applyFilters() {
     const category = document.getElementById('glossaryCategory').value;
     const searchText = document.getElementById('glossarySearch').value.toLowerCase();
@@ -264,6 +316,13 @@ function applyFilters() {
     if (category === 'currency') {
         const filteredCurrencies = filterCurrencies(searchText, minBase, maxBase);
         renderCurrencies(filteredCurrencies);
+        return;
+    }
+    
+    // Если выбрана категория "Животные"
+    if (category === 'creatures') {
+        const filteredCreatures = filterCreatures(searchText);
+        renderCreatures(filteredCreatures);
         return;
     }
     
