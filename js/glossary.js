@@ -43,7 +43,6 @@ function selectCategory(category) {
     // Скрываем все подкатегории
     document.getElementById('itemsSubcategory').style.display = 'none';
     document.getElementById('creaturesSubcategory').style.display = 'none';
-    document.getElementById('glossaryFilters').style.display = 'none';
     
     // Показываем нужную подкатегорию
     if (category === 'items') {
@@ -59,9 +58,6 @@ function selectCategory(category) {
 function selectSubcategory(subcategory) {
     currentSubcategory = subcategory;
     
-    // Показываем фильтры
-    document.getElementById('glossaryFilters').style.display = 'block';
-    
     // Очищаем поиск
     document.getElementById('glossarySearch').value = '';
     document.getElementById('priceMin').value = '';
@@ -75,19 +71,16 @@ function selectSubcategory(subcategory) {
 function getCurrencyIdFromString(priceString) {
     const str = priceString.toLowerCase();
     
-    // Металлы
     if (str.includes('мед')) return 'copper';
     if (str.includes('сереб')) return 'silver';
     if (str.includes('золот')) return 'gold';
     if (str.includes('платин')) return 'platinum';
     
-    // Кристаллы эфира
     if (str.includes('кристалл эфира') || str.includes('кристаллов эфира')) {
         if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
         return 'colored_ether';
     }
     
-    // Специфичные сферы
     if (str.includes('кров')) return 'blood_sphere';
     if (str.includes('льд') || str.includes('ice')) return 'ice_sphere';
     if (str.includes('огн') || str.includes('fire')) return 'fire_sphere';
@@ -95,7 +88,6 @@ function getCurrencyIdFromString(priceString) {
     if (str.includes('вод') || str.includes('water')) return 'water_sphere';
     if (str.includes('молн') || str.includes('lightning')) return 'lightning_sphere';
     
-    // Янтарная сфера
     if (str.includes('янтар') || str.includes('amber') || str.includes('сфер')) return 'amber_sphere';
     
     return 'copper';
@@ -141,7 +133,6 @@ function parseResistanceValue(value) {
 function buildAllItems() {
     allItems = [];
     
-    // Добавляем металлы
     allMetals.forEach(metal => {
         const priceAmount = extractPrice(metal.price_per_ingot);
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
@@ -163,7 +154,6 @@ function buildAllItems() {
         });
     });
     
-    // Добавляем оружие (для каждого металла)
     allMetals.forEach(metal => {
         const priceAmount = extractPrice(metal.price_per_ingot);
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
@@ -194,7 +184,6 @@ function buildAllItems() {
         });
     });
     
-    // Добавляем броню (для каждого металла)
     allMetals.forEach(metal => {
         const priceAmount = extractPrice(metal.price_per_ingot);
         const currencyId = getCurrencyIdFromString(metal.price_per_ingot);
@@ -207,7 +196,6 @@ function buildAllItems() {
             const durability = (armor.base_durability || 0) + metal.stats.durability;
             const magic_potential = metal.stats.magic_potential * slots;
             
-            // Сопротивление (30% слитков, макс 10)
             let effectiveSlots = Math.floor(slots * 0.3);
             if (effectiveSlots > 10) effectiveSlots = 10;
             const resistanceValue = parseResistanceValue(metal.stats.resistance);
@@ -398,7 +386,6 @@ function applyFilters() {
     const minBase = convertToBaseValue(priceMin, priceCurrency);
     const maxBase = convertToBaseValue(priceMax, priceCurrency);
     
-    // Обработка подкатегорий
     if (currentSubcategory === 'currency') {
         const filtered = filterCurrencies(searchText, minBase, maxBase);
         renderCurrencies(filtered);
@@ -417,7 +404,6 @@ function applyFilters() {
         return;
     }
     
-    // Для металлов, оружия, брони
     let filtered = [...allItems];
     
     if (currentSubcategory === 'metals') {
@@ -462,7 +448,6 @@ function renderResults(items) {
     
     if (!resultsList) return;
     
-    // Устанавливаем заголовок в зависимости от подкатегории
     if (currentSubcategory === 'metals') resultsTitle.innerHTML = '⚒️ Металлы';
     else if (currentSubcategory === 'weapons') resultsTitle.innerHTML = '⚔️ Оружие';
     else if (currentSubcategory === 'armor') resultsTitle.innerHTML = '🛡️ Броня';
@@ -549,7 +534,6 @@ function resetFilters() {
     applyFilters();
 }
 
-// Функции для обратной совместимости
 function showMetals() {
     selectCategory('items');
     setTimeout(() => selectSubcategory('metals'), 100);
