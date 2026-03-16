@@ -3,13 +3,15 @@ let allMetals = [];
 let allWeapons = [];
 let allArmor = [];
 let allCreatures = [];
-let allUndead = [];
 let allItems = [];
 let currencyRates = {};
 let allCurrencies = [];
 
 let currentCategory = '';
 let currentSubcategory = '';
+
+// Данные нежити (будут загружены из undead.js)
+let undeadData = null;
 
 function loadGlossary() {
     // Загружаем данные
@@ -22,8 +24,10 @@ function loadGlossary() {
         allCreatures = Object.values(creaturesData);
     }
     
-    // Загружаем нежить (пока пусто, потом добавим)
-    allUndead = [];
+    // Загружаем нежить
+    if (typeof undeadData !== 'undefined') {
+        undeadData = undeadData;
+    }
     
     // Загружаем курсы валют
     if (typeof currencyData !== 'undefined') {
@@ -327,20 +331,7 @@ function renderCreatures(creatures) {
     resultsList.innerHTML = html;
 }
 
-function filterUndead(searchText) {
-    let filtered = [...allUndead];
-    
-    if (searchText && searchText.length >= 2) {
-        filtered = filtered.filter(undead => 
-            undead.name.toLowerCase().includes(searchText) || 
-            undead.description.toLowerCase().includes(searchText)
-        );
-    }
-    
-    return filtered;
-}
-
-function renderUndead(undead) {
+function renderUndead() {
     const resultsList = document.getElementById('resultsList');
     const resultsTitle = document.getElementById('resultsTitle');
     
@@ -348,26 +339,96 @@ function renderUndead(undead) {
     
     resultsTitle.innerHTML = '💀 Нежить';
     
-    if (undead.length === 0) {
-        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Пока нет данных</p>';
+    if (!undeadData) {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о нежити не загружены</p>';
         return;
     }
     
-    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+    let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
     
-    undead.forEach(creature => {
+    // Общее описание
+    if (undeadData.general && undeadData.general.description) {
         html += `
             <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">💀 ${creature.name}</h3>
-                <p style="color: #e0d0c0; margin-bottom: 10px; font-style: italic;">${creature.description}</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
-                    <div><span style="color: #b89a7a;">Цена за тушу:</span> ${creature.price_carcass}</div>
-                    <div><span style="color: #b89a7a;">Цена за живого:</span> ${creature.price_alive}</div>
-                    <div><span style="color: #b89a7a;">Опасность:</span> ${creature.danger}</div>
-                    <div><span style="color: #b89a7a;">Обитание:</span> ${creature.habitat}</div>
-                </div>
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📜 Легенда о происхождении</h3>
+                <p style="color: #e0d0c0; font-style: italic; white-space: pre-line;">${undeadData.general.description}</p>
             </div>
         `;
+    }
+    
+    // Некромантия
+    if (undeadData.necromancy) {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📖 Что такое некромантия?</h3>
+                <p style="color: #e0d0c0; white-space: pre-line;">${undeadData.necromancy}</p>
+            </div>
+        `;
+    }
+    
+    // Особенности
+    if (undeadData.traits && undeadData.traits.length > 0) {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">⚙️ Особенности нежити</h3>
+                <div style="color: #e0d0c0;">
+        `;
+        undeadData.traits.forEach(trait => {
+            html += `<p style="margin-bottom: 10px;">${trait}</p>`;
+        });
+        html += `</div></div>`;
+    }
+    
+    // Группировки
+    const groups = [
+        { key: 'low', name: 'Низшая нежить', icon: '🦴' },
+        { key: 'intelligent', name: 'Разумная нежить', icon: '🧠' },
+        { key: 'high', name: 'Высшая нежить', icon: '👑' },
+        { key: 'incorporeal', name: 'Бесплотные', icon: '👻' }
+    ];
+    
+    groups.forEach(group => {
+        if (undeadData.groups && undeadData.groups[group.key]) {
+            const groupData = undeadData.groups[group.key];
+            const creatures = Object.values(groupData.creatures || {});
+            
+            if (creatures.length > 0) {
+                html += `
+                    <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                        <h3 style="color: #d4af37; margin-bottom: 15px;">${group.icon} ${group.name}</h3>
+                `;
+                
+                creatures.forEach(creature => {
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+                            <h4 style="color: #d4af37; margin-bottom: 10px; font-size: 1.2em;">${creature.name}</h4>
+                            
+                            ${creature.lore ? `<p style="color: #b89a7a; margin-bottom: 8px;"><strong>Справка:</strong> ${creature.lore}</p>` : ''}
+                            ${creature.appearance ? `<p style="color: #e0d0c0; font-style: italic; margin-bottom: 8px;"><strong>Описание внешности:</strong> ${creature.appearance}</p>` : ''}
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
+                                ${creature.hp ? `<div><span style="color: #b89a7a;">❤️ ХП:</span> ${creature.hp}</div>` : ''}
+                                ${creature.skills ? `<div><span style="color: #b89a7a;">⚔️ Общие навыки:</span> ${creature.skills}</div>` : ''}
+                                ${creature.class_skills ? `<div><span style="color: #b89a7a;">🔮 Классовые навыки:</span> ${creature.class_skills}</div>` : ''}
+                            </div>
+                            
+                            ${creature.other_skills ? `<p style="color: #e0d0c0; margin: 5px 0;"><strong>Прочие навыки:</strong> ${creature.other_skills}</p>` : ''}
+                            
+                            ${creature.variants ? `
+                                <div style="margin-top: 10px;">
+                                    <span style="color: #d4af37;">Разновидности:</span>
+                                    <ul style="color: #e0d0c0; margin-left: 20px; margin-top: 5px;">
+                                        ${creature.variants.map(v => `<li>${v}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+        }
     });
     
     html += '</div>';
@@ -399,8 +460,7 @@ function applyFilters() {
     }
     
     if (currentSubcategory === 'undead') {
-        const filtered = filterUndead(searchText);
-        renderUndead(filtered);
+        renderUndead();
         return;
     }
     
