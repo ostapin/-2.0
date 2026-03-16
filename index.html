@@ -398,13 +398,13 @@
         </div>
         
         <!-- Подкатегории для Существ -->
-        <div id="creaturesSubcategory" style="margin-bottom: 15px; display: none;">
-            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Подкатегория:</label>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #5a3a2a;">🐄 Животные</button>
-                <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #5a3a2a;">💀 Нежить</button>
-            </div>
-        </div>
+<div id="creaturesSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #8b4513;">🐄 Животные</button>
+        <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #8b4513;">💀 Нежить</button>
+        <button class="btn btn-small" onclick="selectSubcategory('demons')" style="background: #8b4513;">👿 Демоны</button>
+    </div>
+</div>
         
         <!-- Фильтры и поиск (всегда видны, но активны только при выбранной подкатегории) -->
         <div id="glossaryFilters">
