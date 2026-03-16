@@ -374,22 +374,33 @@
 <div id="glossary-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📚 ГЛОССАРИЙ МИРА</h2>
     
-    <!-- Фильтры и поиск -->
-    <div id="glossaryFilters" style="background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <!-- Навигация по категориям -->
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn btn-roll" onclick="selectCategory('items')" style="background: #3d2418;">📦 Предметы</button>
+        <button class="btn btn-roll" onclick="selectCategory('creatures')" style="background: #3d2418;">🐾 Существа</button>
+    </div>
+    
+    <!-- Подкатегории для Предметов -->
+    <div id="itemsSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-small" onclick="selectSubcategory('metals')" style="background: #8b4513;">⚒️ Металлы</button>
+            <button class="btn btn-small" onclick="selectSubcategory('weapons')" style="background: #8b4513;">⚔️ Оружие</button>
+            <button class="btn btn-small" onclick="selectSubcategory('armor')" style="background: #8b4513;">🛡️ Броня</button>
+            <button class="btn btn-small" onclick="selectSubcategory('currency')" style="background: #8b4513;">💰 Валюта</button>
+        </div>
+    </div>
+    
+    <!-- Подкатегории для Существ -->
+    <div id="creaturesSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #8b4513;">🐄 Животные</button>
+            <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #8b4513;">💀 Нежить</button>
+        </div>
+    </div>
+    
+    <!-- Фильтры и поиск (показываются только при выбранной подкатегории) -->
+    <div id="glossaryFilters" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
-            <!-- Категория (с добавленной валютой) -->
-            <div>
-                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Категория:</label>
-                <select id="glossaryCategory" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
-                    <option value="all">🔍 Все</option>
-                    <option value="metals">⚒️ Металлы</option>
-                    <option value="weapons">⚔️ Оружие</option>
-                    <option value="armor">🛡️ Броня</option>
-                    <option value="currency">💰 Валюта</option>
-                    <option value="creatures">🐾 Животные</option>
-                </select>
-            </div>
-            
             <!-- Валюта (для фильтра цен) -->
             <div>
                 <label style="color: #d4af37; display: block; margin-bottom: 5px;">Валюта:</label>
@@ -453,13 +464,13 @@
     
     <!-- Результаты -->
     <div id="glossaryResults" class="skills-section">
-        <div class="section-title" id="resultsTitle">📋 Результаты</div>
+        <div class="section-title" id="resultsTitle">📋 Выберите категорию</div>
         <div id="resultsList" class="glossary-content">
-            <p style="color: #8b7d6b; text-align: center;">Выберите категорию и нажмите поиск</p>
+            <p style="color: #8b7d6b; text-align: center;">Нажмите на категорию, затем выберите подкатегорию</p>
         </div>
     </div>
     
-       <!-- Отдельные секции (для навигации) -->
+    <!-- Отдельные секции (для навигации) -->
     <div id="glossaryMetals" style="display: none;"></div>
     <div id="glossaryWeapons" style="display: none;"></div>
     <div id="glossaryArmor" style="display: none;"></div>
