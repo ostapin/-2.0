@@ -374,91 +374,100 @@
 <div id="glossary-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">📚 ГЛОССАРИЙ МИРА</h2>
     
-    <!-- Навигация по категориям -->
-    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
-        <button class="btn btn-roll" onclick="selectCategory('items')" style="background: #3d2418;">📦 Предметы</button>
-        <button class="btn btn-roll" onclick="selectCategory('creatures')" style="background: #3d2418;">🐾 Существа</button>
-    </div>
-    
-    <!-- Подкатегории для Предметов -->
-    <div id="itemsSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-small" onclick="selectSubcategory('metals')" style="background: #8b4513;">⚒️ Металлы</button>
-            <button class="btn btn-small" onclick="selectSubcategory('weapons')" style="background: #8b4513;">⚔️ Оружие</button>
-            <button class="btn btn-small" onclick="selectSubcategory('armor')" style="background: #8b4513;">🛡️ Броня</button>
-            <button class="btn btn-small" onclick="selectSubcategory('currency')" style="background: #8b4513;">💰 Валюта</button>
-        </div>
-    </div>
-    
-    <!-- Подкатегории для Существ -->
-    <div id="creaturesSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #8b4513;">🐄 Животные</button>
-            <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #8b4513;">💀 Нежить</button>
-        </div>
-    </div>
-    
-    <!-- Фильтры и поиск (показываются только при выбранной подкатегории) -->
-    <div id="glossaryFilters" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
-            <!-- Валюта (для фильтра цен) -->
-            <div>
-                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Валюта:</label>
-                <select id="priceCurrency" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
-                    <option value="copper">🟤 Медные</option>
-                    <option value="silver">⚪ Серебряные</option>
-                    <option value="gold">🟡 Золотые</option>
-                    <option value="platinum">🔵 Платиновые</option>
-                    <option value="amber_sphere">🟠 Сфера (янтарная)</option>
-                    <option value="blood_sphere">🔴 Сфера (Крови)</option>
-                    <option value="ice_sphere">🔵 Сфера (Льда)</option>
-                    <option value="fire_sphere">🔥 Сфера (Огня)</option>
-                    <option value="earth_sphere">⛰️ Сфера (Земли)</option>
-                    <option value="water_sphere">💧 Сфера (Воды)</option>
-                    <option value="lightning_sphere">⚡ Сфера (Молнии)</option>
-                    <option value="colorless_ether">💎 Кристалл эфира (бесцветный)</option>
-                    <option value="colored_ether">🌈 Кристалл эфира (цветной)</option>
-                </select>
-            </div>
-            
-            <!-- Цена от -->
-            <div>
-                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Цена от:</label>
-                <input type="number" id="priceMin" class="stat-input" placeholder="0" min="0" style="width: 100%;">
-            </div>
-            
-            <!-- Цена до -->
-            <div>
-                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Цена до:</label>
-                <input type="number" id="priceMax" class="stat-input" placeholder="1000" min="0" style="width: 100%;">
-            </div>
-            
-            <!-- Сортировка -->
-            <div>
-                <label style="color: #d4af37; display: block; margin-bottom: 5px;">Сортировка:</label>
-                <select id="glossarySort" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
-                    <option value="name_asc">📝 По названию (А-Я)</option>
-                    <option value="name_desc">📝 По названию (Я-А)</option>
-                    <option value="price_asc">💰 Цена (возрастание)</option>
-                    <option value="price_desc">💰 Цена (убывание)</option>
-                    <option value="durability_asc">🔨 Прочность (возрастание)</option>
-                    <option value="durability_desc">🔨 Прочность (убывание)</option>
-                    <option value="mp_asc">✨ МП (возрастание)</option>
-                    <option value="mp_desc">✨ МП (убывание)</option>
-                </select>
+    <!-- Основной блок с фильтрами -->
+    <div style="background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        
+        <!-- Категории -->
+        <div style="margin-bottom: 15px;">
+            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Категория:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-roll" onclick="selectCategory('items')" style="background: #8b4513; flex: 1;">📦 Предметы</button>
+                <button class="btn btn-roll" onclick="selectCategory('creatures')" style="background: #8b4513; flex: 1;">🐾 Существа</button>
             </div>
         </div>
         
-        <!-- Поиск и кнопки -->
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="glossarySearch" class="search-box" placeholder="🔍 Поиск по названию..." style="flex: 1;" oninput="applyFilters()">
-            <button class="btn btn-roll" onclick="applyFilters()" style="background: #8b4513;">🔍 Найти</button>
-            <button class="btn btn-minus" onclick="resetFilters()">🔄 Сброс</button>
+        <!-- Подкатегории для Предметов -->
+        <div id="itemsSubcategory" style="margin-bottom: 15px; display: none;">
+            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Подкатегория:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-small" onclick="selectSubcategory('metals')" style="background: #5a3a2a;">⚒️ Металлы</button>
+                <button class="btn btn-small" onclick="selectSubcategory('weapons')" style="background: #5a3a2a;">⚔️ Оружие</button>
+                <button class="btn btn-small" onclick="selectSubcategory('armor')" style="background: #5a3a2a;">🛡️ Броня</button>
+                <button class="btn btn-small" onclick="selectSubcategory('currency')" style="background: #5a3a2a;">💰 Валюта</button>
+            </div>
         </div>
         
-        <!-- Подсказка по диапазону -->
-        <div style="margin-top: 10px; color: #b89a7a; font-size: 0.9em; text-align: center;">
-            ⚡ Цена указывается в выбранной валюте. Например: 10-50 золотых, 1-5 сфер и т.д.
+        <!-- Подкатегории для Существ -->
+        <div id="creaturesSubcategory" style="margin-bottom: 15px; display: none;">
+            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Подкатегория:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #5a3a2a;">🐄 Животные</button>
+                <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #5a3a2a;">💀 Нежить</button>
+            </div>
+        </div>
+        
+        <!-- Фильтры и поиск (всегда видны, но активны только при выбранной подкатегории) -->
+        <div id="glossaryFilters">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <!-- Валюта -->
+                <div>
+                    <label style="color: #d4af37; display: block; margin-bottom: 5px;">Валюта:</label>
+                    <select id="priceCurrency" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                        <option value="copper">🟤 Медные</option>
+                        <option value="silver">⚪ Серебряные</option>
+                        <option value="gold">🟡 Золотые</option>
+                        <option value="platinum">🔵 Платиновые</option>
+                        <option value="amber_sphere">🟠 Сфера (янтарная)</option>
+                        <option value="blood_sphere">🔴 Сфера (Крови)</option>
+                        <option value="ice_sphere">🔵 Сфера (Льда)</option>
+                        <option value="fire_sphere">🔥 Сфера (Огня)</option>
+                        <option value="earth_sphere">⛰️ Сфера (Земли)</option>
+                        <option value="water_sphere">💧 Сфера (Воды)</option>
+                        <option value="lightning_sphere">⚡ Сфера (Молнии)</option>
+                        <option value="colorless_ether">💎 Кристалл эфира (бесцветный)</option>
+                        <option value="colored_ether">🌈 Кристалл эфира (цветной)</option>
+                    </select>
+                </div>
+                
+                <!-- Цена от -->
+                <div>
+                    <label style="color: #d4af37; display: block; margin-bottom: 5px;">Цена от:</label>
+                    <input type="number" id="priceMin" class="stat-input" placeholder="0" min="0" style="width: 100%;">
+                </div>
+                
+                <!-- Цена до -->
+                <div>
+                    <label style="color: #d4af37; display: block; margin-bottom: 5px;">Цена до:</label>
+                    <input type="number" id="priceMax" class="stat-input" placeholder="1000" min="0" style="width: 100%;">
+                </div>
+                
+                <!-- Сортировка -->
+                <div>
+                    <label style="color: #d4af37; display: block; margin-bottom: 5px;">Сортировка:</label>
+                    <select id="glossarySort" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                        <option value="name_asc">📝 По названию (А-Я)</option>
+                        <option value="name_desc">📝 По названию (Я-А)</option>
+                        <option value="price_asc">💰 Цена (возрастание)</option>
+                        <option value="price_desc">💰 Цена (убывание)</option>
+                        <option value="durability_asc">🔨 Прочность (возрастание)</option>
+                        <option value="durability_desc">🔨 Прочность (убывание)</option>
+                        <option value="mp_asc">✨ МП (возрастание)</option>
+                        <option value="mp_desc">✨ МП (убывание)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Поиск и кнопки -->
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="glossarySearch" class="search-box" placeholder="🔍 Поиск по названию..." style="flex: 1;" oninput="applyFilters()">
+                <button class="btn btn-roll" onclick="applyFilters()" style="background: #8b4513;">🔍 Найти</button>
+                <button class="btn btn-minus" onclick="resetFilters()">🔄 Сброс</button>
+            </div>
+            
+            <!-- Подсказка по диапазону -->
+            <div style="margin-top: 10px; color: #b89a7a; font-size: 0.9em; text-align: center;">
+                ⚡ Цена указывается в выбранной валюте. Например: 10-50 золотых, 1-5 сфер и т.д.
+            </div>
         </div>
     </div>
     
