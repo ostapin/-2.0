@@ -3,9 +3,13 @@ let allMetals = [];
 let allWeapons = [];
 let allArmor = [];
 let allCreatures = [];
+let allUndead = [];
 let allItems = [];
 let currencyRates = {};
 let allCurrencies = [];
+
+let currentCategory = '';
+let currentSubcategory = '';
 
 function loadGlossary() {
     // Загружаем данные
@@ -18,6 +22,9 @@ function loadGlossary() {
         allCreatures = Object.values(creaturesData);
     }
     
+    // Загружаем нежить (пока пусто, потом добавим)
+    allUndead = [];
+    
     // Загружаем курсы валют
     if (typeof currencyData !== 'undefined') {
         currencyRates = currencyData;
@@ -29,6 +36,42 @@ function loadGlossary() {
     buildAllItems();
 }
 
+function selectCategory(category) {
+    currentCategory = category;
+    currentSubcategory = '';
+    
+    // Скрываем все подкатегории
+    document.getElementById('itemsSubcategory').style.display = 'none';
+    document.getElementById('creaturesSubcategory').style.display = 'none';
+    document.getElementById('glossaryFilters').style.display = 'none';
+    
+    // Показываем нужную подкатегорию
+    if (category === 'items') {
+        document.getElementById('itemsSubcategory').style.display = 'block';
+    } else if (category === 'creatures') {
+        document.getElementById('creaturesSubcategory').style.display = 'block';
+    }
+    
+    document.getElementById('resultsTitle').innerHTML = '📋 Выберите подкатегорию';
+    document.getElementById('resultsList').innerHTML = '<p style="color: #8b7d6b; text-align: center;">Нажмите на подкатегорию</p>';
+}
+
+function selectSubcategory(subcategory) {
+    currentSubcategory = subcategory;
+    
+    // Показываем фильтры
+    document.getElementById('glossaryFilters').style.display = 'block';
+    
+    // Очищаем поиск
+    document.getElementById('glossarySearch').value = '';
+    document.getElementById('priceMin').value = '';
+    document.getElementById('priceMax').value = '';
+    document.getElementById('glossarySort').value = 'name_asc';
+    
+    // Применяем фильтры
+    applyFilters();
+}
+
 function getCurrencyIdFromString(priceString) {
     const str = priceString.toLowerCase();
     
@@ -38,7 +81,7 @@ function getCurrencyIdFromString(priceString) {
     if (str.includes('золот')) return 'gold';
     if (str.includes('платин')) return 'platinum';
     
-    // Кристаллы эфира (проверяем до сфер!)
+    // Кристаллы эфира
     if (str.includes('кристалл эфира') || str.includes('кристаллов эфира')) {
         if (str.includes('бесцветный') || str.includes('colorless')) return 'colorless_ether';
         return 'colored_ether';
@@ -52,7 +95,7 @@ function getCurrencyIdFromString(priceString) {
     if (str.includes('вод') || str.includes('water')) return 'water_sphere';
     if (str.includes('молн') || str.includes('lightning')) return 'lightning_sphere';
     
-    // Янтарная сфера (или просто "сфера")
+    // Янтарная сфера
     if (str.includes('янтар') || str.includes('amber') || str.includes('сфер')) return 'amber_sphere';
     
     return 'copper';
@@ -194,14 +237,12 @@ function buildAllItems() {
 function filterCurrencies(searchText, minBase, maxBase) {
     let filtered = [...allCurrencies];
     
-    // Фильтр по поиску (если есть текст)
     if (searchText && searchText.length >= 2) {
         filtered = filtered.filter(currency => 
             currency.name.toLowerCase().includes(searchText)
         );
     }
     
-    // Фильтр по цене (конвертируем в медные)
     if (minBase > 0 || maxBase < Infinity) {
         filtered = filtered.filter(currency => {
             return currency.base_value >= minBase && currency.base_value <= maxBase;
@@ -227,7 +268,6 @@ function renderCurrencies(currencies) {
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
     currencies.forEach((currency, index) => {
-        // Находим следующую валюту для отображения курса
         const nextCurrency = allCurrencies[index + 1];
         
         let rateText = '';
@@ -257,7 +297,6 @@ function renderCurrencies(currencies) {
 function filterCreatures(searchText) {
     let filtered = [...allCreatures];
     
-    // Фильтр по поиску (если есть текст)
     if (searchText && searchText.length >= 2) {
         filtered = filtered.filter(creature => 
             creature.name.toLowerCase().includes(searchText) || 
@@ -274,7 +313,7 @@ function renderCreatures(creatures) {
     
     if (!resultsList) return;
     
-    resultsTitle.innerHTML = '🐾 Животные';
+    resultsTitle.innerHTML = '🐄 Животные';
     
     if (creatures.length === 0) {
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Ничего не найдено</p>';
@@ -300,43 +339,95 @@ function renderCreatures(creatures) {
     resultsList.innerHTML = html;
 }
 
+function filterUndead(searchText) {
+    let filtered = [...allUndead];
+    
+    if (searchText && searchText.length >= 2) {
+        filtered = filtered.filter(undead => 
+            undead.name.toLowerCase().includes(searchText) || 
+            undead.description.toLowerCase().includes(searchText)
+        );
+    }
+    
+    return filtered;
+}
+
+function renderUndead(undead) {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '💀 Нежить';
+    
+    if (undead.length === 0) {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Пока нет данных</p>';
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+    
+    undead.forEach(creature => {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">💀 ${creature.name}</h3>
+                <p style="color: #e0d0c0; margin-bottom: 10px; font-style: italic;">${creature.description}</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                    <div><span style="color: #b89a7a;">Цена за тушу:</span> ${creature.price_carcass}</div>
+                    <div><span style="color: #b89a7a;">Цена за живого:</span> ${creature.price_alive}</div>
+                    <div><span style="color: #b89a7a;">Опасность:</span> ${creature.danger}</div>
+                    <div><span style="color: #b89a7a;">Обитание:</span> ${creature.habitat}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    resultsList.innerHTML = html;
+}
+
 function applyFilters() {
-    const category = document.getElementById('glossaryCategory').value;
+    if (!currentSubcategory) return;
+    
     const searchText = document.getElementById('glossarySearch').value.toLowerCase();
     const priceCurrency = document.getElementById('priceCurrency').value;
     const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
     const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
     const sortBy = document.getElementById('glossarySort').value;
     
-    // Конвертируем введенный диапазон в базовую валюту
     const minBase = convertToBaseValue(priceMin, priceCurrency);
     const maxBase = convertToBaseValue(priceMax, priceCurrency);
     
-    // Если выбрана категория "Валюта"
-    if (category === 'currency') {
-        const filteredCurrencies = filterCurrencies(searchText, minBase, maxBase);
-        renderCurrencies(filteredCurrencies);
+    // Обработка подкатегорий
+    if (currentSubcategory === 'currency') {
+        const filtered = filterCurrencies(searchText, minBase, maxBase);
+        renderCurrencies(filtered);
         return;
     }
     
-    // Если выбрана категория "Животные"
-    if (category === 'creatures') {
-        const filteredCreatures = filterCreatures(searchText);
-        renderCreatures(filteredCreatures);
+    if (currentSubcategory === 'animals') {
+        const filtered = filterCreatures(searchText);
+        renderCreatures(filtered);
         return;
     }
     
-    // Для остальных категорий
+    if (currentSubcategory === 'undead') {
+        const filtered = filterUndead(searchText);
+        renderUndead(filtered);
+        return;
+    }
+    
+    // Для металлов, оружия, брони
     let filtered = [...allItems];
     
-    // Фильтр по категории
-    if (category !== 'all') {
-        if (category === 'metals') filtered = filtered.filter(item => item.type === 'metal');
-        if (category === 'weapons') filtered = filtered.filter(item => item.type === 'weapon');
-        if (category === 'armor') filtered = filtered.filter(item => item.type === 'armor');
+    if (currentSubcategory === 'metals') {
+        filtered = filtered.filter(item => item.type === 'metal');
+    } else if (currentSubcategory === 'weapons') {
+        filtered = filtered.filter(item => item.type === 'weapon');
+    } else if (currentSubcategory === 'armor') {
+        filtered = filtered.filter(item => item.type === 'armor');
     }
     
-    // Фильтр по поиску
     if (searchText.length >= 2) {
         filtered = filtered.filter(item => 
             item.name.toLowerCase().includes(searchText) || 
@@ -344,12 +435,10 @@ function applyFilters() {
         );
     }
     
-    // Фильтр по цене (в базовой валюте)
     filtered = filtered.filter(item => {
         return item.base_value >= minBase && item.base_value <= maxBase;
     });
     
-    // Сортировка
     filtered.sort((a, b) => {
         switch(sortBy) {
             case 'name_asc': return a.name.localeCompare(b.name);
@@ -373,7 +462,11 @@ function renderResults(items) {
     
     if (!resultsList) return;
     
-    resultsTitle.innerHTML = '📋 Результаты';
+    // Устанавливаем заголовок в зависимости от подкатегории
+    if (currentSubcategory === 'metals') resultsTitle.innerHTML = '⚒️ Металлы';
+    else if (currentSubcategory === 'weapons') resultsTitle.innerHTML = '⚔️ Оружие';
+    else if (currentSubcategory === 'armor') resultsTitle.innerHTML = '🛡️ Броня';
+    else resultsTitle.innerHTML = '📋 Результаты';
     
     if (items.length === 0) {
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Ничего не найдено</p>';
@@ -386,7 +479,6 @@ function renderResults(items) {
         const formattedPrice = formatPrice(item.price, item.currency);
         
         if (item.type === 'metal') {
-            // Отображение металла
             let skillsHtml = '';
             if (item.metal.skills && item.metal.skills.length > 0) {
                 skillsHtml = '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #8b4513;">';
@@ -416,7 +508,6 @@ function renderResults(items) {
                 </div>
             `;
         } else if (item.type === 'weapon') {
-            // Отображение оружия
             html += `
                 <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
                     <h3 style="color: #d4af37; margin-bottom: 10px;">⚔️ ${item.name}</h3>
@@ -429,7 +520,6 @@ function renderResults(items) {
                 </div>
             `;
         } else if (item.type === 'armor') {
-            // Отображение брони
             html += `
                 <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
                     <h3 style="color: #d4af37; margin-bottom: 10px;">🛡️ ${item.name}</h3>
@@ -450,7 +540,6 @@ function renderResults(items) {
 }
 
 function resetFilters() {
-    document.getElementById('glossaryCategory').value = 'all';
     document.getElementById('glossarySearch').value = '';
     document.getElementById('priceCurrency').value = 'copper';
     document.getElementById('priceMin').value = '';
@@ -460,33 +549,28 @@ function resetFilters() {
     applyFilters();
 }
 
-// Старые функции для обратной совместимости
+// Функции для обратной совместимости
 function showMetals() {
-    document.getElementById('glossaryCategory').value = 'metals';
-    applyFilters();
+    selectCategory('items');
+    setTimeout(() => selectSubcategory('metals'), 100);
 }
 
 function showWeaponsForMetal(metalId) {
-    const metal = metalsData[metalId];
-    if (!metal) return;
-    
-    document.getElementById('glossaryCategory').value = 'weapons';
-    document.getElementById('glossarySearch').value = metal.name;
-    applyFilters();
+    selectCategory('items');
+    setTimeout(() => {
+        selectSubcategory('weapons');
+        document.getElementById('glossarySearch').value = metalsData[metalId].name;
+        applyFilters();
+    }, 100);
 }
 
 function showArmorForMetal(metalId) {
-    const metal = metalsData[metalId];
-    if (!metal) return;
-    
-    document.getElementById('glossaryCategory').value = 'armor';
-    document.getElementById('glossarySearch').value = metal.name;
-    applyFilters();
-}
-
-function searchMetals() {
-    document.getElementById('glossaryCategory').value = 'metals';
-    applyFilters();
+    selectCategory('items');
+    setTimeout(() => {
+        selectSubcategory('armor');
+        document.getElementById('glossarySearch').value = metalsData[metalId].name;
+        applyFilters();
+    }, 100);
 }
 
 // Загружаем данные при старте
