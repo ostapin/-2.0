@@ -10,9 +10,6 @@ let allCurrencies = [];
 let currentCategory = '';
 let currentSubcategory = '';
 
-// Данные нежити (будут загружены из undead.js)
-let undeadData = null;
-
 function loadGlossary() {
     // Загружаем данные
     allMetals = Object.values(metalsData);
@@ -22,11 +19,6 @@ function loadGlossary() {
     // Загружаем животных
     if (typeof creaturesData !== 'undefined') {
         allCreatures = Object.values(creaturesData);
-    }
-    
-    // Загружаем нежить
-    if (typeof undeadData !== 'undefined') {
-        undeadData = undeadData;
     }
     
     // Загружаем курсы валют
@@ -339,7 +331,7 @@ function renderUndead() {
     
     resultsTitle.innerHTML = '💀 Нежить';
     
-    if (!undeadData) {
+    if (typeof undeadData === 'undefined') {
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о нежити не загружены</p>';
         return;
     }
