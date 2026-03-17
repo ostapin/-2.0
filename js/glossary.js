@@ -39,12 +39,15 @@ function selectCategory(category) {
     // Скрываем все подкатегории
     document.getElementById('itemsSubcategory').style.display = 'none';
     document.getElementById('creaturesSubcategory').style.display = 'none';
+    document.getElementById('magicSubcategory').style.display = 'none';
     
     // Показываем нужную подкатегорию
     if (category === 'items') {
         document.getElementById('itemsSubcategory').style.display = 'block';
     } else if (category === 'creatures') {
         document.getElementById('creaturesSubcategory').style.display = 'block';
+    } else if (category === 'magic') {
+        document.getElementById('magicSubcategory').style.display = 'block';
     }
     
     document.getElementById('resultsTitle').innerHTML = '📋 Выберите подкатегорию';
@@ -589,6 +592,79 @@ function renderGiants() {
     resultsList.innerHTML = html;
 }
 
+// НОВАЯ ФУНКЦИЯ: Отображение магии
+function renderMagic() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '🔮 Магия';
+    
+    if (typeof magicData === 'undefined') {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о магии не загружены</p>';
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+    
+    if (currentSubcategory === 'spells') {
+        // Показываем все школы магии
+        const schools = Object.values(magicData.spells);
+        
+        schools.forEach(school => {
+            const spells = Object.values(school.schools || {});
+            
+            if (spells.length > 0) {
+                html += `
+                    <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                        <h3 style="color: #d4af37; margin-bottom: 15px;">🔮 ${school.name}</h3>
+                `;
+                
+                spells.forEach(spell => {
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+                            <h4 style="color: #d4af37; margin-bottom: 10px; font-size: 1.2em;">${spell.name}</h4>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
+                                ${spell.level ? `<div><span style="color: #b89a7a;">📊 Уровень:</span> ${spell.level}</div>` : ''}
+                                ${spell.type ? `<div><span style="color: #b89a7a;">🎯 Тип:</span> ${spell.type}</div>` : ''}
+                                ${spell.cast_time ? `<div><span style="color: #b89a7a;">⏱️ Время каста:</span> ${spell.cast_time}</div>` : ''}
+                                ${spell.duration ? `<div><span style="color: #b89a7a;">⌛ Длительность:</span> ${spell.duration}</div>` : ''}
+                                ${spell.cooldown ? `<div><span style="color: #b89a7a;">🔄 Перезарядка:</span> ${spell.cooldown}</div>` : ''}
+                                ${spell.cost ? `<div><span style="color: #b89a7a;">💙 Затраты:</span> ${spell.cost}</div>` : ''}
+                            </div>
+                            
+                            <p style="color: #e0d0c0; margin: 10px 0;"><strong>✨ Эффект:</strong> ${spell.effect}</p>
+                            
+                            ${spell.enhancement ? `<p style="color: #e0d0c0; margin: 5px 0;"><strong>⚡ Усиление:</strong> ${spell.enhancement}</p>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+        });
+    } else if (currentSubcategory === 'formation') {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">🔮 Формация</h3>
+                <p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>
+            </div>
+        `;
+    } else if (currentSubcategory === 'runes') {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">⚡ Руны</h3>
+                <p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    resultsList.innerHTML = html;
+}
+
 function applyFilters() {
     if (!currentSubcategory) return;
     
@@ -625,6 +701,12 @@ function applyFilters() {
     
     if (currentSubcategory === 'giants') {
         renderGiants();
+        return;
+    }
+    
+    // НОВОЕ: обработка магии
+    if (currentSubcategory === 'spells' || currentSubcategory === 'formation' || currentSubcategory === 'runes') {
+        renderMagic();
         return;
     }
     
