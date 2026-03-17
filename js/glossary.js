@@ -506,6 +506,89 @@ function renderDemons() {
     resultsList.innerHTML = html;
 }
 
+function renderGiants() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '🪨 Великаны';
+    
+    if (typeof giantsData === 'undefined') {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о великанах не загружены</p>';
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+    
+    if (giantsData.general && giantsData.general.description) {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📜 Легенда о происхождении</h3>
+                <p style="color: #e0d0c0; font-style: italic; white-space: pre-line;">${giantsData.general.description}</p>
+            </div>
+        `;
+    }
+    
+    if (giantsData.giant_lore) {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📖 О великанах</h3>
+                <p style="color: #e0d0c0; white-space: pre-line;">${giantsData.giant_lore}</p>
+            </div>
+        `;
+    }
+    
+    if (giantsData.traits && giantsData.traits.length > 0) {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">⚙️ Особенности великанов</h3>
+                <div style="color: #e0d0c0;">
+        `;
+        giantsData.traits.forEach(trait => {
+            html += `<p style="margin-bottom: 10px;">${trait}</p>`;
+        });
+        html += `</div></div>`;
+    }
+    
+    if (giantsData.groups) {
+        const groups = Object.values(giantsData.groups);
+        groups.forEach(group => {
+            const creatures = Object.values(group.creatures || {});
+            
+            if (creatures.length > 0) {
+                html += `
+                    <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                        <h3 style="color: #d4af37; margin-bottom: 15px;">🪨 ${group.name}</h3>
+                `;
+                
+                creatures.forEach(creature => {
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+                            <h4 style="color: #d4af37; margin-bottom: 10px; font-size: 1.2em;">${creature.name}</h4>
+                            
+                            ${creature.lore ? `<p style="color: #b89a7a; margin-bottom: 8px;"><strong>Справка:</strong> ${creature.lore}</p>` : ''}
+                            ${creature.appearance ? `<p style="color: #e0d0c0; font-style: italic; margin-bottom: 8px;"><strong>Описание внешности:</strong> ${creature.appearance}</p>` : ''}
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
+                                ${creature.hp ? `<div><span style="color: #b89a7a;">❤️ ХП:</span> ${creature.hp}</div>` : ''}
+                                ${creature.skills ? `<div><span style="color: #b89a7a;">⚔️ Навыки:</span> ${creature.skills}</div>` : ''}
+                            </div>
+                            
+                            ${creature.other_skills ? `<p style="color: #e0d0c0; margin: 5px 0;"><strong>Прочие навыки:</strong> ${creature.other_skills}</p>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+        });
+    }
+    
+    html += '</div>';
+    resultsList.innerHTML = html;
+}
+
 function applyFilters() {
     if (!currentSubcategory) return;
     
@@ -537,6 +620,11 @@ function applyFilters() {
     
     if (currentSubcategory === 'demons') {
         renderDemons();
+        return;
+    }
+    
+    if (currentSubcategory === 'giants') {
+        renderGiants();
         return;
     }
     
