@@ -441,20 +441,20 @@ function renderDemons() {
     if (demonsData.general && demonsData.general.description) {
         html += `
             <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">📜 О демонах</h3>
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📜 Легенда о происхождении</h3>
                 <p style="color: #e0d0c0; font-style: italic; white-space: pre-line;">${demonsData.general.description}</p>
             </div>
         `;
     }
-    console.log(demonData.demonology)
-
-
+    
+    if (demonsData.demonology) {
         html += `
             <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
-                <h3 style="color: #d4af37; margin-bottom: 10px;">📜Демонология</h3>
-                <p style="color: #e0d0c0; font-style: italic; white-space: pre-line;">${demonsData.demonology}</p>
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📖 Устройство Плана Демонов</h3>
+                <p style="color: #e0d0c0; white-space: pre-line;">${demonsData.demonology}</p>
             </div>
         `;
+    }
     
     if (demonsData.traits && demonsData.traits.length > 0) {
         html += `
