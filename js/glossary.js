@@ -40,6 +40,7 @@ function selectCategory(category) {
     document.getElementById('itemsSubcategory').style.display = 'none';
     document.getElementById('creaturesSubcategory').style.display = 'none';
     document.getElementById('magicSubcategory').style.display = 'none';
+    document.getElementById('systemSubcategory').style.display = 'none';
     
     // Показываем нужную подкатегорию
     if (category === 'items') {
@@ -48,6 +49,8 @@ function selectCategory(category) {
         document.getElementById('creaturesSubcategory').style.display = 'block';
     } else if (category === 'magic') {
         document.getElementById('magicSubcategory').style.display = 'block';
+    } else if (category === 'system') {
+        document.getElementById('systemSubcategory').style.display = 'block';
     }
     
     document.getElementById('resultsTitle').innerHTML = '📋 Выберите подкатегорию';
@@ -665,6 +668,37 @@ function renderMagic() {
     resultsList.innerHTML = html;
 }
 
+// НОВАЯ ФУНКЦИЯ: Отображение системы
+function renderSystem() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    if (currentSubcategory === 'loot') {
+        resultsTitle.innerHTML = '📦 Таблица лута';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    } else if (currentSubcategory === 'hacking') {
+        resultsTitle.innerHTML = '🔓 Взлом';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    } else if (currentSubcategory === 'reaction') {
+        resultsTitle.innerHTML = '😊 Реакция на персонажа';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    } else if (currentSubcategory === 'aimed') {
+        resultsTitle.innerHTML = '🎯 Прицельный огонь';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    } else if (currentSubcategory === 'battle') {
+        resultsTitle.innerHTML = '⚔️ Таблица боя';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    } else if (currentSubcategory === 'gems') {
+        resultsTitle.innerHTML = '💎 Ценность камней';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    } else if (currentSubcategory === 'coins') {
+        resultsTitle.innerHTML = '🪙 Таблица монет';
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    }
+}
+
 function applyFilters() {
     if (!currentSubcategory) return;
     
@@ -704,9 +738,17 @@ function applyFilters() {
         return;
     }
     
-    // НОВОЕ: обработка магии
+    // Обработка магии
     if (currentSubcategory === 'spells' || currentSubcategory === 'formation' || currentSubcategory === 'runes') {
         renderMagic();
+        return;
+    }
+    
+    // НОВОЕ: обработка системы
+    if (currentSubcategory === 'loot' || currentSubcategory === 'hacking' || currentSubcategory === 'reaction' || 
+        currentSubcategory === 'aimed' || currentSubcategory === 'battle' || currentSubcategory === 'gems' || 
+        currentSubcategory === 'coins') {
+        renderSystem();
         return;
     }
     
