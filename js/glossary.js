@@ -595,7 +595,7 @@ function renderGiants() {
     resultsList.innerHTML = html;
 }
 
-// НОВАЯ ФУНКЦИЯ: Отображение магии
+// Отображение магии
 function renderMagic() {
     const resultsList = document.getElementById('resultsList');
     const resultsTitle = document.getElementById('resultsTitle');
@@ -668,7 +668,7 @@ function renderMagic() {
     resultsList.innerHTML = html;
 }
 
-// НОВАЯ ФУНКЦИЯ: Отображение системы
+// Отображение системы
 function renderSystem() {
     const resultsList = document.getElementById('resultsList');
     const resultsTitle = document.getElementById('resultsTitle');
@@ -677,7 +677,61 @@ function renderSystem() {
     
     if (currentSubcategory === 'loot') {
         resultsTitle.innerHTML = '📦 Таблица лута';
-        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+        
+        if (typeof lootSystem === 'undefined') {
+            resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные не загружены</p>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+        
+        // Введение
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📖 Как это работает</h3>
+                <div style="color: #e0d0c0; line-height: 1.6;">
+                    ${lootSystem.introduction}
+                </div>
+            </div>
+        `;
+        
+        // Таблица лута
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 15px;">📊 Таблица лута</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+        `;
+        
+        lootSystem.lootTable.forEach(row => {
+            let bgColor = '#2a1a0f';
+            if (row.min >= 150) bgColor = '#4a2a1f';
+            if (row.min >= 170) bgColor = '#5a3a2a';
+            if (row.min >= 190) bgColor = '#6a4a3a';
+            
+            html += `
+                <div style="display: grid; grid-template-columns: 100px 1fr; background: ${bgColor}; border-radius: 4px; padding: 10px;">
+                    <div style="color: #d4af37; font-weight: bold;">${row.min} - ${row.max}</div>
+                    <div style="color: #e0d0c0;">${row.reward}</div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+            
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">🎲 Пример использования</h3>
+                <p style="color: #e0d0c0;">Игрок с навыком "Удача" 15 кинул 3d6 и получил 10. Разница: 5 → +5% к броску.</p>
+                <p style="color: #e0d0c0;">Бросок d100: 65 + 5% = 68. Результат: Золото, ресурсы, драгоценности.</p>
+                <button class="btn btn-roll" onclick="testLoot()" style="margin-top: 10px;">🎲 Тест броска</button>
+                <div id="lootTestResult" style="margin-top: 10px; color: #d4af37;"></div>
+            </div>
+        `;
+        
+        html += '</div>';
+        resultsList.innerHTML = html;
+        
     } else if (currentSubcategory === 'hacking') {
         resultsTitle.innerHTML = '🔓 Взлом';
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
@@ -698,6 +752,25 @@ function renderSystem() {
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
     }
 }
+
+// Тестовая функция для лута
+window.testLoot = function() {
+    const luckSkill = 15; // Можно потом сделать ввод
+    const luckRoll = Math.floor(Math.random() * 18) + 3; // 3d6
+    const luckBonus = Math.max(0, luckSkill - luckRoll);
+    
+    const baseRoll = Math.floor(Math.random() * 100) + 1;
+    const finalRoll = baseRoll + luckBonus;
+    
+    const result = lootSystem.getLoot(finalRoll);
+    
+    document.getElementById('lootTestResult').innerHTML = `
+        🎯 Бросок удачи: ${luckRoll} | Бонус: +${luckBonus}%<br>
+        🎲 База d100: ${baseRoll}<br>
+        ✨ Итог: ${finalRoll}<br>
+        📦 Результат: ${result}
+    `;
+};
 
 function applyFilters() {
     if (!currentSubcategory) return;
@@ -744,7 +817,7 @@ function applyFilters() {
         return;
     }
     
-    // НОВОЕ: обработка системы
+    // Обработка системы
     if (currentSubcategory === 'loot' || currentSubcategory === 'hacking' || currentSubcategory === 'reaction' || 
         currentSubcategory === 'aimed' || currentSubcategory === 'battle' || currentSubcategory === 'gems' || 
         currentSubcategory === 'coins') {
