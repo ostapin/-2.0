@@ -400,24 +400,41 @@
         </div>
         
         <!-- Подкатегории для Существ -->
-<div id="creaturesSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #8b4513;">🐄 Животные</button>
-        <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #8b4513;">💀 Нежить</button>
-        <button class="btn btn-small" onclick="selectSubcategory('demons')" style="background: #8b4513;">👿 Демоны</button>
-        <button class="btn btn-small" onclick="selectSubcategory('giants')" style="background: #8b4513;">🪨 Великаны</button>
-    </div>
-</div>
-        <!-- Подкатегории для Магии -->
-<div id="magicSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-small" onclick="selectSubcategory('spells')" style="background: #8b4513;">✨ Заклинания</button>
-        <button class="btn btn-small" onclick="selectSubcategory('formation')" style="background: #8b4513;">🔮 Формация</button>
-        <button class="btn btn-small" onclick="selectSubcategory('runes')" style="background: #8b4513;">⚡ Руны</button>
-    </div>
-</div>
+        <div id="creaturesSubcategory" style="margin-bottom: 15px; display: none;">
+            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Подкатегория:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-small" onclick="selectSubcategory('animals')" style="background: #5a3a2a;">🐄 Животные</button>
+                <button class="btn btn-small" onclick="selectSubcategory('undead')" style="background: #5a3a2a;">💀 Нежить</button>
+                <button class="btn btn-small" onclick="selectSubcategory('demons')" style="background: #5a3a2a;">👿 Демоны</button>
+                <button class="btn btn-small" onclick="selectSubcategory('giants')" style="background: #5a3a2a;">🪨 Великаны</button>
+            </div>
+        </div>
         
-        <!-- Фильтры и поиск (всегда видны, но активны только при выбранной подкатегории) -->
+        <!-- Подкатегории для Магии -->
+        <div id="magicSubcategory" style="margin-bottom: 15px; display: none;">
+            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Подкатегория:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-small" onclick="selectSubcategory('spells')" style="background: #5a3a2a;">✨ Заклинания</button>
+                <button class="btn btn-small" onclick="selectSubcategory('formation')" style="background: #5a3a2a;">🔮 Формация</button>
+                <button class="btn btn-small" onclick="selectSubcategory('runes')" style="background: #5a3a2a;">⚡ Руны</button>
+            </div>
+        </div>
+        
+        <!-- Подкатегории для Системы -->
+        <div id="systemSubcategory" style="margin-bottom: 15px; display: none;">
+            <label style="color: #d4af37; display: block; margin-bottom: 5px;">Подкатегория:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-small" onclick="selectSubcategory('loot')" style="background: #5a3a2a;">📦 Таблица лута</button>
+                <button class="btn btn-small" onclick="selectSubcategory('hacking')" style="background: #5a3a2a;">🔓 Взлом</button>
+                <button class="btn btn-small" onclick="selectSubcategory('reaction')" style="background: #5a3a2a;">😊 Реакция на персонажа</button>
+                <button class="btn btn-small" onclick="selectSubcategory('aimed')" style="background: #5a3a2a;">🎯 Прицельный огонь</button>
+                <button class="btn btn-small" onclick="selectSubcategory('battle')" style="background: #5a3a2a;">⚔️ Таблица боя</button>
+                <button class="btn btn-small" onclick="selectSubcategory('gems')" style="background: #5a3a2a;">💎 Ценность камней</button>
+                <button class="btn btn-small" onclick="selectSubcategory('coins')" style="background: #5a3a2a;">🪙 Таблица монет</button>
+            </div>
+        </div>
+        
+        <!-- Фильтры и поиск -->
         <div id="glossaryFilters">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
                 <!-- Валюта -->
@@ -495,18 +512,6 @@
     <div id="glossaryWeapons" style="display: none;"></div>
     <div id="glossaryArmor" style="display: none;"></div>
     
-    <!-- Подкатегории для Системы -->
-    <div id="systemSubcategory" style="display: none; background: #3d2418; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-small" onclick="selectSubcategory('loot')" style="background: #8b4513;">📦 Таблица лута</button>
-            <button class="btn btn-small" onclick="selectSubcategory('hacking')" style="background: #8b4513;">🔓 Взлом</button>
-            <button class="btn btn-small" onclick="selectSubcategory('reaction')" style="background: #8b4513;">😊 Реакция на персонажа</button>
-            <button class="btn btn-small" onclick="selectSubcategory('aimed')" style="background: #8b4513;">🎯 Прицельный огонь</button>
-            <button class="btn btn-small" onclick="selectSubcategory('battle')" style="background: #8b4513;">⚔️ Таблица боя</button>
-            <button class="btn btn-small" onclick="selectSubcategory('gems')" style="background: #8b4513;">💎 Ценность камней</button>
-            <button class="btn btn-small" onclick="selectSubcategory('coins')" style="background: #8b4513;">🪙 Таблица монет</button>
-        </div>
-    </div>
 </div> <!-- Закрытие глоссария -->
 
 <!-- Вкладка боя -->
