@@ -33,13 +33,13 @@ const hackingSystem = {
             <p style="color: #e0d0c0;">❌ Если результат броска (после штрафа) МЕНЬШЕ навыка - замок не открыт</p>
         </div>
 
-        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+                <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">⚡ КРИТИЧЕСКИЕ СЛУЧАИ:</h3>
-            <p style="color: #d4af37; margin-bottom: 5px;">🔥 Критический успех (18 или 17):</p>
-            <p style="color: #e0d0c0;">Если выпало 18 (6,6,6) или 17 (6,6,5) - ведущий сам решает, что происходит: замок открывается мгновенно, отмычка не ломается, замок не издаёт звука, или что-то ещё.</p>
+            <p style="color: #d4af37; margin-bottom: 5px;">🔥 Критический успех (3 или 4):</p>
+            <p style="color: #e0d0c0;">Если выпало 3 (1,1,1) или 4 (1,1,2) - ведущий сам решает, что происходит: замок открывается мгновенно, отмычка не ломается, замок не издаёт звука, или что-то ещё.</p>
             
-            <p style="color: #d4af37; margin-top: 15px; margin-bottom: 5px;">💥 Критический провал (3 или 4):</p>
-            <p style="color: #e0d0c0;">Если выпало 3 (1,1,1) или 4 (1,1,2) - ведущий сам решает, что происходит: отмычка ломается, замок блокируется, поднимается шум, или что-то ещё.</p>
+            <p style="color: #d4af37; margin-top: 15px; margin-bottom: 5px;">💥 Критический провал (18 или 17):</p>
+            <p style="color: #e0d0c0;">Если выпало 18 (6,6,6) или 17 (6,6,5) - ведущий сам решает, что происходит: отмычка ломается, замок блокируется, поднимается шум, или что-то ещё.</p>
         </div>
 
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
