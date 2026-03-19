@@ -23,17 +23,17 @@ const hackingSystem = {
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">🎲 КАК РАБОТАЕТ МЕХАНИКА:</h3>
             <p style="color: #e0d0c0;">1. Игрок кидает 3d6 для проверки навыка "Взлом"</p>
-            <p style="color: #e0d0c0;">2. От результата отнимается штраф сложности замка</p>
-            <p style="color: #e0d0c0;">3. Полученное число сравнивается с навыком персонажа</p>
+            <p style="color: #e0d0c0;">2. От навыка отнимается штраф сложности замка</p>
+            <p style="color: #e0d0c0;">3. Результат броска сравнивается с полученным числом</p>
         </div>
 
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">📊 ОПРЕДЕЛЕНИЕ РЕЗУЛЬТАТА:</h3>
-            <p style="color: #e0d0c0;">✅ Если результат броска (после штрафа) БОЛЬШЕ или РАВЕН навыку - замок открыт</p>
-            <p style="color: #e0d0c0;">❌ Если результат броска (после штрафа) МЕНЬШЕ навыка - замок не открыт</p>
+            <p style="color: #e0d0c0;">✅ Если бросок МЕНЬШЕ или РАВЕН (навык - штраф) - замок открыт</p>
+            <p style="color: #e0d0c0;">❌ Если бросок БОЛЬШЕ (навык - штраф) - замок не открыт</p>
         </div>
 
-                <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">⚡ КРИТИЧЕСКИЕ СЛУЧАИ:</h3>
             <p style="color: #d4af37; margin-bottom: 5px;">🔥 Критический успех (3 или 4):</p>
             <p style="color: #e0d0c0;">Если выпало 3 (1,1,1) или 4 (1,1,2) - ведущий сам решает, что происходит: замок открывается мгновенно, отмычка не ломается, замок не издаёт звука, или что-то ещё.</p>
@@ -42,7 +42,7 @@ const hackingSystem = {
             <p style="color: #e0d0c0;">Если выпало 18 (6,6,6) или 17 (6,6,5) - ведущий сам решает, что происходит: отмычка ломается, замок блокируется, поднимается шум, или что-то ещё.</p>
         </div>
 
-                     <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">📝 ПРИМЕР:</h3>
             <div style="color: #e0d0c0;">
                 У персонажа навык "Взлом" = 14<br>
@@ -91,32 +91,32 @@ const hackingSystem = {
     `,
     
     // Функция для проверки взлома
-checkHack: function(skill, roll, penalty) {
-    const effectiveSkill = skill - penalty;  // эффективный навык = навык - штраф
-    const success = roll <= effectiveSkill;   // успех если бросок МЕНЬШЕ ИЛИ РАВНО эффективному навыку
-    return {
-        effectiveSkill: effectiveSkill,
-        roll: roll,
-        success: success
-    };
-}
+    checkHack: function(skill, roll, penalty) {
+        const effectiveSkill = skill - penalty;
+        const success = roll <= effectiveSkill;
+        return {
+            effectiveSkill: effectiveSkill,
+            roll: roll,
+            success: success
+        };
+    },
     
     // Функция для определения критического результата
-getCritical: function(roll) {
-    if (roll === 3 || roll === 4) return "critical_success";
-    if (roll === 18 || roll === 17) return "critical_fail";
-    return "normal";
-}
+    getCritical: function(roll) {
+        if (roll === 3 || roll === 4) return "critical_success";
+        if (roll === 18 || roll === 17) return "critical_fail";
+        return "normal";
+    }
 };
 
 // Тестовая функция для взлома
 window.testHacking = function() {
-    const hackSkill = 14; // Можно потом сделать ввод
+    const hackSkill = 14;
     const select = document.getElementById('hackingDifficulty');
     const penalty = parseInt(select.value);
     const difficultyName = select.options[select.selectedIndex].text.split(' ')[0];
     
-    const roll = Math.floor(Math.random() * 16) + 3; // 3d6 (3-18)
+    const roll = Math.floor(Math.random() * 16) + 3;
     const critical = hackingSystem.getCritical(roll);
     const result = hackingSystem.checkHack(hackSkill, roll, penalty);
     
@@ -137,8 +137,8 @@ window.testHacking = function() {
         🎯 Навык взлома: ${hackSkill}<br>
         🔒 Тип замка: ${difficultyName} (штраф -${penalty})<br>
         🎲 Бросок 3d6: ${roll}<br>
-        ${critical ? `⚡ ${criticalText}<br>` : ""}
-        📊 Итог: ${roll} - ${penalty} = ${result.finalRoll}<br>
+        ${criticalText ? `⚡ ${criticalText}<br>` : ""}
+        📊 Эффективный навык: ${hackSkill} - ${penalty} = ${result.effectiveSkill}<br>
         🔓 Результат: ${resultText}
     `;
 };
