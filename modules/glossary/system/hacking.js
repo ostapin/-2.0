@@ -42,14 +42,14 @@ const hackingSystem = {
             <p style="color: #e0d0c0;">Если выпало 18 (6,6,6) или 17 (6,6,5) - ведущий сам решает, что происходит: отмычка ломается, замок блокируется, поднимается шум, или что-то ещё.</p>
         </div>
 
-        <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
+               <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">📝 ПРИМЕР:</h3>
             <div style="color: #e0d0c0;">
                 У персонажа навык "Взлом" = 14<br>
                 Он пытается открыть Сложный замок (штраф -6)<br>
+                Эффективный навык: 14 - 6 = 8<br>
                 Бросок 3d6: 15<br>
-                Итог: 15 - 6 = 9<br>
-                9 меньше чем навык 14 → замок не открыт
+                15 ≥ 8 → ✅ замок открыт
             </div>
         </div>
 
