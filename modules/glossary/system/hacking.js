@@ -101,11 +101,11 @@ const hackingSystem = {
     },
     
     // Функция для определения критического результата
-    getCritical: function(roll) {
-        if (roll === 18 || roll === 17) return "critical_success";
-        if (roll === 3 || roll === 4) return "critical_fail";
-        return "normal";
-    }
+getCritical: function(roll) {
+    if (roll === 3 || roll === 4) return "critical_success";
+    if (roll === 18 || roll === 17) return "critical_fail";
+    return "normal";
+}
 };
 
 // Тестовая функция для взлома
