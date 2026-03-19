@@ -722,8 +722,8 @@ function renderSystem() {
             
             <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
                 <h3 style="color: #d4af37; margin-bottom: 10px;">🎲 Пример использования</h3>
-                <p style="color: #e0d0c0;">Игрок с навыком "Удача" 15 кинул 3d6 и получил 10. Разница: 5 → +5% к броску.</p>
-                <p style="color: #e0d0c0;">Бросок d100: 65 + 5% = 68. Результат: Золото, ресурсы, драгоценности.</p>
+                <p style="color: #e0d0c0;">Игрок с навыком "Удача" 15 кинул 3d6 и получил 10. Разница: 5 → +25% к броску.</p>
+                <p style="color: #e0d0c0;">Бросок d100: 65 + 25 = 90. Результат: Золото х2, ресурсы/драгоценности, особо ценная вещь.</p>
                 <button class="btn btn-roll" onclick="testLoot()" style="margin-top: 10px;">🎲 Тест броска</button>
                 <div id="lootTestResult" style="margin-top: 10px; color: #d4af37;"></div>
             </div>
@@ -753,21 +753,25 @@ function renderSystem() {
     }
 }
 
-// Тестовая функция для лута
+// Исправленная тестовая функция для лута
 window.testLoot = function() {
-    const luckSkill = 15; // Можно потом сделать ввод
-    const luckRoll = Math.floor(Math.random() * 18) + 3; // 3d6
-    const luckBonus = Math.max(0, luckSkill - luckRoll);
+    const luckSkill = 15;
+    const luckRoll = Math.floor(Math.random() * 16) + 3; // 3d6 (3-18)
+    const diff = luckSkill - luckRoll;
+    const bonus = diff * 5;
     
     const baseRoll = Math.floor(Math.random() * 100) + 1;
-    const finalRoll = baseRoll + luckBonus;
+    const finalRoll = baseRoll + bonus;
     
     const result = lootSystem.getLoot(finalRoll);
     
     document.getElementById('lootTestResult').innerHTML = `
-        🎯 Бросок удачи: ${luckRoll} | Бонус: +${luckBonus}%<br>
-        🎲 База d100: ${baseRoll}<br>
-        ✨ Итог: ${finalRoll}<br>
+        🎯 Навык удачи: ${luckSkill}<br>
+        🎲 Бросок 3d6: ${luckRoll}<br>
+        📊 Разница: ${diff}<br>
+        ✨ Бонус: ${bonus}%<br>
+        🎯 База d100: ${baseRoll}<br>
+        🔢 Итог: ${finalRoll}<br>
         📦 Результат: ${result}
     `;
 };
