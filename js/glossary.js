@@ -803,7 +803,27 @@ function renderSystem() {
         
     } else if (currentSubcategory === 'battle') {
         resultsTitle.innerHTML = '⚔️ Таблица боя';
-        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+        
+        if (typeof battleTableSystem === 'undefined') {
+            resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные не загружены</p>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+        
+        // Введение
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 10px;">📖 Таблица боя</h3>
+                <div style="color: #e0d0c0; line-height: 1.6;">
+                    ${battleTableSystem.introduction}
+                </div>
+            </div>
+        `;
+        
+        html += '</div>';
+        resultsList.innerHTML = html;
+        
     } else if (currentSubcategory === 'gems') {
         resultsTitle.innerHTML = '💎 Ценность камней';
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
