@@ -63,7 +63,7 @@ const battleTableSystem = {
                         </tr>
                     </thead>
                     <tbody>
-                        ${this.damageTable.map(row => `
+                        ${battleTableSystem.damageTable.map(row => `
                             <tr style="background: #2a1a0f;">
                                 <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.level}</td>
                                 <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.piercing}</td>
