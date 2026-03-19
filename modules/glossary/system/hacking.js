@@ -91,14 +91,15 @@ const hackingSystem = {
     `,
     
     // Функция для проверки взлома
-    checkHack: function(skill, roll, penalty) {
-        const finalRoll = roll - penalty;
-        const success = finalRoll >= skill;
-        return {
-            finalRoll: finalRoll,
-            success: success
-        };
-    },
+checkHack: function(skill, roll, penalty) {
+    const effectiveSkill = skill - penalty;  // эффективный навык = навык - штраф
+    const success = roll <= effectiveSkill;   // успех если бросок МЕНЬШЕ ИЛИ РАВНО эффективному навыку
+    return {
+        effectiveSkill: effectiveSkill,
+        roll: roll,
+        success: success
+    };
+}
     
     // Функция для определения критического результата
 getCritical: function(roll) {
