@@ -63,16 +63,19 @@ const battleTableSystem = {
                         </tr>
                     </thead>
                     <tbody>
-                        ${battleTableSystem.damageTable.map(row => `
-                            <tr style="background: #2a1a0f;">
-                                <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.level}</td>
-                                <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.piercing}</td>
-                                <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.slashing}</td>
-                                <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.shooting}</td>
-                                <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.throwing}</td>
-                                <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.melee}</td>
-                            </tr>
-                        `).join('')}
+                        ${(() => {
+                            const table = battleTableSystem.damageTable;
+                            return table.map(row => `
+                                <tr style="background: #2a1a0f;">
+                                    <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.level}</td>
+                                    <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.piercing}</td>
+                                    <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.slashing}</td>
+                                    <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.shooting}</td>
+                                    <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.throwing}</td>
+                                    <td style="padding: 8px; border: 1px solid #8b4513; text-align: center;">${row.melee}</td>
+                                </tr>
+                            `).join('');
+                        })()}
                     </tbody>
                 </table>
             </div>
