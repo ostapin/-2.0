@@ -354,4 +354,139 @@ document.addEventListener('DOMContentLoaded', function() {
     if (currentCharacterId) {
         console.log(`🎯 Текущий персонаж: ${characters[currentCharacterId].info.name}`);
     }
+    // ========== КАЛЬКУЛЯТОР ==========
+let calculatorDisplay = null;
+let calculatorCurrentInput = '';
+let calculatorOperator = '';
+let calculatorPreviousInput = '';
+
+function updateCalculatorDisplay() {
+    if (calculatorDisplay) {
+        calculatorDisplay.value = calculatorCurrentInput || '0';
+    }
+}
+
+function calculatorNumber(num) {
+    calculatorCurrentInput += num;
+    updateCalculatorDisplay();
+}
+
+function calculatorOperatorClick(op) {
+    if (calculatorCurrentInput === '') return;
+    if (calculatorPreviousInput !== '') {
+        calculatorCalculate();
+    }
+    calculatorOperator = op;
+    calculatorPreviousInput = calculatorCurrentInput;
+    calculatorCurrentInput = '';
+}
+
+function calculatorCalculate() {
+    let result;
+    const prev = parseFloat(calculatorPreviousInput);
+    const current = parseFloat(calculatorCurrentInput);
+    
+    if (isNaN(prev) || isNaN(current)) return;
+    
+    switch (calculatorOperator) {
+        case '+':
+            result = prev + current;
+            break;
+        case '-':
+            result = prev - current;
+            break;
+        case '*':
+            result = prev * current;
+            break;
+        case '/':
+            if (current === 0) {
+                calculatorCurrentInput = 'Ошибка';
+                updateCalculatorDisplay();
+                calculatorClear();
+                return;
+            }
+            result = prev / current;
+            break;
+        default:
+            return;
+    }
+    
+    calculatorCurrentInput = result.toString();
+    calculatorOperator = '';
+    calculatorPreviousInput = '';
+    updateCalculatorDisplay();
+}
+
+function calculatorClear() {
+    calculatorCurrentInput = '';
+    calculatorOperator = '';
+    calculatorPreviousInput = '';
+    updateCalculatorDisplay();
+}
+
+// ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
+function openTab(tabName) {
+    // Скрываем все вкладки
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Убираем активный класс у всех кнопок
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Показываем выбранную вкладку
+    const selectedTab = document.getElementById(tabName + '-tab');
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+    
+    // Делаем активной нажатую кнопку
+    const activeBtn = Array.from(tabBtns).find(btn => btn.textContent.includes(getTabEmoji(tabName)));
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    
+    // Специальная обработка для калькулятора
+    if (tabName === 'calculator') {
+        calculatorDisplay = document.getElementById('calculatorDisplay');
+        if (calculatorDisplay) {
+            calculatorClear();
+        }
+    }
+    
+    // Специальная обработка для других вкладок
+    if (tabName === 'glossary' && typeof loadGlossary === 'function') {
+        loadGlossary();
+    }
+}
+
+function getTabEmoji(tabName) {
+    const emojis = {
+        'character': '🧙',
+        'generator': '🎲',
+        'inventory': '🎒',
+        'dice': '🎲',
+        'notes': '✍️',
+        'characters': '👥',
+        'calendar': '📅',
+        'maps': '🗺️',
+        'battle': '⚔️',
+        'draw': '🎨',
+        'glossary': '📚',
+        'calculator': '🧮'
+    };
+    return emojis[tabName] || '';
+}
+
+// Инициализация калькулятора при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    calculatorDisplay = document.getElementById('calculatorDisplay');
+    if (calculatorDisplay) {
+        calculatorClear();
+    }
+});
 });
