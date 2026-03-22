@@ -1,120 +1,85 @@
 // ========== КАЛЬКУЛЯТОР ==========
 
-let displayValue = '0';
-let firstOperand = null;
-let operator = null;
-let waitingForSecond = false;
-
 function renderCalculator() {
     const container = document.getElementById('calculatorContainer');
     if (!container) return;
     
     container.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; min-height: 500px; padding: 20px;">
-            <div style="width: 100%; max-width: 400px; background: #2c1810; border-radius: 12px; padding: 20px; border: 2px solid #8b4513; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                <div style="background: #1a0f0b; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: right; min-height: 80px;">
-                    <div id="calcDisplay" style="color: #d4af37; font-size: 2.5em; font-weight: bold; word-break: break-all; line-height: 1.2;">0</div>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                    <button class="calc-btn" onclick="calcClear()" style="background: #c44536; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold;">C</button>
-                    <button class="calc-btn" onclick="calcClearEntry()" style="background: #8b4513; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold;">CE</button>
-                    <button class="calc-btn" onclick="calcBackspace()" style="background: #8b4513; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold;">⌫</button>
-                    <button class="calc-btn" onclick="calcOperator('/')" style="background: #d4af37; padding: 15px; font-size: 1.5em; border: none; border-radius: 6px; cursor: pointer; color: #2c1810; font-weight: bold;">÷</button>
-                    
-                    <button class="calc-btn" onclick="calcInput('7')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">7</button>
-                    <button class="calc-btn" onclick="calcInput('8')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">8</button>
-                    <button class="calc-btn" onclick="calcInput('9')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">9</button>
-                    <button class="calc-btn" onclick="calcOperator('*')" style="background: #d4af37; padding: 15px; font-size: 1.5em; border: none; border-radius: 6px; cursor: pointer; color: #2c1810; font-weight: bold;">×</button>
-                    
-                    <button class="calc-btn" onclick="calcInput('4')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">4</button>
-                    <button class="calc-btn" onclick="calcInput('5')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">5</button>
-                    <button class="calc-btn" onclick="calcInput('6')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">6</button>
-                    <button class="calc-btn" onclick="calcOperator('-')" style="background: #d4af37; padding: 15px; font-size: 1.5em; border: none; border-radius: 6px; cursor: pointer; color: #2c1810; font-weight: bold;">-</button>
-                    
-                    <button class="calc-btn" onclick="calcInput('1')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">1</button>
-                    <button class="calc-btn" onclick="calcInput('2')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">2</button>
-                    <button class="calc-btn" onclick="calcInput('3')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">3</button>
-                    <button class="calc-btn" onclick="calcOperator('+')" style="background: #d4af37; padding: 15px; font-size: 1.5em; border: none; border-radius: 6px; cursor: pointer; color: #2c1810; font-weight: bold;">+</button>
-                    
-                    <button class="calc-btn" onclick="calcInput('0')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">0</button>
-                    <button class="calc-btn" onclick="calcInput('.')" style="background: #3d2418; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: #e0d0c0; font-weight: bold;">.</button>
-                    <button class="calc-btn" onclick="calcEquals()" style="background: #27ae60; padding: 15px; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; grid-column: span 2;">=</button>
-                </div>
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c1810; padding: 20px; border-radius: 12px; border: 2px solid #8b4513; z-index: 9999;">
+            <div style="background: #1a0f0b; padding: 20px; margin-bottom: 10px; border-radius: 8px; text-align: right;">
+                <div id="calcDisplayMain" style="color: #d4af37; font-size: 2em; min-height: 50px;">0</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                <button onclick="calcInput('7')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">7</button>
+                <button onclick="calcInput('8')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">8</button>
+                <button onclick="calcInput('9')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">9</button>
+                <button onclick="calcOperator('/')" style="background: #d4af37; padding: 15px; border: none; border-radius: 6px; cursor: pointer;">÷</button>
+                
+                <button onclick="calcInput('4')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">4</button>
+                <button onclick="calcInput('5')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">5</button>
+                <button onclick="calcInput('6')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">6</button>
+                <button onclick="calcOperator('*')" style="background: #d4af37; padding: 15px; border: none; border-radius: 6px; cursor: pointer;">×</button>
+                
+                <button onclick="calcInput('1')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">1</button>
+                <button onclick="calcInput('2')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">2</button>
+                <button onclick="calcInput('3')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">3</button>
+                <button onclick="calcOperator('-')" style="background: #d4af37; padding: 15px; border: none; border-radius: 6px; cursor: pointer;">-</button>
+                
+                <button onclick="calcInput('0')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">0</button>
+                <button onclick="calcInput('.')" style="background: #3d2418; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">.</button>
+                <button onclick="calcEquals()" style="background: #27ae60; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">=</button>
+                <button onclick="calcOperator('+')" style="background: #d4af37; padding: 15px; border: none; border-radius: 6px; cursor: pointer;">+</button>
+                
+                <button onclick="calcClear()" style="background: #c44536; padding: 15px; border: none; border-radius: 6px; color: white; cursor: pointer; grid-column: span 4;">C</button>
             </div>
         </div>
     `;
 }
 
-function calcInput(num) {
-    if (waitingForSecond) {
-        displayValue = num;
-        waitingForSecond = false;
+let calcExpression = '';
+
+function calcInput(value) {
+    const display = document.getElementById('calcDisplayMain');
+    if (!display) return;
+    
+    if (display.innerText === '0' || display.innerText === 'Ошибка') {
+        display.innerText = value;
     } else {
-        displayValue = displayValue === '0' ? num : displayValue + num;
+        display.innerText += value;
     }
-    updateDisplay();
 }
 
 function calcOperator(op) {
-    if (firstOperand !== null && operator !== null && !waitingForSecond) {
-        calcEquals();
+    const display = document.getElementById('calcDisplayMain');
+    if (!display) return;
+    
+    const lastChar = display.innerText.slice(-1);
+    if (['+', '-', '*', '/'].includes(lastChar)) {
+        display.innerText = display.innerText.slice(0, -1) + op;
+    } else {
+        display.innerText += op;
     }
-    firstOperand = parseFloat(displayValue);
-    operator = op;
-    waitingForSecond = true;
 }
 
 function calcEquals() {
-    if (operator === null || firstOperand === null) return;
+    const display = document.getElementById('calcDisplayMain');
+    if (!display) return;
     
-    const second = parseFloat(displayValue);
-    let result;
-    
-    switch (operator) {
-        case '+': result = firstOperand + second; break;
-        case '-': result = firstOperand - second; break;
-        case '*': result = firstOperand * second; break;
-        case '/': result = second === 0 ? 'Ошибка' : firstOperand / second; break;
-        default: return;
+    try {
+        let expr = display.innerText.replace(/×/g, '*').replace(/÷/g, '/');
+        const result = eval(expr);
+        display.innerText = result;
+    } catch(e) {
+        display.innerText = 'Ошибка';
     }
-    
-    displayValue = typeof result === 'number' ? String(Math.round(result * 100000) / 100000) : result;
-    firstOperand = null;
-    operator = null;
-    waitingForSecond = false;
-    updateDisplay();
 }
 
 function calcClear() {
-    displayValue = '0';
-    firstOperand = null;
-    operator = null;
-    waitingForSecond = false;
-    updateDisplay();
+    const display = document.getElementById('calcDisplayMain');
+    if (display) display.innerText = '0';
 }
 
-function calcClearEntry() {
-    displayValue = '0';
-    waitingForSecond = false;
-    updateDisplay();
-}
-
-function calcBackspace() {
-    if (displayValue.length === 1 || (displayValue === '0' && !waitingForSecond)) {
-        displayValue = '0';
-    } else {
-        displayValue = displayValue.slice(0, -1);
-    }
-    waitingForSecond = false;
-    updateDisplay();
-}
-
-function updateDisplay() {
-    const el = document.getElementById('calcDisplay');
-    if (el) el.innerText = displayValue;
-}
-
-// Автоматический рендер при открытии вкладки
+// Рендер при открытии вкладки
 document.addEventListener('DOMContentLoaded', function() {
     const originalOpenTab = window.openTab;
     window.openTab = function(tabId) {
