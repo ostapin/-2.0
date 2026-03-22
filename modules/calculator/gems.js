@@ -44,13 +44,11 @@ function renderGemCalculator(container) {
     container.innerHTML = `
         <div style="background: #2c1810; border-radius: 12px; padding: 20px; border: 2px solid #8b4513;">
             <h3 style="color: #d4af37; margin-bottom: 15px;">💎 ГЕНЕРАТОР ДРАГОЦЕННЫХ КАМНЕЙ</h3>
-            
             <div style="margin-bottom: 20px; padding: 15px; background: #1a0f0b; border-radius: 8px;">
                 <p style="color: #e0d0c0;">🎲 Бросок d100 определяет тип камня</p>
                 <p style="color: #e0d0c0;">✨ Второй бросок d100 определяет чистоту (множитель цены)</p>
                 <p style="color: #d4af37;">💰 Цена = Базовая цена × Множитель</p>
             </div>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                 <div>
                     <h4 style="color: #d4af37;">📊 Камни (d100)</h4>
@@ -73,11 +71,8 @@ function renderGemCalculator(container) {
                     </div>
                 </div>
             </div>
-            
             <button onclick="generateGem()" style="width: 100%; background: #d4af37; color: #2c1810; padding: 15px; border: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer;">💎 СГЕНЕРИРОВАТЬ КАМЕНЬ</button>
-            
             <div id="gemResult" style="margin-top: 20px; padding: 15px; background: #1a0f0b; border-radius: 8px; text-align: center; display: none;"></div>
-            
             <div style="margin-top: 20px; padding: 10px; background: #3d2418; border-radius: 6px;">
                 <h4 style="color: #d4af37; margin-bottom: 10px;">🎲 Ручной ввод</h4>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -93,11 +88,9 @@ function renderGemCalculator(container) {
 function generateGem() {
     const gemRoll = Math.floor(Math.random() * 100) + 1;
     const purityRoll = Math.floor(Math.random() * 100) + 1;
-    
     const gem = gemsSystem.getGem(gemRoll);
     const purity = gemsSystem.getPurity(purityRoll);
     const price = gemsSystem.calculatePrice(gem.basePrice, purity.multiplier);
-    
     const resultDiv = document.getElementById('gemResult');
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `
@@ -113,7 +106,6 @@ function generateGem() {
 function generateGemManual() {
     const gemRoll = parseInt(document.getElementById('manualGemRoll').value);
     const purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
-    
     if (isNaN(gemRoll) || gemRoll < 1 || gemRoll > 100) {
         alert('Введите число от 1 до 100 для броска камня');
         return;
@@ -122,11 +114,9 @@ function generateGemManual() {
         alert('Введите число от 1 до 100 для броска чистоты');
         return;
     }
-    
     const gem = gemsSystem.getGem(gemRoll);
     const purity = gemsSystem.getPurity(purityRoll);
     const price = gemsSystem.calculatePrice(gem.basePrice, purity.multiplier);
-    
     const resultDiv = document.getElementById('gemResult');
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `
