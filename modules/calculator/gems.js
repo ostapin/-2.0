@@ -1,6 +1,6 @@
 // ========== КАЛЬКУЛЯТОР ДРАГОЦЕННЫХ КАМНЕЙ ==========
 
-const gemsSystem = {
+const gemCalculator = {
     gemTable: [
         { min: 1, max: 50, name: "Аметист", basePrice: 150 },
         { min: 51, max: 65, name: "Гранат", basePrice: 400 },
@@ -93,9 +93,9 @@ function renderGemCalculator() {
 function generateGem() {
     const gemRoll = Math.floor(Math.random() * 100) + 1;
     const purityRoll = Math.floor(Math.random() * 100) + 1;
-    const gem = gemsSystem.getGem(gemRoll);
-    const purity = gemsSystem.getPurity(purityRoll);
-    const price = gemsSystem.calculatePrice(gem.basePrice, purity.multiplier);
+    const gem = gemCalculator.getGem(gemRoll);
+    const purity = gemCalculator.getPurity(purityRoll);
+    const price = gemCalculator.calculatePrice(gem.basePrice, purity.multiplier);
     const resultDiv = document.getElementById('gemResult');
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `
@@ -119,9 +119,9 @@ function generateGemManual() {
         alert('Введите число от 1 до 100 для броска чистоты');
         return;
     }
-    const gem = gemsSystem.getGem(gemRoll);
-    const purity = gemsSystem.getPurity(purityRoll);
-    const price = gemsSystem.calculatePrice(gem.basePrice, purity.multiplier);
+    const gem = gemCalculator.getGem(gemRoll);
+    const purity = gemCalculator.getPurity(purityRoll);
+    const price = gemCalculator.calculatePrice(gem.basePrice, purity.multiplier);
     const resultDiv = document.getElementById('gemResult');
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `
