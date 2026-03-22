@@ -588,9 +588,12 @@
     </div>
 </div>
 
-<!-- Вкладка калькулятора -->
 <div id="calculator-tab" class="tab-content">
     <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">🧮 КАЛЬКУЛЯТОР</h2>
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+        <button class="btn" onclick="renderCalculator()" style="background: #d4af37; color: #2c1810;">🧮 Обычный</button>
+        <button class="btn" onclick="renderGemCalculator()" style="background: #8b4513; color: white;">💎 Камни</button>
+    </div>
     <div id="calculatorContainer"></div>
 </div>
 
