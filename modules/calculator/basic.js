@@ -112,3 +112,11 @@ function updateDisplay() {
     const el = document.getElementById('calcDisplay');
     if (el) el.innerText = displayValue;
 }
+// Рендер при открытии вкладки
+document.addEventListener('DOMContentLoaded', function() {
+    const originalOpenTab = window.openTab;
+    window.openTab = function(tabId) {
+        if (originalOpenTab) originalOpenTab(tabId);
+        if (tabId === 'calculator') renderCalculator();
+    };
+});
