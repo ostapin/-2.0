@@ -238,3 +238,14 @@ function calcMemoryRecall() {
 function calcMemoryClear() {
     memory = 0;
 }
+
+// Автоматический рендер при открытии вкладки
+document.addEventListener('DOMContentLoaded', function() {
+    const originalOpenTab = window.openTab;
+    window.openTab = function(tabId) {
+        if (originalOpenTab) originalOpenTab(tabId);
+        if (tabId === 'calculator') {
+            setTimeout(renderCalculator, 10);
+        }
+    };
+});
