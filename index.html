@@ -24,6 +24,7 @@
         <button class="tab-btn" onclick="openTab('battle')">⚔️ Бой</button>
         <button class="tab-btn" onclick="openTab('draw')">🎨 Рисовалка</button>
       <button class="tab-btn" onclick="openTab('glossary')">📚 Глоссарий</button>
+        <button class="tab-btn" onclick="openTab('calculator')">🧮 Калькулятор</button>
     </div>
 </div>
 
@@ -585,6 +586,10 @@
             <p style="color: #8b7d6b;">Пока нет сохраненных рисунков</p>
         </div>
     </div>
+    <div id="calculator-tab" class="tab-content">
+    <h2 style="color: #d4af37; text-align: center; margin-bottom: 25px;">🧮 КАЛЬКУЛЯТОР</h2>
+    <div id="calculatorContainer"></div>
+</div>
 </div>
 
 <!-- Подключаем Firebase и скрипты -->
@@ -650,5 +655,7 @@
 <script src="modules/glossary/system/battle.js"></script>
 <script src="modules/glossary/system/gems.js"></script>
 <script src="modules/glossary/system/coins.js"></script>
+    <!-- Калькулятор -->
+<script src="modules/calculator/basic.js"></script>
 </body>
 </html>
