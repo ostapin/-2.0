@@ -1,108 +1,66 @@
-// ========== КАЛЬКУЛЯТОР С РАЗДЕЛАМИ ==========
+// ========== ОБЫЧНЫЙ КАЛЬКУЛЯТОР ==========
 
-let calculatorMode = 'basic';
+let displayValue = '0';
+let memory = 0;
+let history = [];
+let currentExpression = '';
 
 function renderCalculator() {
     const container = document.getElementById('calculatorContainer');
     if (!container) return;
     
     container.innerHTML = `
-        <div style="max-width: 700px; margin: 20px auto;">
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button onclick="setCalculatorMode('basic')" id="modeBasicBtn" style="flex: 1; padding: 10px; background: ${calculatorMode === 'basic' ? '#d4af37' : '#2c1810'}; color: ${calculatorMode === 'basic' ? '#2c1810' : '#d4af37'}; border: 2px solid #8b4513; border-radius: 8px; cursor: pointer; font-weight: bold;">🧮 Калькулятор</button>
-                <button onclick="setCalculatorMode('gems')" id="modeGemsBtn" style="flex: 1; padding: 10px; background: ${calculatorMode === 'gems' ? '#d4af37' : '#2c1810'}; color: ${calculatorMode === 'gems' ? '#2c1810' : '#d4af37'}; border: 2px solid #8b4513; border-radius: 8px; cursor: pointer; font-weight: bold;">💎 Драгоценные камни</button>
+        <div style="max-width: 500px; margin: 0 auto;">
+            <div style="background: #2c1810; border-radius: 12px; padding: 20px; border: 2px solid #8b4513;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <button onclick="toggleHistory()" style="background: #5a3a2a; padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">📜 История</button>
+                    <button onclick="clearHistory()" style="background: #8b4513; padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">🗑️ Очистить</button>
+                </div>
+                <div style="background: #1a0f0b; padding: 20px; margin-bottom: 15px; border-radius: 8px; text-align: right;">
+                    <div style="color: #8b7d6b; font-size: 0.9em; min-height: 20px;" id="calcExpression">${currentExpression}</div>
+                    <div id="calcDisplayMain" style="color: #d4af37; font-size: 2.5em; font-family: monospace; min-height: 70px; word-break: break-all;">${displayValue}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                    <button onclick="calcMemoryRecall()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">MR</button>
+                    <button onclick="calcMemoryClear()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">MC</button>
+                    <button onclick="calcMemoryAdd()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">M+</button>
+                    <button onclick="calcMemorySubtract()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">M-</button>
+                    <button onclick="calcClear()" style="background: #c44536; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">C</button>
+                    
+                    <button onclick="calcInput('%')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">%</button>
+                    <button onclick="calcSqrt()" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">√</button>
+                    <button onclick="calcSquare()" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">x²</button>
+                    <button onclick="calcReciprocal()" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">1/x</button>
+                    <button onclick="calcBackspace()" style="background: #8b4513; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">⌫</button>
+                    
+                    <button onclick="calcInput('7')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">7</button>
+                    <button onclick="calcInput('8')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">8</button>
+                    <button onclick="calcInput('9')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">9</button>
+                    <button onclick="calcOperator('/')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">÷</button>
+                    <button onclick="calcClearEntry()" style="background: #8b4513; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">CE</button>
+                    
+                    <button onclick="calcInput('4')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">4</button>
+                    <button onclick="calcInput('5')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">5</button>
+                    <button onclick="calcInput('6')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">6</button>
+                    <button onclick="calcOperator('*')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">×</button>
+                    <button onclick="calcToggleSign()" style="background: #8b4513; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">±</button>
+                    
+                    <button onclick="calcInput('1')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">1</button>
+                    <button onclick="calcInput('2')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">2</button>
+                    <button onclick="calcInput('3')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">3</button>
+                    <button onclick="calcOperator('-')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">-</button>
+                    <button onclick="calcEquals()" style="background: #27ae60; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">=</button>
+                    
+                    <button onclick="calcInput('0')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">0</button>
+                    <button onclick="calcInput('00')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">00</button>
+                    <button onclick="calcInput('.')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">.</button>
+                    <button onclick="calcOperator('+')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">+</button>
+                </div>
             </div>
-            <div id="calculatorContent"></div>
-        </div>
-    `;
-    renderModeContent();
-}
-
-function setCalculatorMode(mode) {
-    calculatorMode = mode;
-    renderModeContent();
-    const basicBtn = document.getElementById('modeBasicBtn');
-    const gemsBtn = document.getElementById('modeGemsBtn');
-    if (basicBtn && gemsBtn) {
-        basicBtn.style.background = mode === 'basic' ? '#d4af37' : '#2c1810';
-        basicBtn.style.color = mode === 'basic' ? '#2c1810' : '#d4af37';
-        gemsBtn.style.background = mode === 'gems' ? '#d4af37' : '#2c1810';
-        gemsBtn.style.color = mode === 'gems' ? '#2c1810' : '#d4af37';
-    }
-}
-
-function renderModeContent() {
-    const contentDiv = document.getElementById('calculatorContent');
-    if (!contentDiv) return;
-    
-    if (calculatorMode === 'basic') {
-        renderBasicCalculator(contentDiv);
-    } else {
-        if (typeof renderGemCalculator === 'function') {
-            renderGemCalculator(contentDiv);
-        } else {
-            contentDiv.innerHTML = '<p style="color: red;">Ошибка: модуль камней не загружен</p>';
-        }
-    }
-}
-
-// ========== БАЗОВЫЙ КАЛЬКУЛЯТОР ==========
-let displayValue = '0';
-let memory = 0;
-let history = [];
-let currentExpression = '';
-
-function renderBasicCalculator(container) {
-    container.innerHTML = `
-        <div style="background: #2c1810; border-radius: 12px; padding: 20px; border: 2px solid #8b4513;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <button onclick="toggleHistory()" style="background: #5a3a2a; padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">📜 История</button>
-                <button onclick="clearHistory()" style="background: #8b4513; padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer;">🗑️ Очистить</button>
+            <div id="historyPanel" style="margin-top: 15px; background: #2c1810; border-radius: 12px; padding: 15px; border: 2px solid #8b4513; display: none;">
+                <h3 style="color: #d4af37; margin: 0 0 10px 0; text-align: center;">📜 История</h3>
+                <div id="historyList" style="max-height: 300px; overflow-y: auto;"><p style="color: #8b7d6b; text-align: center;">История пуста</p></div>
             </div>
-            <div style="background: #1a0f0b; padding: 20px; margin-bottom: 15px; border-radius: 8px; text-align: right;">
-                <div style="color: #8b7d6b; font-size: 0.9em; min-height: 20px;" id="calcExpression">${currentExpression}</div>
-                <div id="calcDisplayMain" style="color: #d4af37; font-size: 2.5em; font-family: monospace; min-height: 70px; word-break: break-all;">${displayValue}</div>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
-                <button onclick="calcMemoryRecall()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">MR</button>
-                <button onclick="calcMemoryClear()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">MC</button>
-                <button onclick="calcMemoryAdd()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">M+</button>
-                <button onclick="calcMemorySubtract()" style="background: #5a3a2a; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">M-</button>
-                <button onclick="calcClear()" style="background: #c44536; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">C</button>
-                
-                <button onclick="calcInput('%')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">%</button>
-                <button onclick="calcSqrt()" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">√</button>
-                <button onclick="calcSquare()" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">x²</button>
-                <button onclick="calcReciprocal()" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">1/x</button>
-                <button onclick="calcBackspace()" style="background: #8b4513; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">⌫</button>
-                
-                <button onclick="calcInput('7')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">7</button>
-                <button onclick="calcInput('8')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">8</button>
-                <button onclick="calcInput('9')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">9</button>
-                <button onclick="calcOperator('/')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">÷</button>
-                <button onclick="calcClearEntry()" style="background: #8b4513; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">CE</button>
-                
-                <button onclick="calcInput('4')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">4</button>
-                <button onclick="calcInput('5')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">5</button>
-                <button onclick="calcInput('6')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">6</button>
-                <button onclick="calcOperator('*')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">×</button>
-                <button onclick="calcToggleSign()" style="background: #8b4513; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">±</button>
-                
-                <button onclick="calcInput('1')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">1</button>
-                <button onclick="calcInput('2')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">2</button>
-                <button onclick="calcInput('3')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">3</button>
-                <button onclick="calcOperator('-')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">-</button>
-                <button onclick="calcEquals()" style="background: #27ae60; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">=</button>
-                
-                <button onclick="calcInput('0')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">0</button>
-                <button onclick="calcInput('00')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">00</button>
-                <button onclick="calcInput('.')" style="background: #3d2418; padding: 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">.</button>
-                <button onclick="calcOperator('+')" style="background: #d4af37; padding: 12px; border: none; border-radius: 6px; cursor: pointer;">+</button>
-            </div>
-        </div>
-        <div id="historyPanel" style="margin-top: 15px; background: #2c1810; border-radius: 12px; padding: 15px; border: 2px solid #8b4513; display: none;">
-            <h3 style="color: #d4af37; margin: 0 0 10px 0; text-align: center;">📜 История</h3>
-            <div id="historyList" style="max-height: 300px; overflow-y: auto;"><p style="color: #8b7d6b; text-align: center;">История пуста</p></div>
         </div>
     `;
     renderHistory();
@@ -280,13 +238,3 @@ function calcMemoryRecall() {
 function calcMemoryClear() {
     memory = 0;
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const originalOpenTab = window.openTab;
-    window.openTab = function(tabId) {
-        if (originalOpenTab) originalOpenTab(tabId);
-        if (tabId === 'calculator') {
-            setTimeout(renderCalculator, 10);
-        }
-    };
-});
