@@ -41,7 +41,7 @@ const gemCalculator = {
 };
 
 let gemHistory = [];
-let currentMultiplier = 1;
+let currentBatchSize = 1;
 
 function renderGemCalculator() {
     const container = document.getElementById('calculatorContainer');
@@ -59,32 +59,32 @@ function renderGemCalculator() {
                     <p style="color: #d4af37;">💰 Цена = Базовая цена × Множитель чистоты</p>
                 </div>
                 
-                <!-- Множители количества -->
+                <!-- Множители количества для партии -->
                 <div style="margin-bottom: 20px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">📦 КОЛИЧЕСТВО КАМНЕЙ ЗА РАЗ</h4>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">📦 КОЛИЧЕСТВО КАМНЕЙ В ПАРТИИ</h4>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
-                        <button onclick="setMultiplier(1)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">1</button>
-                        <button onclick="setMultiplier(3)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">3</button>
-                        <button onclick="setMultiplier(5)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">5</button>
-                        <button onclick="setMultiplier(10)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">10</button>
-                        <button onclick="setMultiplier(15)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">15</button>
-                        <button onclick="setMultiplier(20)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">20</button>
-                        <button onclick="setMultiplier(30)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">30</button>
-                        <button onclick="setMultiplier(50)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">50</button>
-                        <button onclick="setMultiplier(100)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">100</button>
+                        <button onclick="setBatchSize(1)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">1</button>
+                        <button onclick="setBatchSize(3)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">3</button>
+                        <button onclick="setBatchSize(5)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">5</button>
+                        <button onclick="setBatchSize(10)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">10</button>
+                        <button onclick="setBatchSize(15)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">15</button>
+                        <button onclick="setBatchSize(20)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">20</button>
+                        <button onclick="setBatchSize(30)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">30</button>
+                        <button onclick="setBatchSize(50)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">50</button>
+                        <button onclick="setBatchSize(100)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">100</button>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <span style="color: #e0d0c0;">Своё количество:</span>
-                        <input type="number" id="customMultiplier" value="1" min="1" style="width: 80px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-                        <button onclick="setCustomMultiplier()" style="background: #8b4513; padding: 5px 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">Установить</button>
+                        <input type="number" id="customBatchSize" value="1" min="1" style="width: 80px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                        <button onclick="setCustomBatchSize()" style="background: #8b4513; padding: 5px 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">Установить</button>
                     </div>
-                    <div style="margin-top: 10px; color: #d4af37;">Генерировать: <span id="currentMultiplier">1</span> камней</div>
+                    <div style="margin-top: 10px; color: #d4af37;">Партия: <span id="currentBatchSize">1</span> камней</div>
                 </div>
                 
                 <!-- Кнопки -->
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button onclick="generateSingleGem()" style="flex: 1; background: #d4af37; color: #2c1810; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">💎 1 КАМЕНЬ</button>
-                    <button onclick="generateMultipleGems()" style="flex: 1; background: #27ae60; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">📦 СГЕНЕРИРОВАТЬ ${currentMultiplier} КАМНЕЙ</button>
+                    <button onclick="generateOneGem()" style="flex: 1; background: #d4af37; color: #2c1810; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">💎 ОДИН ВИД</button>
+                    <button onclick="generateBatch()" style="flex: 1; background: #27ae60; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})</button>
                 </div>
                 
                 <!-- Таблицы -->
@@ -111,7 +111,7 @@ function renderGemCalculator() {
                     </div>
                 </div>
                 
-                <!-- Результат -->
+                <!-- Результат текущей генерации -->
                 <div id="gemResult" style="margin-top: 20px; padding: 15px; background: #1a0f0b; border-radius: 8px; display: none; max-height: 300px; overflow-y: auto;"></div>
                 
                 <!-- Ручной ввод -->
@@ -120,7 +120,7 @@ function renderGemCalculator() {
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <input type="number" id="manualGemRoll" placeholder="Камень (1-100)" style="flex: 1; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
                         <input type="number" id="manualPurityRoll" placeholder="Чистота (1-100)" style="flex: 1; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-                        <button onclick="generateGemManual()" style="background: #8b4513; padding: 8px 15px; border: none; border-radius: 4px; color: white; cursor: pointer;">Добавить</button>
+                        <button onclick="addManualGem()" style="background: #8b4513; padding: 8px 15px; border: none; border-radius: 4px; color: white; cursor: pointer;">Добавить</button>
                     </div>
                 </div>
             </div>
@@ -138,33 +138,33 @@ function renderGemCalculator() {
         </div>
     `;
     renderGemHistory();
-    updateMultiplierDisplay();
+    updateBatchSizeDisplay();
 }
 
-function setMultiplier(mult) {
-    currentMultiplier = mult;
-    updateMultiplierDisplay();
-    // Обновляем текст на кнопке
-    const btn = document.querySelector('#gemCalculator-tab button[onclick="generateMultipleGems()"]');
-    if (btn) btn.innerHTML = `📦 СГЕНЕРИРОВАТЬ ${currentMultiplier} КАМНЕЙ`;
+function setBatchSize(size) {
+    currentBatchSize = size;
+    updateBatchSizeDisplay();
+    const btn = document.querySelector('#calculator-tab button[onclick="generateBatch()"]');
+    if (btn) btn.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`;
 }
 
-function setCustomMultiplier() {
-    const input = document.getElementById('customMultiplier');
+function setCustomBatchSize() {
+    const input = document.getElementById('customBatchSize');
     let val = parseInt(input.value);
     if (isNaN(val) || val < 1) val = 1;
-    currentMultiplier = val;
-    updateMultiplierDisplay();
-    const btn = document.querySelector('#gemCalculator-tab button[onclick="generateMultipleGems()"]');
-    if (btn) btn.innerHTML = `📦 СГЕНЕРИРОВАТЬ ${currentMultiplier} КАМНЕЙ`;
+    currentBatchSize = val;
+    updateBatchSizeDisplay();
+    const btn = document.querySelector('#calculator-tab button[onclick="generateBatch()"]');
+    if (btn) btn.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`;
 }
 
-function updateMultiplierDisplay() {
-    const span = document.getElementById('currentMultiplier');
-    if (span) span.innerText = currentMultiplier;
+function updateBatchSizeDisplay() {
+    const span = document.getElementById('currentBatchSize');
+    if (span) span.innerText = currentBatchSize;
 }
 
-function generateSingleGem() {
+// Генерация одного камня (один вид)
+function generateOneGem() {
     const gemRoll = Math.floor(Math.random() * 100) + 1;
     const purityRoll = Math.floor(Math.random() * 100) + 1;
     const gem = gemCalculator.getGem(gemRoll);
@@ -174,23 +174,27 @@ function generateSingleGem() {
     const entry = {
         id: Date.now(),
         time: new Date().toLocaleTimeString(),
-        gemName: gem.name,
-        gemRoll: gemRoll,
-        quality: purity.quality,
-        purityMultiplier: purity.multiplier,
-        purityRoll: purityRoll,
-        price: price
+        type: 'single',
+        gems: [{
+            gemName: gem.name,
+            gemRoll: gemRoll,
+            quality: purity.quality,
+            purityMultiplier: purity.multiplier,
+            purityRoll: purityRoll,
+            price: price
+        }]
     };
     
     gemHistory.unshift(entry);
-    if (gemHistory.length > 100) gemHistory.pop();
+    if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
-    showResult([entry]);
+    showResult(entry.gems);
 }
 
-function generateMultipleGems() {
-    const count = currentMultiplier;
-    const entries = [];
+// Генерация партии (разные виды)
+function generateBatch() {
+    const count = currentBatchSize;
+    const gemsList = [];
     
     for (let i = 0; i < count; i++) {
         const gemRoll = Math.floor(Math.random() * 100) + 1;
@@ -199,9 +203,7 @@ function generateMultipleGems() {
         const purity = gemCalculator.getPurity(purityRoll);
         const price = gemCalculator.calculatePrice(gem.basePrice, purity.multiplier);
         
-        entries.push({
-            id: Date.now() + i,
-            time: new Date().toLocaleTimeString(),
+        gemsList.push({
             gemName: gem.name,
             gemRoll: gemRoll,
             quality: purity.quality,
@@ -211,16 +213,22 @@ function generateMultipleGems() {
         });
     }
     
-    // Добавляем в историю (каждый камень отдельной записью)
-    for (let i = entries.length - 1; i >= 0; i--) {
-        gemHistory.unshift(entries[i]);
-    }
-    if (gemHistory.length > 100) gemHistory = gemHistory.slice(0, 100);
+    const entry = {
+        id: Date.now(),
+        time: new Date().toLocaleTimeString(),
+        type: 'batch',
+        batchSize: count,
+        gems: gemsList
+    };
+    
+    gemHistory.unshift(entry);
+    if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
-    showResult(entries);
+    showResult(gemsList);
 }
 
-function generateGemManual() {
+// Добавление камня вручную
+function addManualGem() {
     const gemRoll = parseInt(document.getElementById('manualGemRoll').value);
     const purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
     
@@ -240,66 +248,72 @@ function generateGemManual() {
     const entry = {
         id: Date.now(),
         time: new Date().toLocaleTimeString(),
-        gemName: gem.name,
-        gemRoll: gemRoll,
-        quality: purity.quality,
-        purityMultiplier: purity.multiplier,
-        purityRoll: purityRoll,
-        price: price
+        type: 'single',
+        gems: [{
+            gemName: gem.name,
+            gemRoll: gemRoll,
+            quality: purity.quality,
+            purityMultiplier: purity.multiplier,
+            purityRoll: purityRoll,
+            price: price
+        }]
     };
     
     gemHistory.unshift(entry);
-    if (gemHistory.length > 100) gemHistory.pop();
+    if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
-    showResult([entry]);
+    showResult(entry.gems);
     
-    // Очищаем поля
     document.getElementById('manualGemRoll').value = '';
     document.getElementById('manualPurityRoll').value = '';
 }
 
-function showResult(entries) {
+// Показать результат текущей генерации
+function showResult(gemsList) {
     const resultDiv = document.getElementById('gemResult');
     if (!resultDiv) return;
     
-    let totalPrice = 0;
-    let html = '<h4 style="color: #d4af37; margin-bottom: 10px;">📋 РЕЗУЛЬТАТЫ:</h4>';
+    // Сортировка по названию камня
+    const sorted = [...gemsList].sort((a, b) => a.gemName.localeCompare(b.gemName));
     
-    if (entries.length === 1) {
-        const e = entries[0];
-        html += `
-            <div style="padding: 10px; background: #2c1810; border-radius: 6px;">
-                <div style="font-size: 1.1em; color: #d4af37;">💎 ${e.gemName}</div>
-                <div>🎲 Бросок камня: ${e.gemRoll}</div>
-                <div>✨ Бросок чистоты: ${e.purityRoll}</div>
-                <div>📊 Качество: ${e.quality} (x${e.purityMultiplier})</div>
-                <div style="margin-top: 5px; color: #d4af37;">💰 Цена: ${e.price}</div>
-            </div>
-        `;
-        totalPrice = e.price;
-    } else {
-        html += '<div style="max-height: 250px; overflow-y: auto;">';
-        entries.forEach((e, idx) => {
-            html += `
-                <div style="padding: 8px; background: #2c1810; margin-bottom: 5px; border-radius: 4px;">
-                    <span style="color: #d4af37;">${idx+1}. ${e.gemName}</span> - 
-                    ${e.quality} (x${e.purityMultiplier}) = 
-                    <span style="color: #d4af37;">${e.price}</span>
-                </div>
-            `;
-            totalPrice += e.price;
+    let totalPrice = 0;
+    let html = '<h4 style="color: #d4af37; margin-bottom: 10px;">📋 РЕЗУЛЬТАТЫ (сортировка по названию):</h4>';
+    
+    html += '<div style="max-height: 250px; overflow-y: auto;">';
+    
+    // Группировка по названию
+    const grouped = {};
+    sorted.forEach(g => {
+        if (!grouped[g.gemName]) grouped[g.gemName] = [];
+        grouped[g.gemName].push(g);
+    });
+    
+    for (const [gemName, items] of Object.entries(grouped)) {
+        html += `<div style="margin: 5px 0; padding: 5px; background: #2c1810; border-radius: 4px;">`;
+        html += `<div style="color: #d4af37; font-weight: bold;">${gemName}: ${items.length} шт</div>`;
+        
+        // Сортируем внутри группы по цене
+        items.sort((a, b) => a.price - b.price);
+        
+        items.forEach((g, idx) => {
+            html += `<div style="margin-left: 15px; font-size: 0.85em;">`;
+            html += `${idx+1}. ${g.quality} (x${g.purityMultiplier}) = ${g.price}`;
+            html += ` <span style="color: #8b7d6b;">[чистота: ${g.purityRoll}]</span>`;
+            html += `</div>`;
+            totalPrice += g.price;
         });
-        html += '</div>';
-        html += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #8b4513; font-size: 1.2em; color: #d4af37; text-align: right;">🏆 ОБЩАЯ СУММА: ${totalPrice}</div>`;
+        html += `</div>`;
     }
+    
+    html += '</div>';
+    html += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #8b4513; font-size: 1.2em; color: #d4af37; text-align: right;">🏆 ОБЩАЯ СУММА: ${totalPrice}</div>`;
     
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = html;
-    
-    // Автоскролл к результату
     resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// Рендер истории
 function renderGemHistory() {
     const historyList = document.getElementById('gemHistoryList');
     if (!historyList) return;
@@ -309,14 +323,57 @@ function renderGemHistory() {
         return;
     }
     
-    historyList.innerHTML = gemHistory.map(item => `
-        <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px;">
-            <div style="color: #b89a7a; font-size: 0.7em;">${item.time}</div>
-            <div style="color: #e0d0c0;">💎 ${item.gemName}</div>
-            <div style="color: #e0d0c0; font-size: 0.85em;">${item.quality} (x${item.purityMultiplier})</div>
-            <div style="color: #d4af37; font-weight: bold;">💰 ${item.price}</div>
-        </div>
-    `).join('');
+    historyList.innerHTML = gemHistory.map((entry, idx) => {
+        let totalPrice = entry.gems.reduce((sum, g) => sum + g.price, 0);
+        let title = entry.type === 'single' 
+            ? `💎 ${entry.gems[0].gemName} — ${entry.gems[0].price}`
+            : `🎲 Партия ${entry.batchSize} камней — ${totalPrice}`;
+        
+        return `
+            <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px; cursor: pointer;" onclick="toggleHistoryDetails(${idx})">
+                <div style="color: #b89a7a; font-size: 0.7em;">${entry.time}</div>
+                <div style="color: #e0d0c0;">${title}</div>
+                <div id="history-details-${idx}" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #8b4513;"></div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Показать/скрыть детали истории
+function toggleHistoryDetails(index) {
+    const detailsDiv = document.getElementById(`history-details-${index}`);
+    if (!detailsDiv) return;
+    
+    if (detailsDiv.style.display === 'none') {
+        const entry = gemHistory[index];
+        
+        // Сортировка по названию
+        const sorted = [...entry.gems].sort((a, b) => a.gemName.localeCompare(b.gemName));
+        
+        let html = '<div style="font-size: 0.85em;">';
+        
+        // Группировка
+        const grouped = {};
+        sorted.forEach(g => {
+            if (!grouped[g.gemName]) grouped[g.gemName] = [];
+            grouped[g.gemName].push(g);
+        });
+        
+        for (const [gemName, items] of Object.entries(grouped)) {
+            html += `<div style="margin-top: 5px;"><span style="color: #d4af37;">${gemName}:</span> ${items.length} шт</div>`;
+            items.forEach(g => {
+                html += `<div style="margin-left: 10px;">${g.quality} (x${g.purityMultiplier}) = ${g.price}</div>`;
+            });
+        }
+        
+        html += `<div style="margin-top: 5px; color: #d4af37;">Итого: ${entry.gems.reduce((s, g) => s + g.price, 0)}</div>`;
+        html += '</div>';
+        
+        detailsDiv.innerHTML = html;
+        detailsDiv.style.display = 'block';
+    } else {
+        detailsDiv.style.display = 'none';
+    }
 }
 
 function clearGemHistory() {
