@@ -68,7 +68,8 @@ function addItem() {
         name,
         quantity,
         description,
-        expanded: false
+        expanded: false,
+        type: 'normal'
     });
     
     saveInventory();
@@ -145,13 +146,47 @@ function createCategoryHTML(category, items) {
                     </div>
                     ${item.description && item.expanded ? `
                         <div class="item-description">
-                            ${item.description}
+                            ${getItemDescription(item)}
                         </div>
                     ` : ''}
                 </div>
             `).join('')}
         </div>
     `;
+}
+
+function getItemDescription(item) {
+    if (item.type === 'gems_batch') {
+        // Динамическое описание в зависимости от режима профи
+        const isProMode = window.isProModeGemCalculator ? window.isProModeGemCalculator() : false;
+        let desc = '';
+        if (isProMode && item.gemsData) {
+            const grouped = {};
+            item.gemsData.forEach(g => {
+                if (!grouped[g.gemName]) grouped[g.gemName] = [];
+                grouped[g.gemName].push(g);
+            });
+            for (const [name, gems] of Object.entries(grouped)) {
+                desc += `${name}: ${gems.length} шт\n`;
+                gems.forEach((g, i) => {
+                    desc += `  ${i+1}. ${g.size.toFixed(2)} карат, ${g.purityName} (x${g.purityMultiplier}), ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price} зол.\n`;
+                });
+            }
+            desc += `\nОбщая сумма: ${item.totalPrice.toLocaleString()} зол.`;
+        } else if (item.gemsData) {
+            const grouped = {};
+            item.gemsData.forEach(g => {
+                if (!grouped[g.gemName]) grouped[g.gemName] = 0;
+                grouped[g.gemName] += 1;
+            });
+            for (const [name, count] of Object.entries(grouped)) {
+                const sample = item.gemsData.find(g => g.gemName === name);
+                desc += `${name}: ${count} шт, ${sample.sizeVisual}, ${sample.purityVisual}\n`;
+            }
+        }
+        return desc;
+    }
+    return item.description;
 }
 
 function getCategoryName(category) {
@@ -361,7 +396,10 @@ function addCustomItem(item) {
         name: item.name,
         quantity: item.quantity || 1,
         description: item.description || '',
-        expanded: false
+        expanded: false,
+        type: item.type || 'normal',
+        gemsData: item.gemsData || null,
+        totalPrice: item.totalPrice || null
     });
     
     saveInventory();
@@ -370,3 +408,4 @@ function addCustomItem(item) {
 }
 
 window.addCustomItem = addCustomItem;
+window.getItemDescription = getItemDescription;
