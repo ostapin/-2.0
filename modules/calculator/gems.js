@@ -1,9 +1,9 @@
 // ========== КАЛЬКУЛЯТОР ДРАГОЦЕННЫХ КАМНЕЙ ==========
 
-const gemCalculatorSystem = {
+const gemsSystem = {
     gemTable: [
         { min: 1, max: 30, name: "Аметист", basePrice: 150 },
-        { min: 31, max: 50, name: "Аметист", basePrice: 150 },
+        { min: 31, max: 50, name: "Рубин", basePrice: 500 },
         { min: 51, max: 65, name: "Гранат", basePrice: 400 },
         { min: 66, max: 80, name: "Корунд (сапфир)", basePrice: 550 },
         { min: 81, max: 92, name: "Берилл (изумруд)", basePrice: 600 },
@@ -176,9 +176,9 @@ function renderGemCalculator() {
     const container = document.getElementById('calculatorContainer');
     if (!container) return;
     
-    // Список камней для выпадающего списка
     const gemOptions = [
         { name: "Аметист", basePrice: 150 },
+        { name: "Рубин", basePrice: 500 },
         { name: "Гранат", basePrice: 400 },
         { name: "Корунд (сапфир)", basePrice: 550 },
         { name: "Берилл (изумруд)", basePrice: 600 },
@@ -307,21 +307,19 @@ function updateBatchSizeDisplayGem() {
     if (span) span.innerText = currentBatchSize;
 }
 
-// ОДИН ВИД — все камни одинаковые
 function generateOneTypeGems() {
     const count = currentBatchSize;
     if (count < 1) return;
     
-    // Один бросок на все параметры
     const gemRoll = Math.floor(Math.random() * 100) + 1;
     const purityRoll = Math.floor(Math.random() * 100) + 1;
     const suitabilityRoll = Math.floor(Math.random() * 100) + 1;
     
-    const gem = gemCalculatorSystem.getGem(gemRoll);
-    const purity = gemCalculatorSystem.getPurity(purityRoll);
-    const suitability = gemCalculatorSystem.getSuitability(suitabilityRoll);
-    const size = gemCalculatorSystem.getSize();
-    const pricePerOne = gemCalculatorSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+    const gem = gemsSystem.getGem(gemRoll);
+    const purity = gemsSystem.getPurity(purityRoll);
+    const suitability = gemsSystem.getSuitability(suitabilityRoll);
+    const size = gemsSystem.getSize();
+    const pricePerOne = gemsSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
     const totalPrice = pricePerOne * count;
     
     const gemsList = [];
@@ -331,7 +329,7 @@ function generateOneTypeGems() {
             gemRoll: gemRoll,
             basePrice: gem.basePrice,
             size: size,
-            sizeMultiplier: gemCalculatorSystem.getSizeMultiplier(size),
+            sizeMultiplier: gemsSystem.getSizeMultiplier(size),
             purityName: purity.name,
             purityMultiplier: purity.multiplier,
             purityRoll: purityRoll,
@@ -358,14 +356,13 @@ function generateOneTypeGems() {
     showResultGem(gemsList, totalPrice);
 }
 
-// РАЗНЫЕ ВИДЫ — каждый камень со своим броском
 function generateBatchGem() {
     const count = currentBatchSize;
     if (count < 1) return;
     
     const gemsList = [];
     for (let i = 0; i < count; i++) {
-        gemsList.push(gemCalculatorSystem.generateOneGem());
+        gemsList.push(gemsSystem.generateOneGem());
     }
     const totalPrice = gemsList.reduce((sum, g) => sum + g.price, 0);
     
@@ -384,11 +381,10 @@ function generateBatchGem() {
     showResultGem(gemsList, totalPrice);
 }
 
-// Добавление одного камня с ручными параметрами
 function addManualGem() {
     const gemSelect = document.getElementById('manualGemSelect');
     const selectedGemName = gemSelect.value;
-    const gem = gemCalculatorSystem.getGemByName(selectedGemName);
+    const gem = gemsSystem.getGemByName(selectedGemName);
     
     const purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
     const suitabilityRoll = parseInt(document.getElementById('manualSuitabilityRoll').value);
@@ -407,16 +403,16 @@ function addManualGem() {
         return;
     }
     
-    const purity = gemCalculatorSystem.getPurity(purityRoll);
-    const suitability = gemCalculatorSystem.getSuitability(suitabilityRoll);
-    const price = gemCalculatorSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+    const purity = gemsSystem.getPurity(purityRoll);
+    const suitability = gemsSystem.getSuitability(suitabilityRoll);
+    const price = gemsSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
     
     const manualGem = {
         gemName: gem.name,
         gemRoll: null,
         basePrice: gem.basePrice,
         size: size,
-        sizeMultiplier: gemCalculatorSystem.getSizeMultiplier(size),
+        sizeMultiplier: gemsSystem.getSizeMultiplier(size),
         purityName: purity.name,
         purityMultiplier: purity.multiplier,
         purityRoll: purityRoll,
@@ -441,14 +437,13 @@ function addManualGem() {
     showResultGem([manualGem], price);
 }
 
-// Добавление нескольких одинаковых камней с ручными параметрами
 function addManualGemBatch() {
     const count = currentBatchSize;
     if (count < 1) return;
     
     const gemSelect = document.getElementById('manualGemSelect');
     const selectedGemName = gemSelect.value;
-    const gem = gemCalculatorSystem.getGemByName(selectedGemName);
+    const gem = gemsSystem.getGemByName(selectedGemName);
     
     const purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
     const suitabilityRoll = parseInt(document.getElementById('manualSuitabilityRoll').value);
@@ -467,9 +462,9 @@ function addManualGemBatch() {
         return;
     }
     
-    const purity = gemCalculatorSystem.getPurity(purityRoll);
-    const suitability = gemCalculatorSystem.getSuitability(suitabilityRoll);
-    const pricePerOne = gemCalculatorSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+    const purity = gemsSystem.getPurity(purityRoll);
+    const suitability = gemsSystem.getSuitability(suitabilityRoll);
+    const pricePerOne = gemsSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
     const totalPrice = pricePerOne * count;
     
     const gemsList = [];
@@ -479,7 +474,7 @@ function addManualGemBatch() {
             gemRoll: null,
             basePrice: gem.basePrice,
             size: size,
-            sizeMultiplier: gemCalculatorSystem.getSizeMultiplier(size),
+            sizeMultiplier: gemsSystem.getSizeMultiplier(size),
             purityName: purity.name,
             purityMultiplier: purity.multiplier,
             purityRoll: purityRoll,
@@ -507,7 +502,7 @@ function addManualGemBatch() {
 }
 
 function generateRandomSizeGem() {
-    const size = gemCalculatorSystem.getSize();
+    const size = gemsSystem.getSize();
     let range = "";
     if (size < 1) range = "0.1-1 карат";
     else if (size < 5) range = "1-5 карат";
@@ -532,7 +527,7 @@ function showResultGem(gemsList, totalPrice) {
     
     const grouped = {};
     sorted.forEach(g => {
-        if (!grouped[g.gemName]) grouped[g.gemName]] = [];
+        if (!grouped[g.gemName]) grouped[g.gemName] = [];
         grouped[g.gemName].push(g);
     });
     
@@ -635,7 +630,6 @@ function clearGemHistory() {
     }
 }
 
-// Экспорт функций
 window.renderGemCalculator = renderGemCalculator;
 window.generateOneTypeGems = generateOneTypeGems;
 window.generateBatchGem = generateBatchGem;
