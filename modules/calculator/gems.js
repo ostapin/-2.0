@@ -293,37 +293,23 @@ function addToInventoryFromGems(gemsList, batchInfo) {
         return;
     }
     
-    let description = '';
-    if (isProMode) {
-        const grouped = {};
-        gemsList.forEach(g => {
-            if (!grouped[g.gemName]) grouped[g.gemName] = [];
-            grouped[g.gemName].push(g);
-        });
-        for (const [name, items] of Object.entries(grouped)) {
-            description += `${name}: ${items.length} шт\n`;
-            items.forEach((g, i) => {
-                description += `  ${i+1}. ${g.size.toFixed(2)} карат, ${g.purityName} (x${g.purityMultiplier}), ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price} зол.\n`;
-            });
-        }
-        description += `\nОбщая сумма: ${batchInfo.totalPrice.toLocaleString()} зол.`;
-    } else {
-        const grouped = {};
-        gemsList.forEach(g => {
-            if (!grouped[g.gemName]) grouped[g.gemName] = 0;
-            grouped[g.gemName] += 1;
-        });
-        for (const [name, count] of Object.entries(grouped)) {
-            const sample = gemsList.find(g => g.gemName === name);
-            description += `${name}: ${count} шт, ${sample.sizeVisual}, ${sample.purityVisual}\n`;
-        }
-    }
-    
     window.addCustomItem({
         name: batchInfo.title,
         quantity: 1,
         category: 'valuables',
-        description: description
+        type: 'gems_batch',
+        gemsData: gemsList.map(g => ({
+            gemName: g.gemName,
+            size: g.size,
+            sizeVisual: g.sizeVisual,
+            purityName: g.purityName,
+            purityMultiplier: g.purityMultiplier,
+            purityVisual: g.purityVisual,
+            suitabilityName: g.suitabilityName,
+            suitabilityMultiplier: g.suitabilityMultiplier,
+            price: g.price
+        })),
+        totalPrice: batchInfo.totalPrice
     });
     
     alert(`✅ ${batchInfo.title} добавлен в инвентарь (раздел "Ценности")`);
@@ -338,6 +324,9 @@ function toggleProMode() {
         if (lastEntry) {
             showResultGem(lastEntry.gems, lastEntry.totalPrice);
         }
+    }
+    if (typeof window.renderInventory === 'function') {
+        window.renderInventory();
     }
 }
 
@@ -567,3 +556,4 @@ window.clearGemHistory = clearGemHistory;
 window.toggleHistoryDetailsGem = toggleHistoryDetailsGem;
 window.toggleProMode = toggleProMode;
 window.addToInventoryFromGems = addToInventoryFromGems;
+window.isProModeGemCalculator = function() { return isProMode; };
