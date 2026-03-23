@@ -348,3 +348,25 @@ function deleteCustomCategory(categoryId) {
     updateCategoryManagement();
     renderInventory();
 }
+
+// ========== ДОБАВЛЕНИЕ ПРЕДМЕТОВ ИЗ ДРУГИХ МОДУЛЕЙ ==========
+function addCustomItem(item) {
+    const category = item.category || 'valuables';
+    if (!inventory[category]) {
+        inventory[category] = [];
+    }
+    
+    inventory[category].push({
+        id: Date.now(),
+        name: item.name,
+        quantity: item.quantity || 1,
+        description: item.description || '',
+        expanded: false
+    });
+    
+    saveInventory();
+    renderInventory();
+    return true;
+}
+
+window.addCustomItem = addCustomItem;
