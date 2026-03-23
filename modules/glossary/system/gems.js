@@ -1,6 +1,6 @@
 // Система драгоценных камней
 const gemsSystem = {
-    // Таблица выпадения камней
+    // Таблица выпадения камней (базовая цена за 0.1 карат)
     gemTable: [
         { min: 1, max: 30, name: "Аметист", basePrice: 150 },
         { min: 31, max: 50, name: "Аметист", basePrice: 150 },
@@ -35,48 +35,67 @@ const gemsSystem = {
         
         if (rand < 900) {
             // 90% - 0.1-1 карат
-            return 0.1 + Math.random() * 0.9;
+            const subRand = Math.random() * 100;
+            if (subRand < 50) return 0.1 + Math.random() * 0.1;
+            if (subRand < 70) return 0.2 + Math.random() * 0.1;
+            if (subRand < 85) return 0.3 + Math.random() * 0.2;
+            if (subRand < 95) return 0.5 + Math.random() * 0.2;
+            return 0.7 + Math.random() * 0.3;
         }
         else if (rand < 980) {
             // 8% - 1-5 карат
-            return 1 + Math.random() * 4;
+            const subRand = Math.random() * 100;
+            if (subRand < 40) return 1 + Math.random() * 0.5;
+            if (subRand < 65) return 1.5 + Math.random() * 0.5;
+            if (subRand < 85) return 2 + Math.random() * 1;
+            if (subRand < 95) return 3 + Math.random() * 1;
+            return 4 + Math.random() * 1;
         }
         else if (rand < 995) {
             // 1.5% - 5-10 карат
-            return 5 + Math.random() * 5;
+            const subRand = Math.random() * 100;
+            if (subRand < 45) return 5 + Math.random() * 1;
+            if (subRand < 70) return 6 + Math.random() * 1;
+            if (subRand < 85) return 7 + Math.random() * 1;
+            if (subRand < 95) return 8 + Math.random() * 1;
+            return 9 + Math.random() * 1;
         }
         else if (rand < 999) {
             // 0.4% - 10-50 карат
-            return 10 + Math.random() * 40;
+            const subRand = Math.random() * 100;
+            if (subRand < 50) return 10 + Math.random() * 5;
+            if (subRand < 75) return 15 + Math.random() * 5;
+            if (subRand < 90) return 20 + Math.random() * 10;
+            if (subRand < 97) return 30 + Math.random() * 10;
+            return 40 + Math.random() * 10;
         }
         else if (rand < 999.8) {
             // 0.08% - 50-100 карат
-            return 50 + Math.random() * 50;
+            const subRand = Math.random() * 100;
+            if (subRand < 55) return 50 + Math.random() * 10;
+            if (subRand < 80) return 60 + Math.random() * 10;
+            if (subRand < 92) return 70 + Math.random() * 10;
+            if (subRand < 97) return 80 + Math.random() * 10;
+            return 90 + Math.random() * 10;
         }
         else if (rand < 1000) {
             // 0.02% - 100-1000 карат
-            return 100 + Math.random() * 900;
+            const subRand = Math.random() * 100;
+            if (subRand < 60) return 100 + Math.random() * 100;
+            if (subRand < 80) return 200 + Math.random() * 100;
+            if (subRand < 92) return 300 + Math.random() * 200;
+            if (subRand < 97) return 500 + Math.random() * 200;
+            return 700 + Math.random() * 300;
         }
         else {
             // 0.0005% - 1000-10000 карат
-            return 1000 + Math.random() * 9000;
+            const subRand = Math.random() * 100;
+            if (subRand < 65) return 1000 + Math.random() * 1000;
+            if (subRand < 85) return 2000 + Math.random() * 1000;
+            if (subRand < 95) return 3000 + Math.random() * 2000;
+            if (subRand < 98) return 5000 + Math.random() * 2000;
+            return 7000 + Math.random() * 3000;
         }
-    },
-    
-    // Функция для получения размера с внутренним распределением (для диапазона)
-    getSizeInRange: function(min, max, distribution) {
-        const rand = Math.random() * 100;
-        let cumulative = 0;
-        
-        for (let i = 0; i < distribution.length; i++) {
-            cumulative += distribution[i].chance;
-            if (rand < cumulative) {
-                const subMin = distribution[i].min;
-                const subMax = distribution[i].max;
-                return subMin + Math.random() * (subMax - subMin);
-            }
-        }
-        return min + Math.random() * (max - min);
     },
     
     // Введение
@@ -92,7 +111,7 @@ const gemsSystem = {
             <p style="color: #e0d0c0;">2. Второй бросок d100 определяет чистоту камня (множитель 0.5-1.5)</p>
             <p style="color: #e0d0c0;">3. Третий бросок определяет размер в каратах (чем крупнее, тем реже)</p>
             <p style="color: #e0d0c0;">4. Четвёртый бросок d100 определяет пригодность огранки (множитель 0.2-0.95)</p>
-            <p style="color: #e0d0c0;">5. Цена = базовая цена × размер × чистоту × пригодность</p>
+            <p style="color: #e0d0c0;">5. Цена = (базовая цена за 0.1 карат × 10) × размер × чистоту × пригодность</p>
         </div>
 
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
@@ -100,7 +119,7 @@ const gemsSystem = {
             <div style="display: grid; grid-template-columns: 100px 1fr 100px; gap: 8px;">
                 <div style="color: #d4af37;">Диапазон</div>
                 <div style="color: #d4af37;">Камень</div>
-                <div style="color: #d4af37;">Цена/карат</div>
+                <div style="color: #d4af37;">Цена/0.1кт</div>
                 <div style="color: #e0d0c0;">1-30</div><div style="color: #e0d0c0;">Аметист</div><div style="color: #e0d0c0;">150</div>
                 <div style="color: #e0d0c0;">31-50</div><div style="color: #e0d0c0;">Аметист</div><div style="color: #e0d0c0;">150</div>
                 <div style="color: #e0d0c0;">51-65</div><div style="color: #e0d0c0;">Гранат</div><div style="color: #e0d0c0;">400</div>
@@ -108,6 +127,7 @@ const gemsSystem = {
                 <div style="color: #e0d0c0;">81-92</div><div style="color: #e0d0c0;">Берилл (изумруд)</div><div style="color: #e0d0c0;">600</div>
                 <div style="color: #e0d0c0;">93-100</div><div style="color: #e0d0c0;">Алмаз</div><div style="color: #e0d0c0;">750</div>
             </div>
+            <p style="color: #8b7d6b; margin-top: 5px;">* Цена указана за 0.1 карат. За 1 карат цена в 10 раз выше.</p>
         </div>
 
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
@@ -157,11 +177,12 @@ const gemsSystem = {
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
             <h3 style="color: #d4af37; margin-bottom: 10px;">📝 ПРИМЕР:</h3>
             <div style="color: #e0d0c0;">
-                Бросок на тип: 95 → Алмаз (база 750)<br>
+                Бросок на тип: 95 → Алмаз (база 750 за 0.1 карат)<br>
+                Цена за 1 карат: 750 × 10 = 7500<br>
                 Бросок на чистоту: 85 → отличная (1.5)<br>
                 Бросок на размер: попадание в 0.4% → 27.8 карат<br>
                 Бросок на пригодность: 95 → идеальная (0.95)<br>
-                Итог: 750 × 27.8 × 1.5 × 0.95 = 29,711 золотых
+                Итог: 7500 × 27.8 × 1.5 × 0.95 = 297,112 золотых
             </div>
         </div>
 
@@ -205,7 +226,8 @@ const gemsSystem = {
     
     // Функция для расчёта цены
     calculatePrice: function(basePrice, size, purityMultiplier, suitabilityMultiplier) {
-        return Math.floor(basePrice * size * purityMultiplier * suitabilityMultiplier);
+        const pricePerCarat = basePrice * 10;
+        return Math.floor(pricePerCarat * size * purityMultiplier * suitabilityMultiplier);
     }
 };
 
@@ -221,10 +243,13 @@ window.testGem = function() {
     const size = gemsSystem.getSize();
     const price = gemsSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
     
+    const pricePerCarat = gem.basePrice * 10;
+    
     document.getElementById('gemTestResult').innerHTML = `
         💎 Первый бросок (камень): ${gemRoll}<br>
         🪨 Камень: ${gem.name}<br>
-        💰 Базовая цена за карат: ${gem.basePrice}<br>
+        💰 Базовая цена за 0.1 карат: ${gem.basePrice}<br>
+        💰 Цена за 1 карат: ${pricePerCarat}<br>
         🧼 Второй бросок (чистота): ${purityRoll}<br>
         📊 Чистота: ${purity.name} (×${purity.multiplier})<br>
         📏 Размер: ${size.toFixed(2)} карат<br>
