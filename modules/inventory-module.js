@@ -135,18 +135,19 @@ function createCategoryHTML(category, items) {
                             ${item.quantity > 1 ? `<span class="item-quantity">×${item.quantity}</span>` : ''}
                         </div>
                         <div class="item-actions">
-                            <button class="btn btn-small" onclick="editItem('${category}', ${index})" style="background: #3498db;">✏️</button>
+                            ${item.type !== 'gems_batch' ? `<button class="btn btn-small" onclick="editItem('${category}', ${index})" style="background: #3498db;">✏️</button>` : ''}
                             <button class="btn btn-small" onclick="deleteItem('${category}', ${index})" style="background: #c44536;">❌</button>
-                            ${item.description ? `
-                                <button class="btn btn-small" onclick="toggleItemExpand('${category}', ${index})" style="background: #8b4513;">
-                                    ${item.expanded ? '▼' : '▶'}
-                                </button>
-                            ` : ''}
+                            <button class="btn btn-small" onclick="toggleItemExpand('${category}', ${index})" style="background: #8b4513;">
+                                ${item.expanded ? '▼' : '▶'}
+                            </button>
                         </div>
                     </div>
-                    ${item.description && item.expanded ? `
-                        <div class="item-description">
-                            ${getItemDescription(item)}
+                    <div class="item-description" style="margin-top: 5px; font-size: 0.9em; color: #b89a7a;">
+                        ${getItemDescription(item)}
+                    </div>
+                    ${item.expanded ? `
+                        <div class="item-expanded-details" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #8b4513;">
+                            ${getExpandedItemDetails(item)}
                         </div>
                     ` : ''}
                 </div>
@@ -156,37 +157,77 @@ function createCategoryHTML(category, items) {
 }
 
 function getItemDescription(item) {
-    if (item.type === 'gems_batch') {
-        // Динамическое описание в зависимости от режима профи
+    if (item.type === 'gems_batch' && item.gemsData) {
         const isProMode = window.isProModeGemCalculator ? window.isProModeGemCalculator() : false;
-        let desc = '';
-        if (isProMode && item.gemsData) {
+        
+        if (isProMode) {
+            const grouped = {};
+            item.gemsData.forEach(g => {
+                if (!grouped[g.gemName]) grouped[g.gemName] = [];
+                grouped[g.gemName].push(g);
+            });
+            let desc = '';
+            for (const [name, gems] of Object.entries(grouped)) {
+                desc += `${name}: ${gems.length} шт\n`;
+                gems.slice(0, 3).forEach((g, i) => {
+                    desc += `  ${i+1}. ${g.size.toFixed(2)} карат, ${g.purityName} (x${g.purityMultiplier}), ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price} зол.\n`;
+                });
+                if (gems.length > 3) desc += `  ... и ещё ${gems.length - 3} камней\n`;
+            }
+            desc += `Общая сумма: ${item.totalPrice.toLocaleString()} зол.`;
+            return desc.replace(/\n/g, '<br>');
+        } else {
+            const grouped = {};
+            item.gemsData.forEach(g => {
+                if (!grouped[g.gemName]) grouped[g.gemName] = 0;
+                grouped[g.gemName] += 1;
+            });
+            let desc = '';
+            for (const [name, count] of Object.entries(grouped)) {
+                const sample = item.gemsData.find(g => g.gemName === name);
+                desc += `${name}: ${count} шт, ${sample.sizeVisual}, ${sample.purityVisual}\n`;
+            }
+            return desc.replace(/\n/g, '<br>');
+        }
+    }
+    return item.description || 'Нет описания';
+}
+
+function getExpandedItemDetails(item) {
+    if (item.type === 'gems_batch' && item.gemsData) {
+        const isProMode = window.isProModeGemCalculator ? window.isProModeGemCalculator() : false;
+        let html = '<div style="font-size: 0.85em;">';
+        
+        if (isProMode) {
             const grouped = {};
             item.gemsData.forEach(g => {
                 if (!grouped[g.gemName]) grouped[g.gemName] = [];
                 grouped[g.gemName].push(g);
             });
             for (const [name, gems] of Object.entries(grouped)) {
-                desc += `${name}: ${gems.length} шт\n`;
+                html += `<div style="margin-top: 8px;"><span style="color: #d4af37;">${name}:</span> ${gems.length} шт</div>`;
                 gems.forEach((g, i) => {
-                    desc += `  ${i+1}. ${g.size.toFixed(2)} карат, ${g.purityName} (x${g.purityMultiplier}), ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price} зол.\n`;
+                    html += `<div style="margin-left: 15px;">${i+1}. ${g.size.toFixed(2)} карат, ${g.purityName} (x${g.purityMultiplier}), ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price} зол.</div>`;
                 });
             }
-            desc += `\nОбщая сумма: ${item.totalPrice.toLocaleString()} зол.`;
-        } else if (item.gemsData) {
+            html += `<div style="margin-top: 10px; color: #d4af37;">Общая сумма: ${item.totalPrice.toLocaleString()} зол.</div>`;
+        } else {
             const grouped = {};
             item.gemsData.forEach(g => {
-                if (!grouped[g.gemName]) grouped[g.gemName] = 0;
-                grouped[g.gemName] += 1;
+                if (!grouped[g.gemName]) grouped[g.gemName] = [];
+                grouped[g.gemName].push(g);
             });
-            for (const [name, count] of Object.entries(grouped)) {
-                const sample = item.gemsData.find(g => g.gemName === name);
-                desc += `${name}: ${count} шт, ${sample.sizeVisual}, ${sample.purityVisual}\n`;
+            for (const [name, gems] of Object.entries(grouped)) {
+                html += `<div style="margin-top: 8px;"><span style="color: #d4af37;">${name}:</span> ${gems.length} шт</div>`;
+                gems.forEach((g, i) => {
+                    html += `<div style="margin-left: 15px;">${i+1}. ${g.sizeVisual}, ${g.purityVisual}</div>`;
+                });
             }
         }
-        return desc;
+        html += '</div>';
+        return html;
     }
-    return item.description;
+    return item.description || '';
 }
 
 function getCategoryName(category) {
@@ -222,6 +263,11 @@ function getCategoryIcon(category) {
 
 function editItem(category, index) {
     const item = inventory[category][index];
+    if (item.type === 'gems_batch') {
+        alert('Этот предмет создан калькулятором камней и не может быть отредактирован');
+        return;
+    }
+    
     const popup = document.createElement('div');
     popup.className = 'popup';
     popup.innerHTML = `
@@ -408,4 +454,4 @@ function addCustomItem(item) {
 }
 
 window.addCustomItem = addCustomItem;
-window.getItemDescription = getItemDescription;
+window.renderInventory = renderInventory;
