@@ -3,7 +3,7 @@ const gemsSystem = {
     // Таблица выпадения камней (базовая цена за 0.1 карат)
     gemTable: [
         { min: 1, max: 30, name: "Аметист", basePrice: 150 },
-        { min: 31, max: 50, name: "Аметист", basePrice: 150 },
+        { min: 31, max: 50, name: "Рубин", basePrice: 500 },
         { min: 51, max: 65, name: "Гранат", basePrice: 400 },
         { min: 66, max: 80, name: "Корунд (сапфир)", basePrice: 550 },
         { min: 81, max: 92, name: "Берилл (изумруд)", basePrice: 600 },
@@ -133,7 +133,7 @@ const gemsSystem = {
                 <div style="color: #d4af37;">Камень</div>
                 <div style="color: #d4af37;">Цена/0.1кт</div>
                 <div style="color: #e0d0c0;">1-30</div><div style="color: #e0d0c0;">Аметист</div><div style="color: #e0d0c0;">150</div>
-                <div style="color: #e0d0c0;">31-50</div><div style="color: #e0d0c0;">Аметист</div><div style="color: #e0d0c0;">150</div>
+                <div style="color: #e0d0c0;">31-50</div><div style="color: #e0d0c0;">Рубин</div><div style="color: #e0d0c0;">500</div>
                 <div style="color: #e0d0c0;">51-65</div><div style="color: #e0d0c0;">Гранат</div><div style="color: #e0d0c0;">400</div>
                 <div style="color: #e0d0c0;">66-80</div><div style="color: #e0d0c0;">Корунд (сапфир)</div><div style="color: #e0d0c0;">550</div>
                 <div style="color: #e0d0c0;">81-92</div><div style="color: #e0d0c0;">Берилл (изумруд)</div><div style="color: #e0d0c0;">600</div>
