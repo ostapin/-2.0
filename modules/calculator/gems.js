@@ -139,35 +139,49 @@ const gemSystem = {
         return Math.floor(pricePerCarat * size * sizeMultiplier * purityMultiplier * suitabilityMultiplier);
     },
     
-    generateOneGem: function() {
-        const gemRoll = Math.floor(Math.random() * 100) + 1;
+    getSizeVisual: function(size) {
+        if (size < 0.5) return "мелкий";
+        if (size < 2) return "средний";
+        if (size < 10) return "крупный";
+        return "огромный";
+    },
+    
+    getPurityVisual: function(multiplier) {
+        if (multiplier < 0.8) return "мутный";
+        return "прозрачный";
+    },
+    
+    generateOneGemByType: function(gemType) {
         const purityRoll = Math.floor(Math.random() * 100) + 1;
         const suitabilityRoll = Math.floor(Math.random() * 100) + 1;
-        const gem = this.getGem(gemRoll);
+        const size = this.getSize();
         const purity = this.getPurity(purityRoll);
         const suitability = this.getSuitability(suitabilityRoll);
-        const size = this.getSize();
-        const price = this.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+        const price = this.calculatePrice(gemType.basePrice, size, purity.multiplier, suitability.multiplier);
         return {
-            gemName: gem.name,
-            gemRoll: gemRoll,
-            basePrice: gem.basePrice,
+            gemName: gemType.name,
+            basePrice: gemType.basePrice,
             size: size,
-            sizeMultiplier: this.getSizeMultiplier(size),
-            purityName: purity.name,
+            sizeVisual: this.getSizeVisual(size),
             purityMultiplier: purity.multiplier,
-            purityRoll: purityRoll,
-            suitabilityName: suitability.name,
+            purityName: purity.name,
+            purityVisual: this.getPurityVisual(purity.multiplier),
             suitabilityMultiplier: suitability.multiplier,
-            suitabilityRoll: suitabilityRoll,
-            suitabilityLoss: suitability.loss,
+            suitabilityName: suitability.name,
             price: price
         };
+    },
+    
+    generateRandomGem: function() {
+        const gemRoll = Math.floor(Math.random() * 100) + 1;
+        const gemType = this.getGem(gemRoll);
+        return this.generateOneGemByType(gemType);
     }
 };
 
 let gemHistory = [];
 let currentBatchSize = 1;
+let isProMode = false;
 
 function renderGemCalculator() {
     const container = document.getElementById('calculatorContainer');
@@ -190,10 +204,16 @@ function renderGemCalculator() {
     container.innerHTML = `
         <div style="max-width: 1000px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 2; min-width: 400px; background: #2c1810; border-radius: 12px; padding: 20px; border: 2px solid #8b4513;">
-                <h3 style="color: #d4af37; margin-bottom: 15px;">💎 ГЕНЕРАТОР ДРАГОЦЕННЫХ КАМНЕЙ</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #d4af37; margin: 0;">💎 ГЕНЕРАТОР ДРАГОЦЕННЫХ КАМНЕЙ</h3>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <span style="color: #e0d0c0;">Профи</span>
+                        <input type="checkbox" id="proModeToggle" ${isProMode ? 'checked' : ''} onchange="toggleProMode()" style="width: 20px; height: 20px; cursor: pointer;">
+                    </label>
+                </div>
                 <div style="margin-bottom: 20px; padding: 15px; background: #1a0f0b; border-radius: 8px;">
-                    <p style="color: #e0d0c0;">💎 ОДИН ВИД — все камни одинаковые (один бросок на параметры)</p>
-                    <p style="color: #e0d0c0;">🎲 РАЗНЫЕ ВИДЫ — каждый камень со своим броском</p>
+                    <p style="color: #e0d0c0;">💎 ОДИН ВИД — все камни одного вида, но с разными параметрами</p>
+                    <p style="color: #e0d0c0;">🎲 РАЗНЫЕ ВИДЫ — каждый камень со своим случайным видом</p>
                 </div>
                 <div style="margin-bottom: 20px;">
                     <h4 style="color: #d4af37; margin-bottom: 10px;">📦 КОЛИЧЕСТВО КАМНЕЙ</h4>
@@ -267,25 +287,38 @@ function renderGemCalculator() {
     updateBatchSizeDisplayGem();
 }
 
+function toggleProMode() {
+    isProMode = document.getElementById('proModeToggle').checked;
+    renderGemHistory();
+    const resultDiv = document.getElementById('gemResult');
+    if (resultDiv && resultDiv.style.display === 'block') {
+        const lastEntry = gemHistory[0];
+        if (lastEntry) {
+            showResultGem(lastEntry.gems, lastEntry.totalPrice);
+        }
+    }
+}
+
 function setBatchSizeGem(size) { currentBatchSize = size; updateBatchSizeDisplayGem(); updateButtonsText(); }
 function setCustomBatchSizeGem() { let v = parseInt(document.getElementById('customBatchSizeGem').value); if (isNaN(v) || v < 1) v = 1; currentBatchSize = v; updateBatchSizeDisplayGem(); updateButtonsText(); }
 function updateBatchSizeDisplayGem() { let s = document.getElementById('currentBatchSizeGem'); if (s) s.innerText = currentBatchSize; }
-function updateButtonsText() { let b1 = document.querySelector('#calculator-tab button[onclick="generateOneTypeGems()"]'); let b2 = document.querySelector('#calculator-tab button[onclick="generateBatchGem()"]'); if (b1) b1.innerHTML = `💎 ОДИН ВИД (${currentBatchSize})`; if (b2) b2.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`; }
+function updateButtonsText() { 
+    let b1 = document.querySelector('#calculator-tab button[onclick="generateOneTypeGems()"]'); 
+    let b2 = document.querySelector('#calculator-tab button[onclick="generateBatchGem()"]'); 
+    if (b1) b1.innerHTML = `💎 ОДИН ВИД (${currentBatchSize})`; 
+    if (b2) b2.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`; 
+}
 
 function generateOneTypeGems() {
     let count = currentBatchSize;
     let gemRoll = Math.floor(Math.random() * 100) + 1;
-    let purityRoll = Math.floor(Math.random() * 100) + 1;
-    let suitabilityRoll = Math.floor(Math.random() * 100) + 1;
-    let gem = gemSystem.getGem(gemRoll);
-    let purity = gemSystem.getPurity(purityRoll);
-    let suitability = gemSystem.getSuitability(suitabilityRoll);
-    let size = gemSystem.getSize();
-    let pricePerOne = gemSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
-    let totalPrice = pricePerOne * count;
+    let gemType = gemSystem.getGem(gemRoll);
     let gemsList = [];
-    for (let i = 0; i < count; i++) gemsList.push({ gemName: gem.name, size: size, purityName: purity.name, purityMultiplier: purity.multiplier, suitabilityName: suitability.name, suitabilityMultiplier: suitability.multiplier, price: pricePerOne });
-    gemHistory.unshift({ id: Date.now(), time: new Date().toLocaleTimeString(), type: 'single_type', batchSize: count, gems: gemsList, totalPrice: totalPrice });
+    for (let i = 0; i < count; i++) {
+        gemsList.push(gemSystem.generateOneGemByType(gemType));
+    }
+    let totalPrice = gemsList.reduce((s, g) => s + g.price, 0);
+    gemHistory.unshift({ id: Date.now(), time: new Date().toLocaleTimeString(), type: 'single_type', batchSize: count, gems: gemsList, totalPrice: totalPrice, gemTypeName: gemType.name });
     if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
     showResultGem(gemsList, totalPrice);
@@ -294,7 +327,9 @@ function generateOneTypeGems() {
 function generateBatchGem() {
     let count = currentBatchSize;
     let gemsList = [];
-    for (let i = 0; i < count; i++) gemsList.push(gemSystem.generateOneGem());
+    for (let i = 0; i < count; i++) {
+        gemsList.push(gemSystem.generateRandomGem());
+    }
     let totalPrice = gemsList.reduce((s, g) => s + g.price, 0);
     gemHistory.unshift({ id: Date.now(), time: new Date().toLocaleTimeString(), type: 'batch', batchSize: count, gems: gemsList, totalPrice: totalPrice });
     if (gemHistory.length > 50) gemHistory.pop();
@@ -304,7 +339,7 @@ function generateBatchGem() {
 
 function addManualGem() {
     let gemSelect = document.getElementById('manualGemSelect');
-    let gem = gemSystem.getGemByName(gemSelect.value);
+    let gemType = gemSystem.getGemByName(gemSelect.value);
     let purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
     let suitabilityRoll = parseInt(document.getElementById('manualSuitabilityRoll').value);
     let size = parseFloat(document.getElementById('manualSize').value);
@@ -313,8 +348,19 @@ function addManualGem() {
     if (isNaN(size) || size <= 0) { alert('Введите размер'); return; }
     let purity = gemSystem.getPurity(purityRoll);
     let suitability = gemSystem.getSuitability(suitabilityRoll);
-    let price = gemSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
-    let manualGem = { gemName: gem.name, size: size, purityName: purity.name, purityMultiplier: purity.multiplier, suitabilityName: suitability.name, suitabilityMultiplier: suitability.multiplier, price: price };
+    let price = gemSystem.calculatePrice(gemType.basePrice, size, purity.multiplier, suitability.multiplier);
+    let manualGem = {
+        gemName: gemType.name,
+        basePrice: gemType.basePrice,
+        size: size,
+        sizeVisual: gemSystem.getSizeVisual(size),
+        purityMultiplier: purity.multiplier,
+        purityName: purity.name,
+        purityVisual: gemSystem.getPurityVisual(purity.multiplier),
+        suitabilityMultiplier: suitability.multiplier,
+        suitabilityName: suitability.name,
+        price: price
+    };
     gemHistory.unshift({ id: Date.now(), time: new Date().toLocaleTimeString(), type: 'manual', gems: [manualGem], totalPrice: price });
     if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
@@ -324,7 +370,7 @@ function addManualGem() {
 function addManualGemBatch() {
     let count = currentBatchSize;
     let gemSelect = document.getElementById('manualGemSelect');
-    let gem = gemSystem.getGemByName(gemSelect.value);
+    let gemType = gemSystem.getGemByName(gemSelect.value);
     let purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
     let suitabilityRoll = parseInt(document.getElementById('manualSuitabilityRoll').value);
     let size = parseFloat(document.getElementById('manualSize').value);
@@ -333,11 +379,24 @@ function addManualGemBatch() {
     if (isNaN(size) || size <= 0) { alert('Введите размер'); return; }
     let purity = gemSystem.getPurity(purityRoll);
     let suitability = gemSystem.getSuitability(suitabilityRoll);
-    let pricePerOne = gemSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+    let pricePerOne = gemSystem.calculatePrice(gemType.basePrice, size, purity.multiplier, suitability.multiplier);
     let totalPrice = pricePerOne * count;
     let gemsList = [];
-    for (let i = 0; i < count; i++) gemsList.push({ gemName: gem.name, size: size, purityName: purity.name, purityMultiplier: purity.multiplier, suitabilityName: suitability.name, suitabilityMultiplier: suitability.multiplier, price: pricePerOne });
-    gemHistory.unshift({ id: Date.now(), time: new Date().toLocaleTimeString(), type: 'manual_batch', batchSize: count, gems: gemsList, totalPrice: totalPrice });
+    for (let i = 0; i < count; i++) {
+        gemsList.push({
+            gemName: gemType.name,
+            basePrice: gemType.basePrice,
+            size: size,
+            sizeVisual: gemSystem.getSizeVisual(size),
+            purityMultiplier: purity.multiplier,
+            purityName: purity.name,
+            purityVisual: gemSystem.getPurityVisual(purity.multiplier),
+            suitabilityMultiplier: suitability.multiplier,
+            suitabilityName: suitability.name,
+            price: pricePerOne
+        });
+    }
+    gemHistory.unshift({ id: Date.now(), time: new Date().toLocaleTimeString(), type: 'manual_batch', batchSize: count, gems: gemsList, totalPrice: totalPrice, gemTypeName: gemType.name });
     if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
     showResultGem(gemsList, totalPrice);
@@ -350,6 +409,14 @@ function generateRandomSizeGem() {
     document.getElementById('manualSizeResult').innerHTML = `🎲 Размер: ${size.toFixed(2)} карат (${range})`;
 }
 
+function getGemDisplay(g) {
+    if (isProMode) {
+        return `${g.gemName} | ${g.size.toFixed(2)} карат | ${g.purityName} (x${g.purityMultiplier}) | ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price.toLocaleString()} зол.`;
+    } else {
+        return `${g.gemName} | ${g.sizeVisual} | ${g.purityVisual}`;
+    }
+}
+
 function showResultGem(gemsList, totalPrice) {
     let div = document.getElementById('gemResult');
     if (!div) return;
@@ -359,11 +426,16 @@ function showResultGem(gemsList, totalPrice) {
     sorted.forEach(g => { if (!grouped[g.gemName]) grouped[g.gemName] = []; grouped[g.gemName].push(g); });
     for (let [name, items] of Object.entries(grouped)) {
         let groupTotal = items.reduce((s, g) => s + g.price, 0);
-        html += `<div style="margin:8px 0;padding:8px;background:#2c1810;border-radius:4px;"><div style="color:#d4af37;font-weight:bold;">${name}: ${items.length} шт — ${groupTotal.toLocaleString()} зол.</div>`;
-        items.forEach((g, idx) => { html += `<div style="margin-left:15px;">${idx+1}. ${g.purityName}/${g.suitabilityName} | ${g.size.toFixed(2)} карат = ${g.price.toLocaleString()}</div>`; });
+        html += `<div style="margin:8px 0;padding:8px;background:#2c1810;border-radius:4px;"><div style="color:#d4af37;font-weight:bold;">${name}: ${items.length} шт — ${isProMode ? groupTotal.toLocaleString() + ' зол.' : ''}</div>`;
+        items.forEach((g, idx) => {
+            html += `<div style="margin-left:15px;">${idx+1}. ${getGemDisplay(g)}</div>`;
+        });
         html += `</div>`;
     }
-    html += `</div><div style="margin-top:10px;border-top:1px solid #8b4513;text-align:right;color:#d4af37;">🏆 ОБЩАЯ СУММА: ${totalPrice.toLocaleString()} зол.</div>`;
+    html += `</div>`;
+    if (isProMode) {
+        html += `<div style="margin-top:10px;border-top:1px solid #8b4513;text-align:right;color:#d4af37;">🏆 ОБЩАЯ СУММА: ${totalPrice.toLocaleString()} зол.</div>`;
+    }
     div.style.display = 'block';
     div.innerHTML = html;
 }
@@ -373,7 +445,16 @@ function renderGemHistory() {
     if (!list) return;
     if (gemHistory.length === 0) { list.innerHTML = '<p style="color:#8b7d6b;text-align:center;">История пуста</p>'; return; }
     list.innerHTML = gemHistory.map((e, i) => {
-        let title = e.type === 'single_type' ? `💎 ${e.gems[0].gemName} x${e.batchSize} — ${e.totalPrice.toLocaleString()}` : e.type === 'batch' ? `🎲 Партия ${e.batchSize} камней — ${e.totalPrice.toLocaleString()}` : e.type === 'manual' ? `✋ ${e.gems[0].gemName} — ${e.totalPrice.toLocaleString()}` : `📦 ${e.gems[0].gemName} x${e.batchSize} — ${e.totalPrice.toLocaleString()}`;
+        let title = '';
+        if (e.type === 'single_type') {
+            title = isProMode ? `💎 ${e.gemTypeName} x${e.batchSize} — ${e.totalPrice.toLocaleString()}` : `💎 ${e.gemTypeName} x${e.batchSize}`;
+        } else if (e.type === 'batch') {
+            title = isProMode ? `🎲 Партия ${e.batchSize} камней — ${e.totalPrice.toLocaleString()}` : `🎲 Партия ${e.batchSize} камней`;
+        } else if (e.type === 'manual') {
+            title = isProMode ? `✋ ${e.gems[0].gemName} — ${e.totalPrice.toLocaleString()}` : `✋ ${e.gems[0].gemName}`;
+        } else {
+            title = isProMode ? `📦 ${e.gemTypeName} x${e.batchSize} — ${e.totalPrice.toLocaleString()}` : `📦 ${e.gemTypeName} x${e.batchSize}`;
+        }
         return `<div style="background:#1a0f0b;margin-bottom:8px;padding:8px;border-radius:4px;cursor:pointer;" onclick="toggleHistoryDetailsGem(${i})"><div style="color:#b89a7a;font-size:0.7em;">${e.time}</div><div style="color:#e0d0c0;">${title}</div><div id="history-details-gem-${i}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #8b4513;"></div></div>`;
     }).join('');
 }
@@ -389,13 +470,20 @@ function toggleHistoryDetailsGem(i) {
         sorted.forEach(g => { if (!grouped[g.gemName]) grouped[g.gemName] = []; grouped[g.gemName].push(g); });
         for (let [name, items] of Object.entries(grouped)) {
             let groupTotal = items.reduce((s,g) => s + g.price, 0);
-            html += `<div><span style="color:#d4af37;">${name}:</span> ${items.length} шт — ${groupTotal.toLocaleString()}</div>`;
-            items.forEach(g => { html += `<div style="margin-left:10px;">${g.purityName}/${g.suitabilityName} | ${g.size.toFixed(2)} карат = ${g.price.toLocaleString()}</div>`; });
+            html += `<div><span style="color:#d4af37;">${name}:</span> ${items.length} шт — ${isProMode ? groupTotal.toLocaleString() + ' зол.' : ''}</div>`;
+            items.forEach(g => {
+                html += `<div style="margin-left:10px;">${getGemDisplay(g)}</div>`;
+            });
         }
-        html += `<div style="margin-top:5px;color:#d4af37;">Итого: ${e.totalPrice.toLocaleString()}</div></div>`;
+        if (isProMode) {
+            html += `<div style="margin-top:5px;color:#d4af37;">Итого: ${e.totalPrice.toLocaleString()} зол.</div>`;
+        }
+        html += '</div>';
         d.innerHTML = html;
         d.style.display = 'block';
-    } else { d.style.display = 'none'; }
+    } else {
+        d.style.display = 'none';
+    }
 }
 
 function clearGemHistory() { if (confirm('Очистить историю?')) { gemHistory = []; renderGemHistory(); let r = document.getElementById('gemResult'); if (r) r.style.display = 'none'; } }
@@ -410,3 +498,4 @@ window.setBatchSizeGem = setBatchSizeGem;
 window.setCustomBatchSizeGem = setCustomBatchSizeGem;
 window.clearGemHistory = clearGemHistory;
 window.toggleHistoryDetailsGem = toggleHistoryDetailsGem;
+window.toggleProMode = toggleProMode;
