@@ -107,6 +107,15 @@ const gemCalculatorSystem = {
         return { name: "Неизвестный камень", basePrice: 0 };
     },
     
+    getGemByName: function(name) {
+        for (let i = 0; i < this.gemTable.length; i++) {
+            if (this.gemTable[i].name === name) {
+                return this.gemTable[i];
+            }
+        }
+        return { name: "Аметист", basePrice: 150 };
+    },
+    
     getPurity: function(roll) {
         for (let i = 0; i < this.purityTable.length; i++) {
             if (roll >= this.purityTable[i].min && roll <= this.purityTable[i].max) {
@@ -167,18 +176,32 @@ function renderGemCalculator() {
     const container = document.getElementById('calculatorContainer');
     if (!container) return;
     
+    // Список камней для выпадающего списка
+    const gemOptions = [
+        { name: "Аметист", basePrice: 150 },
+        { name: "Гранат", basePrice: 400 },
+        { name: "Корунд (сапфир)", basePrice: 550 },
+        { name: "Берилл (изумруд)", basePrice: 600 },
+        { name: "Алмаз", basePrice: 750 }
+    ];
+    
+    let gemSelectHtml = '';
+    gemOptions.forEach(g => {
+        gemSelectHtml += `<option value="${g.name}" data-price="${g.basePrice}">${g.name} (база ${g.basePrice})</option>`;
+    });
+    
     container.innerHTML = `
         <div style="max-width: 1000px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 2; min-width: 400px; background: #2c1810; border-radius: 12px; padding: 20px; border: 2px solid #8b4513;">
                 <h3 style="color: #d4af37; margin-bottom: 15px;">💎 ГЕНЕРАТОР ДРАГОЦЕННЫХ КАМНЕЙ</h3>
                 
                 <div style="margin-bottom: 20px; padding: 15px; background: #1a0f0b; border-radius: 8px;">
-                    <p style="color: #e0d0c0;">🎲 Один вид — один камень со случайными параметрами</p>
-                    <p style="color: #e0d0c0;">🎲 Разные виды — несколько камней, каждый со своим броском</p>
+                    <p style="color: #e0d0c0;">💎 ОДИН ВИД — все камни одинаковые (один бросок на параметры)</p>
+                    <p style="color: #e0d0c0;">🎲 РАЗНЫЕ ВИДЫ — каждый камень со своим броском</p>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">📦 КОЛИЧЕСТВО КАМНЕЙ В ПАРТИИ</h4>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">📦 КОЛИЧЕСТВО КАМНЕЙ</h4>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                         <button onclick="setBatchSizeGem(1)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">1</button>
                         <button onclick="setBatchSizeGem(3)" style="background: #5a3a2a; padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;">3</button>
@@ -195,27 +218,50 @@ function renderGemCalculator() {
                         <input type="number" id="customBatchSizeGem" value="1" min="1" style="width: 80px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
                         <button onclick="setCustomBatchSizeGem()" style="background: #8b4513; padding: 5px 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">Установить</button>
                     </div>
-                    <div style="margin-top: 10px; color: #d4af37;">Партия: <span id="currentBatchSizeGem">1</span> камней</div>
+                    <div style="margin-top: 10px; color: #d4af37;">Количество: <span id="currentBatchSizeGem">1</span> камней</div>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button onclick="generateOneGem()" style="flex: 1; background: #d4af37; color: #2c1810; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">💎 ОДИН ВИД</button>
+                    <button onclick="generateOneTypeGems()" style="flex: 1; background: #d4af37; color: #2c1810; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">💎 ОДИН ВИД (${currentBatchSize})</button>
                     <button onclick="generateBatchGem()" style="flex: 1; background: #27ae60; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})</button>
                 </div>
                 
                 <div id="gemResult" style="margin-top: 20px; padding: 15px; background: #1a0f0b; border-radius: 8px; display: none; max-height: 400px; overflow-y: auto;"></div>
                 
                 <div style="margin-top: 20px; padding: 10px; background: #3d2418; border-radius: 6px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎲 РУЧНОЙ ВВОД БРОСКОВ</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                        <input type="number" id="manualGemRoll" placeholder="Камень (1-100)" style="padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-                        <input type="number" id="manualPurityRoll" placeholder="Чистота (1-100)" style="padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
-                        <input type="number" id="manualSuitabilityRoll" placeholder="Пригодность (1-100)" style="padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎲 РУЧНОЙ ВВОД ПАРАМЕТРОВ</h4>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #e0d0c0; display: block; margin-bottom: 5px;">Вид камня:</label>
+                        <select id="manualGemSelect" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                            ${gemSelectHtml}
+                        </select>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="addManualGem()" style="flex: 1; background: #8b4513; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer;">Добавить камень</button>
-                        <button onclick="generateRandomSizeGem()" style="flex: 1; background: #5a3a2a; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer;">🎲 Случайный размер</button>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label style="color: #e0d0c0; display: block; margin-bottom: 5px;">Чистота (1-100):</label>
+                            <input type="number" id="manualPurityRoll" placeholder="1-100" value="50" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="color: #e0d0c0; display: block; margin-bottom: 5px;">Пригодность (1-100):</label>
+                            <input type="number" id="manualSuitabilityRoll" placeholder="1-100" value="50" style="width: 100%; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                        </div>
                     </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #e0d0c0; display: block; margin-bottom: 5px;">Размер (карат):</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="manualSize" step="0.1" placeholder="Размер в каратах" style="flex: 2; padding: 8px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; border-radius: 4px;">
+                            <button onclick="generateRandomSizeGem()" style="flex: 1; background: #5a3a2a; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer;">🎲 Случайный</button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button onclick="addManualGem()" style="flex: 1; background: #8b4513; padding: 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">➕ Добавить 1 камень</button>
+                        <button onclick="addManualGemBatch()" style="flex: 1; background: #27ae60; padding: 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">📦 Добавить ${currentBatchSize} камней (одинаковых)</button>
+                    </div>
+                    
                     <div id="manualSizeResult" style="margin-top: 10px; color: #b89a7a; font-size: 0.85em;"></div>
                 </div>
             </div>
@@ -238,8 +284,10 @@ function renderGemCalculator() {
 function setBatchSizeGem(size) {
     currentBatchSize = size;
     updateBatchSizeDisplayGem();
-    const btn = document.querySelector('#calculator-tab button[onclick="generateBatchGem()"]');
-    if (btn) btn.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`;
+    const btn1 = document.querySelector('#calculator-tab button[onclick="generateOneTypeGems()"]');
+    const btn2 = document.querySelector('#calculator-tab button[onclick="generateBatchGem()"]');
+    if (btn1) btn1.innerHTML = `💎 ОДИН ВИД (${currentBatchSize})`;
+    if (btn2) btn2.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`;
 }
 
 function setCustomBatchSizeGem() {
@@ -248,8 +296,10 @@ function setCustomBatchSizeGem() {
     if (isNaN(val) || val < 1) val = 1;
     currentBatchSize = val;
     updateBatchSizeDisplayGem();
-    const btn = document.querySelector('#calculator-tab button[onclick="generateBatchGem()"]');
-    if (btn) btn.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`;
+    const btn1 = document.querySelector('#calculator-tab button[onclick="generateOneTypeGems()"]');
+    const btn2 = document.querySelector('#calculator-tab button[onclick="generateBatchGem()"]');
+    if (btn1) btn1.innerHTML = `💎 ОДИН ВИД (${currentBatchSize})`;
+    if (btn2) btn2.innerHTML = `🎲 РАЗНЫЕ ВИДЫ (${currentBatchSize})`;
 }
 
 function updateBatchSizeDisplayGem() {
@@ -257,71 +307,113 @@ function updateBatchSizeDisplayGem() {
     if (span) span.innerText = currentBatchSize;
 }
 
-function generateOneGem() {
-    const gem = gemCalculatorSystem.generateOneGem();
+// ОДИН ВИД — все камни одинаковые
+function generateOneTypeGems() {
+    const count = currentBatchSize;
+    if (count < 1) return;
+    
+    // Один бросок на все параметры
+    const gemRoll = Math.floor(Math.random() * 100) + 1;
+    const purityRoll = Math.floor(Math.random() * 100) + 1;
+    const suitabilityRoll = Math.floor(Math.random() * 100) + 1;
+    
+    const gem = gemCalculatorSystem.getGem(gemRoll);
+    const purity = gemCalculatorSystem.getPurity(purityRoll);
+    const suitability = gemCalculatorSystem.getSuitability(suitabilityRoll);
+    const size = gemCalculatorSystem.getSize();
+    const pricePerOne = gemCalculatorSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+    const totalPrice = pricePerOne * count;
+    
+    const gemsList = [];
+    for (let i = 0; i < count; i++) {
+        gemsList.push({
+            gemName: gem.name,
+            gemRoll: gemRoll,
+            basePrice: gem.basePrice,
+            size: size,
+            sizeMultiplier: gemCalculatorSystem.getSizeMultiplier(size),
+            purityName: purity.name,
+            purityMultiplier: purity.multiplier,
+            purityRoll: purityRoll,
+            suitabilityName: suitability.name,
+            suitabilityMultiplier: suitability.multiplier,
+            suitabilityRoll: suitabilityRoll,
+            suitabilityLoss: suitability.loss,
+            price: pricePerOne
+        });
+    }
     
     const entry = {
         id: Date.now(),
         time: new Date().toLocaleTimeString(),
-        type: 'single',
-        gems: [gem]
+        type: 'single_type',
+        batchSize: count,
+        gems: gemsList,
+        totalPrice: totalPrice
     };
     
     gemHistory.unshift(entry);
     if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
-    showResultGem([gem]);
+    showResultGem(gemsList, totalPrice);
 }
 
+// РАЗНЫЕ ВИДЫ — каждый камень со своим броском
 function generateBatchGem() {
     const count = currentBatchSize;
-    const gemsList = [];
+    if (count < 1) return;
     
+    const gemsList = [];
     for (let i = 0; i < count; i++) {
         gemsList.push(gemCalculatorSystem.generateOneGem());
     }
+    const totalPrice = gemsList.reduce((sum, g) => sum + g.price, 0);
     
     const entry = {
         id: Date.now(),
         time: new Date().toLocaleTimeString(),
         type: 'batch',
         batchSize: count,
-        gems: gemsList
+        gems: gemsList,
+        totalPrice: totalPrice
     };
     
     gemHistory.unshift(entry);
     if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
-    showResultGem(gemsList);
+    showResultGem(gemsList, totalPrice);
 }
 
+// Добавление одного камня с ручными параметрами
 function addManualGem() {
-    const gemRoll = parseInt(document.getElementById('manualGemRoll').value);
+    const gemSelect = document.getElementById('manualGemSelect');
+    const selectedGemName = gemSelect.value;
+    const gem = gemCalculatorSystem.getGemByName(selectedGemName);
+    
     const purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
     const suitabilityRoll = parseInt(document.getElementById('manualSuitabilityRoll').value);
+    let size = parseFloat(document.getElementById('manualSize').value);
     
-    if (isNaN(gemRoll) || gemRoll < 1 || gemRoll > 100) {
-        alert('Введите число от 1 до 100 для броска камня');
-        return;
-    }
     if (isNaN(purityRoll) || purityRoll < 1 || purityRoll > 100) {
-        alert('Введите число от 1 до 100 для броска чистоты');
+        alert('Введите число от 1 до 100 для чистоты');
         return;
     }
     if (isNaN(suitabilityRoll) || suitabilityRoll < 1 || suitabilityRoll > 100) {
-        alert('Введите число от 1 до 100 для броска пригодности');
+        alert('Введите число от 1 до 100 для пригодности');
+        return;
+    }
+    if (isNaN(size) || size <= 0) {
+        alert('Введите положительный размер в каратах');
         return;
     }
     
-    const gem = gemCalculatorSystem.getGem(gemRoll);
     const purity = gemCalculatorSystem.getPurity(purityRoll);
     const suitability = gemCalculatorSystem.getSuitability(suitabilityRoll);
-    const size = gemCalculatorSystem.getSize();
     const price = gemCalculatorSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
     
     const manualGem = {
         gemName: gem.name,
-        gemRoll: gemRoll,
+        gemRoll: null,
         basePrice: gem.basePrice,
         size: size,
         sizeMultiplier: gemCalculatorSystem.getSizeMultiplier(size),
@@ -338,19 +430,80 @@ function addManualGem() {
     const entry = {
         id: Date.now(),
         time: new Date().toLocaleTimeString(),
-        type: 'single',
-        gems: [manualGem]
+        type: 'manual',
+        gems: [manualGem],
+        totalPrice: price
     };
     
     gemHistory.unshift(entry);
     if (gemHistory.length > 50) gemHistory.pop();
     renderGemHistory();
-    showResultGem([manualGem]);
+    showResultGem([manualGem], price);
+}
+
+// Добавление нескольких одинаковых камней с ручными параметрами
+function addManualGemBatch() {
+    const count = currentBatchSize;
+    if (count < 1) return;
     
-    document.getElementById('manualGemRoll').value = '';
-    document.getElementById('manualPurityRoll').value = '';
-    document.getElementById('manualSuitabilityRoll').value = '';
-    document.getElementById('manualSizeResult').innerHTML = '';
+    const gemSelect = document.getElementById('manualGemSelect');
+    const selectedGemName = gemSelect.value;
+    const gem = gemCalculatorSystem.getGemByName(selectedGemName);
+    
+    const purityRoll = parseInt(document.getElementById('manualPurityRoll').value);
+    const suitabilityRoll = parseInt(document.getElementById('manualSuitabilityRoll').value);
+    let size = parseFloat(document.getElementById('manualSize').value);
+    
+    if (isNaN(purityRoll) || purityRoll < 1 || purityRoll > 100) {
+        alert('Введите число от 1 до 100 для чистоты');
+        return;
+    }
+    if (isNaN(suitabilityRoll) || suitabilityRoll < 1 || suitabilityRoll > 100) {
+        alert('Введите число от 1 до 100 для пригодности');
+        return;
+    }
+    if (isNaN(size) || size <= 0) {
+        alert('Введите положительный размер в каратах');
+        return;
+    }
+    
+    const purity = gemCalculatorSystem.getPurity(purityRoll);
+    const suitability = gemCalculatorSystem.getSuitability(suitabilityRoll);
+    const pricePerOne = gemCalculatorSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
+    const totalPrice = pricePerOne * count;
+    
+    const gemsList = [];
+    for (let i = 0; i < count; i++) {
+        gemsList.push({
+            gemName: gem.name,
+            gemRoll: null,
+            basePrice: gem.basePrice,
+            size: size,
+            sizeMultiplier: gemCalculatorSystem.getSizeMultiplier(size),
+            purityName: purity.name,
+            purityMultiplier: purity.multiplier,
+            purityRoll: purityRoll,
+            suitabilityName: suitability.name,
+            suitabilityMultiplier: suitability.multiplier,
+            suitabilityRoll: suitabilityRoll,
+            suitabilityLoss: suitability.loss,
+            price: pricePerOne
+        });
+    }
+    
+    const entry = {
+        id: Date.now(),
+        time: new Date().toLocaleTimeString(),
+        type: 'manual_batch',
+        batchSize: count,
+        gems: gemsList,
+        totalPrice: totalPrice
+    };
+    
+    gemHistory.unshift(entry);
+    if (gemHistory.length > 50) gemHistory.pop();
+    renderGemHistory();
+    showResultGem(gemsList, totalPrice);
 }
 
 function generateRandomSizeGem() {
@@ -364,22 +517,22 @@ function generateRandomSizeGem() {
     else if (size < 1000) range = "100-1000 карат";
     else range = "1000-10000 карат";
     
+    document.getElementById('manualSize').value = size.toFixed(2);
     document.getElementById('manualSizeResult').innerHTML = `🎲 Размер: ${size.toFixed(2)} карат (${range})`;
 }
 
-function showResultGem(gemsList) {
+function showResultGem(gemsList, totalPrice) {
     const resultDiv = document.getElementById('gemResult');
     if (!resultDiv) return;
     
     const sorted = [...gemsList].sort((a, b) => a.gemName.localeCompare(b.gemName));
     
-    let totalPrice = 0;
     let html = '<h4 style="color: #d4af37; margin-bottom: 10px;">📋 РЕЗУЛЬТАТЫ (сортировка по названию):</h4>';
     html += '<div style="max-height: 350px; overflow-y: auto;">';
     
     const grouped = {};
     sorted.forEach(g => {
-        if (!grouped[g.gemName]) grouped[g.gemName] = [];
+        if (!grouped[g.gemName]) grouped[g.gemName]] = [];
         grouped[g.gemName].push(g);
     });
     
@@ -396,7 +549,6 @@ function showResultGem(gemsList) {
             html += `${g.size.toFixed(2)} карат | `;
             html += `<span style="color: #d4af37;">${g.price.toLocaleString()}</span>`;
             html += `</div>`;
-            totalPrice += g.price;
         });
         html += `</div>`;
     }
@@ -419,10 +571,16 @@ function renderGemHistory() {
     }
     
     historyList.innerHTML = gemHistory.map((entry, idx) => {
-        let totalPrice = entry.gems.reduce((sum, g) => sum + g.price, 0);
-        let title = entry.type === 'single' 
-            ? `💎 ${entry.gems[0].gemName} — ${entry.gems[0].price.toLocaleString()}`
-            : `🎲 Партия ${entry.batchSize} камней — ${totalPrice.toLocaleString()}`;
+        let title = '';
+        if (entry.type === 'single_type') {
+            title = `💎 ${entry.gems[0].gemName} x${entry.batchSize} — ${entry.totalPrice.toLocaleString()}`;
+        } else if (entry.type === 'batch') {
+            title = `🎲 Партия ${entry.batchSize} камней — ${entry.totalPrice.toLocaleString()}`;
+        } else if (entry.type === 'manual') {
+            title = `✋ ${entry.gems[0].gemName} — ${entry.totalPrice.toLocaleString()}`;
+        } else {
+            title = `📦 ${entry.gems[0].gemName} x${entry.batchSize} — ${entry.totalPrice.toLocaleString()}`;
+        }
         
         return `
             <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px; cursor: pointer;" onclick="toggleHistoryDetailsGem(${idx})">
@@ -458,7 +616,7 @@ function toggleHistoryDetailsGem(index) {
             });
         }
         
-        html += `<div style="margin-top: 5px; color: #d4af37;">Итого: ${entry.gems.reduce((s, g) => s + g.price, 0).toLocaleString()}</div>`;
+        html += `<div style="margin-top: 5px; color: #d4af37;">Итого: ${entry.totalPrice.toLocaleString()}</div>`;
         html += '</div>';
         
         detailsDiv.innerHTML = html;
@@ -477,10 +635,12 @@ function clearGemHistory() {
     }
 }
 
+// Экспорт функций
 window.renderGemCalculator = renderGemCalculator;
-window.generateOneGem = generateOneGem;
+window.generateOneTypeGems = generateOneTypeGems;
 window.generateBatchGem = generateBatchGem;
 window.addManualGem = addManualGem;
+window.addManualGemBatch = addManualGemBatch;
 window.generateRandomSizeGem = generateRandomSizeGem;
 window.setBatchSizeGem = setBatchSizeGem;
 window.setCustomBatchSizeGem = setCustomBatchSizeGem;
