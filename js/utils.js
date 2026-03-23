@@ -186,6 +186,23 @@ function openTab(tabName) {
     if (!buttonFound) {
         console.warn('Кнопка для вкладки не найдена:', tabName);
     }
+    
+    // Специальная обработка для вкладок
+    if (tabName === 'calculator') {
+        setTimeout(() => {
+            if (typeof renderCalculator === 'function') {
+                renderCalculator();
+            }
+        }, 10);
+    }
+    
+    if (tabName === 'games') {
+        setTimeout(() => {
+            if (typeof renderGamesManager === 'function') {
+                renderGamesManager();
+            }
+        }, 10);
+    }
 }
 
 // Функции для работы с буфером обмена
