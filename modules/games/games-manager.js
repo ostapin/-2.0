@@ -9,7 +9,10 @@ let currentGame = 'ticTacToe';
 
 function renderGamesManager() {
     const container = document.getElementById('gamesContainer');
-    if (!container) return;
+    if (!container) {
+        console.error('gamesContainer не найден');
+        return;
+    }
     
     // Кнопки выбора игр
     let buttonsHtml = '<div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">';
@@ -42,4 +45,26 @@ function renderCurrentGame() {
     if (game && game.func) {
         game.func(container);
     }
+}
+
+// ========== ИГРА: КРЕСТИКИ-НОЛИКИ ==========
+function renderTicTacToe(container) {
+    container.innerHTML = `
+        <h3 style="color: #d4af37; text-align: center; margin-bottom: 20px;">❌ КРЕСТИКИ-НОЛИКИ</h3>
+        <div style="text-align: center; padding: 20px;">
+            <p style="color: #e0d0c0;">🎮 Игра в разработке</p>
+            <p style="color: #8b7d6b;">Скоро будет доступна</p>
+        </div>
+    `;
+}
+
+// ========== ИГРА: МЕМОРИ ==========
+function renderMemory(container) {
+    container.innerHTML = `
+        <h3 style="color: #d4af37; text-align: center; margin-bottom: 20px;">🧠 МЕМОРИ</h3>
+        <div style="text-align: center; padding: 20px;">
+            <p style="color: #e0d0c0;">🎮 Игра в разработке</p>
+            <p style="color: #8b7d6b;">Скоро будет доступна</p>
+        </div>
+    `;
 }
