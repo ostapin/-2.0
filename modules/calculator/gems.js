@@ -287,6 +287,48 @@ function renderGemCalculator() {
     updateBatchSizeDisplayGem();
 }
 
+function addToInventoryFromGems(gemsList, batchInfo) {
+    if (typeof window.addCustomItem !== 'function') {
+        alert('Ошибка: система инвентаря не загружена');
+        return;
+    }
+    
+    let description = '';
+    if (isProMode) {
+        const grouped = {};
+        gemsList.forEach(g => {
+            if (!grouped[g.gemName]) grouped[g.gemName] = [];
+            grouped[g.gemName].push(g);
+        });
+        for (const [name, items] of Object.entries(grouped)) {
+            description += `${name}: ${items.length} шт\n`;
+            items.forEach((g, i) => {
+                description += `  ${i+1}. ${g.size.toFixed(2)} карат, ${g.purityName} (x${g.purityMultiplier}), ${g.suitabilityName} (x${g.suitabilityMultiplier}) = ${g.price} зол.\n`;
+            });
+        }
+        description += `\nОбщая сумма: ${batchInfo.totalPrice.toLocaleString()} зол.`;
+    } else {
+        const grouped = {};
+        gemsList.forEach(g => {
+            if (!grouped[g.gemName]) grouped[g.gemName] = 0;
+            grouped[g.gemName] += 1;
+        });
+        for (const [name, count] of Object.entries(grouped)) {
+            const sample = gemsList.find(g => g.gemName === name);
+            description += `${name}: ${count} шт, ${sample.sizeVisual}, ${sample.purityVisual}\n`;
+        }
+    }
+    
+    window.addCustomItem({
+        name: batchInfo.title,
+        quantity: 1,
+        category: 'valuables',
+        description: description
+    });
+    
+    alert(`✅ ${batchInfo.title} добавлен в инвентарь (раздел "Ценности")`);
+}
+
 function toggleProMode() {
     isProMode = document.getElementById('proModeToggle').checked;
     renderGemHistory();
@@ -421,7 +463,17 @@ function showResultGem(gemsList, totalPrice) {
     let div = document.getElementById('gemResult');
     if (!div) return;
     let sorted = [...gemsList].sort((a, b) => a.gemName.localeCompare(b.gemName));
-    let html = '<h4 style="color:#d4af37;">📋 РЕЗУЛЬТАТЫ:</h4><div style="max-height:350px;overflow-y:auto;">';
+    
+    let batchInfo = {
+        title: `Находка: ${sorted[0].gemName}${sorted.length > 1 ? ` (${sorted.length} шт)` : ''}`,
+        totalPrice: totalPrice
+    };
+    
+    let html = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+    html += '<h4 style="color:#d4af37; margin:0;">📋 РЕЗУЛЬТАТЫ:</h4>';
+    html += `<button onclick="addToInventoryFromGems(${JSON.stringify(gemsList).replace(/"/g, '&quot;')}, ${JSON.stringify(batchInfo).replace(/"/g, '&quot;')})" style="background: #27ae60; padding: 5px 12px; border: none; border-radius: 6px; color: white; cursor: pointer;">📦 В инвентарь</button>`;
+    html += '</div><div style="max-height:350px;overflow-y:auto;">';
+    
     let grouped = {};
     sorted.forEach(g => { if (!grouped[g.gemName]) grouped[g.gemName] = []; grouped[g.gemName].push(g); });
     for (let [name, items] of Object.entries(grouped)) {
@@ -455,7 +507,22 @@ function renderGemHistory() {
         } else {
             title = isProMode ? `📦 ${e.gemTypeName} x${e.batchSize} — ${e.totalPrice.toLocaleString()}` : `📦 ${e.gemTypeName} x${e.batchSize}`;
         }
-        return `<div style="background:#1a0f0b;margin-bottom:8px;padding:8px;border-radius:4px;cursor:pointer;" onclick="toggleHistoryDetailsGem(${i})"><div style="color:#b89a7a;font-size:0.7em;">${e.time}</div><div style="color:#e0d0c0;">${title}</div><div id="history-details-gem-${i}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #8b4513;"></div></div>`;
+        let batchInfo = {
+            title: title.replace(/[^а-яА-Яa-zA-Z0-9\s]/g, '').trim(),
+            totalPrice: e.totalPrice
+        };
+        let gemsJson = JSON.stringify(e.gems).replace(/"/g, '&quot;');
+        let batchJson = JSON.stringify(batchInfo).replace(/"/g, '&quot;');
+        return `<div style="background:#1a0f0b;margin-bottom:8px;padding:8px;border-radius:4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="cursor:pointer; flex:1;" onclick="toggleHistoryDetailsGem(${i})">
+                    <div style="color:#b89a7a;font-size:0.7em;">${e.time}</div>
+                    <div style="color:#e0d0c0;">${title}</div>
+                </div>
+                <button onclick="addToInventoryFromGems(${gemsJson}, ${batchJson})" style="background: #27ae60; padding: 4px 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.8em;">📦</button>
+            </div>
+            <div id="history-details-gem-${i}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #8b4513;"></div>
+        </div>`;
     }).join('');
 }
 
@@ -499,3 +566,4 @@ window.setCustomBatchSizeGem = setCustomBatchSizeGem;
 window.clearGemHistory = clearGemHistory;
 window.toggleHistoryDetailsGem = toggleHistoryDetailsGem;
 window.toggleProMode = toggleProMode;
+window.addToInventoryFromGems = addToInventoryFromGems;
