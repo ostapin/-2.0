@@ -29,6 +29,17 @@ const gemsSystem = {
         { min: 91, max: 100, multiplier: 0.95, name: "Идеальная", loss: "5%" }
     ],
     
+    // Функция для получения множителя размера (цена за карат в зависимости от диапазона)
+    getSizeMultiplier: function(size) {
+        if (size < 1) return 1;
+        if (size < 5) return 5;
+        if (size < 10) return 25;
+        if (size < 50) return 125;
+        if (size < 100) return 625;
+        if (size < 1000) return 3125;
+        return 15625;
+    },
+    
     // Функция для получения размера камня (с весовыми коэффициентами)
     getSize: function() {
         const rand = Math.random() * 1000;
@@ -111,7 +122,8 @@ const gemsSystem = {
             <p style="color: #e0d0c0;">2. Второй бросок d100 определяет чистоту камня (множитель 0.5-1.5)</p>
             <p style="color: #e0d0c0;">3. Третий бросок определяет размер в каратах (чем крупнее, тем реже)</p>
             <p style="color: #e0d0c0;">4. Четвёртый бросок d100 определяет пригодность огранки (множитель 0.2-0.95)</p>
-            <p style="color: #e0d0c0;">5. Цена = (базовая цена за 0.1 карат × 10) × размер × чистоту × пригодность</p>
+            <p style="color: #e0d0c0;">5. Цена = (базовая цена за 0.1 карат × 10) × размер × множитель размера × чистоту × пригодность</p>
+            <p style="color: #d4af37;">Множитель размера: 1 (0.1-1кт), 5 (1-5кт), 25 (5-10кт), 125 (10-50кт), 625 (50-100кт), 3125 (100-1000кт), 15625 (1000-10000кт)</p>
         </div>
 
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
@@ -172,6 +184,7 @@ const gemsSystem = {
                 <div style="color: #d4af37;">1000-10000 карат</div><div style="color: #e0d0c0;">0.0005% камней</div>
             </div>
             <p style="color: #8b7d6b; margin-top: 10px;">* Внутри каждого диапазона камни ближе к нижней границе встречаются чаще</p>
+            <p style="color: #d4af37; margin-top: 10px;">💰 Множитель цены за размер: 1 → 5 → 25 → 125 → 625 → 3125 → 15625 (каждый диапазон в 5 раз дороже)</p>
         </div>
 
         <div style="margin-bottom: 20px; padding: 15px; background: #2a1a0f; border-radius: 6px;">
@@ -179,10 +192,11 @@ const gemsSystem = {
             <div style="color: #e0d0c0;">
                 Бросок на тип: 95 → Алмаз (база 750 за 0.1 карат)<br>
                 Цена за 1 карат: 750 × 10 = 7500<br>
+                Бросок на размер: 1000-10000 карат → 8500 карат<br>
+                Множитель размера: 15625 (для диапазона 1000-10000)<br>
                 Бросок на чистоту: 85 → отличная (1.5)<br>
-                Бросок на размер: попадание в 0.4% → 27.8 карат<br>
                 Бросок на пригодность: 95 → идеальная (0.95)<br>
-                Итог: 7500 × 27.8 × 1.5 × 0.95 = 297,112 золотых
+                Итог: 7500 × 8500 × 15625 × 1.5 × 0.95 = 1,418,000,000,000 золотых
             </div>
         </div>
 
@@ -227,7 +241,8 @@ const gemsSystem = {
     // Функция для расчёта цены
     calculatePrice: function(basePrice, size, purityMultiplier, suitabilityMultiplier) {
         const pricePerCarat = basePrice * 10;
-        return Math.floor(pricePerCarat * size * purityMultiplier * suitabilityMultiplier);
+        const sizeMultiplier = this.getSizeMultiplier(size);
+        return Math.floor(pricePerCarat * size * sizeMultiplier * purityMultiplier * suitabilityMultiplier);
     }
 };
 
@@ -244,15 +259,26 @@ window.testGem = function() {
     const price = gemsSystem.calculatePrice(gem.basePrice, size, purity.multiplier, suitability.multiplier);
     
     const pricePerCarat = gem.basePrice * 10;
+    const sizeMultiplier = gemsSystem.getSizeMultiplier(size);
+    
+    let sizeRange = "";
+    if (size < 1) sizeRange = "0.1-1 карат";
+    else if (size < 5) sizeRange = "1-5 карат";
+    else if (size < 10) sizeRange = "5-10 карат";
+    else if (size < 50) sizeRange = "10-50 карат";
+    else if (size < 100) sizeRange = "50-100 карат";
+    else if (size < 1000) sizeRange = "100-1000 карат";
+    else sizeRange = "1000-10000 карат";
     
     document.getElementById('gemTestResult').innerHTML = `
         💎 Первый бросок (камень): ${gemRoll}<br>
         🪨 Камень: ${gem.name}<br>
         💰 Базовая цена за 0.1 карат: ${gem.basePrice}<br>
         💰 Цена за 1 карат: ${pricePerCarat}<br>
+        📏 Размер: ${size.toFixed(2)} карат (${sizeRange})<br>
+        📊 Множитель размера: ×${sizeMultiplier}<br>
         🧼 Второй бросок (чистота): ${purityRoll}<br>
         📊 Чистота: ${purity.name} (×${purity.multiplier})<br>
-        📏 Размер: ${size.toFixed(2)} карат<br>
         ✨ Третий бросок (пригодность): ${suitabilityRoll}<br>
         🔪 Пригодность огранки: ${suitability.name} (×${suitability.multiplier}, потери ${suitability.loss})<br>
         💎 Итоговая цена: ${price.toLocaleString()} золотых
