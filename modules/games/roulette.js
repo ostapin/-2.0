@@ -5,7 +5,7 @@
     const NUMBERS = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
     
-    // Курсы валют
+    // Курсы валют (полные)
     const CURRENCY_RATES = {
         chips: 1,
         copper: 1,
@@ -112,21 +112,20 @@
         return `${Math.floor(amount / 1000000)} платиновых`;
     }
     
-    // Отрисовка колеса с штырьками-ограничителями
+    // Отрисовка колеса с ограничителями
     function drawWheel(rotationAngle) {
         const canvas = document.getElementById('rouletteCanvas');
         if (!canvas) return;
         
         const ctx = canvas.getContext('2d');
-        const size = 400;
+        const size = 420;
         const centerX = size / 2;
         const centerY = size / 2;
-        const radius = size / 2 - 10;
-        const pocketRadius = radius - 8;
+        const radius = size / 2 - 15;
+        const pocketRadius = radius - 10;
         
         canvas.width = size;
         canvas.height = size;
-        
         ctx.clearRect(0, 0, size, size);
         
         const angleStep = (Math.PI * 2) / NUMBERS.length;
@@ -146,61 +145,44 @@
             ctx.fillStyle = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
             ctx.fill();
             ctx.strokeStyle = '#d4af37';
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 1;
             ctx.stroke();
             
-            // Номер в кармане
             ctx.save();
             ctx.translate(centerX, centerY);
             ctx.rotate(startAngle + angleStep / 2);
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = 'bold 12px Arial';
+            ctx.font = 'bold 11px Arial';
             ctx.fillStyle = 'white';
-            ctx.shadowBlur = 0;
-            ctx.fillText(number.toString(), pocketRadius - 22, 0);
+            ctx.fillText(number.toString(), pocketRadius - 20, 0);
             ctx.restore();
         }
         
-        // Рисуем ограничители (штырьки) между карманами
+        // Ограничители (штырьки) между карманами
         for (let i = 0; i < NUMBERS.length; i++) {
             const pinAngle = i * angleStep + angleStep / 2 + rotationAngle;
-            const pinX = centerX + (radius - 5) * Math.cos(pinAngle);
-            const pinY = centerY + (radius - 5) * Math.sin(pinAngle);
+            const pinX = centerX + (radius - 6) * Math.cos(pinAngle);
+            const pinY = centerY + (radius - 6) * Math.sin(pinAngle);
             
-            // Основной штырек
             ctx.beginPath();
-            ctx.ellipse(pinX, pinY, 4, 6, pinAngle, 0, Math.PI * 2);
+            ctx.arc(pinX, pinY, 3, 0, Math.PI * 2);
             ctx.fillStyle = '#b89a7a';
             ctx.fill();
-            ctx.strokeStyle = '#5a3a2a';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            
-            // Блик
+            ctx.fillStyle = '#5a3a2a';
             ctx.beginPath();
-            ctx.ellipse(pinX - 1.5, pinY - 1.5, 1, 1.5, pinAngle, 0, Math.PI * 2);
-            ctx.fillStyle = '#e0d0c0';
+            ctx.arc(pinX - 1, pinY - 1, 1, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        // Центральная часть
+        // Центр
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 32, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
         ctx.fillStyle = '#d4af37';
         ctx.fill();
-        ctx.strokeStyle = '#2c1810';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, 18, 0, Math.PI * 2);
         ctx.fillStyle = '#2c1810';
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 10, 0, Math.PI * 2);
-        ctx.fillStyle = '#d4af37';
         ctx.fill();
     }
     
@@ -412,7 +394,8 @@
         
         const resultColor = getNumberColor(result);
         const resultParity = result === 0 ? 'zero' : (result % 2 === 0 ? 'even' : 'odd');
-        const colorName = resultColor === 'red' ? 'красное' : (resultColor === 'black' ? 'черное' : 'зеро');
+        const colorName = resultColor === 'red' ? 'КРАСНОЕ' : (resultColor === 'black' ? 'ЧЕРНОЕ' : 'ЗЕРО');
+        const colorIcon = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
         
         for (const [num, bet] of Object.entries(currentBets.numbers)) {
             if (parseInt(num) === result) {
@@ -437,26 +420,27 @@
         balance += winnings;
         saveBalance();
         
+        const netChange = winnings - totalBet;
+        const netChangeText = netChange >= 0 ? `+${formatBet(netChange)}` : formatBet(netChange);
+        
         const resultDisplay = document.getElementById('resultDisplay');
         const balanceSpan = document.getElementById('rouletteBalance');
         if (balanceSpan) balanceSpan.textContent = formatBalance();
         
-        const netChange = winnings - totalBet;
-        const netChangeText = netChange >= 0 ? `+${formatBet(netChange)}` : formatBet(netChange);
-        
         if (resultDisplay) {
-            const colorDisplay = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
             resultDisplay.style.display = 'block';
             resultDisplay.innerHTML = `
                 <div style="text-align: center;">
-                    <div style="font-size: 1.8em; margin-bottom: 10px;">🎲 ВЫПАЛО: <span style="color: ${resultColor === 'red' ? '#c44536' : (resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${result} ${colorDisplay}</span></div>
-                    <div style="font-size: 1.2em; margin-bottom: 10px; color: #e0d0c0;">${colorName.toUpperCase()}</div>
+                    <div style="font-size: 2em; margin-bottom: 15px;">
+                        🎲 <span style="color: ${resultColor === 'red' ? '#c44536' : (resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${result}</span> ${colorIcon}
+                    </div>
+                    <div style="font-size: 1.2em; margin-bottom: 15px; color: #d4af37;">${colorName}</div>
                     ${winDetails.length > 0 ? `<div style="color: #27ae60; margin: 10px 0;">🏆 ВЫИГРЫШ: ${winDetails.join(', ')}</div>` : '<div style="color: #c44536; margin: 10px 0;">💔 ПРОИГРЫШ</div>'}
-                    <div style="font-size: 1.1em; border-top: 1px solid #8b4513; padding-top: 10px; margin-top: 10px;">
-                        <div>💰 Ставка: ${formatBet(totalBet)}</div>
-                        <div>🎁 Выигрыш: ${formatBet(winnings)}</div>
-                        <div style="color: ${netChange >= 0 ? '#27ae60' : '#c44536'};">📊 Итог: ${netChangeText}</div>
-                        <div style="color: #d4af37;">💎 Новый баланс: ${formatBalance()}</div>
+                    <div style="border-top: 1px solid #8b4513; padding-top: 12px; margin-top: 12px;">
+                        <div>💰 СТАВКА: ${formatBet(totalBet)}</div>
+                        <div>🎁 ВЫИГРЫШ: ${formatBet(winnings)}</div>
+                        <div style="color: ${netChange >= 0 ? '#27ae60' : '#c44536'};">📊 ИТОГ: ${netChangeText}</div>
+                        <div style="color: #d4af37;">💎 БАЛАНС: ${formatBalance()}</div>
                     </div>
                 </div>
             `;
@@ -481,7 +465,7 @@
         }
         
         historyDiv.innerHTML = lastResults.map(r => `
-            <div style="background: ${r.color === 'red' ? '#c44536' : (r.color === 'black' ? '#2c2c2c' : '#2c5a2c')}; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${r.num}</div>
+            <div style="background: ${r.color === 'red' ? '#c44536' : (r.color === 'black' ? '#2c2c2c' : '#2c5a2c')}; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${r.num}</div>
         `).join('');
     }
     
@@ -500,7 +484,7 @@
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #e0d0c0;">💰 БАЛАНС:</span>
                             <span id="rouletteBalance" style="color: #d4af37; font-size: 1.3em; font-weight: bold;">${formatBalance()}</span>
-                            <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">✏️ Установить</button>
+                            <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">✏️</button>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #e0d0c0;">💱 ВАЛЮТА:</span>
@@ -523,8 +507,8 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #e0d0c0;">🎲 СТАВКА:</span>
-                            <input type="number" id="betInput" value="${currentBet}" min="1" step="1" style="width: 100px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
-                            <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">Установить</button>
+                            <input type="number" id="betInput" value="${currentBet}" min="1" step="1" style="width: 90px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                            <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">Уст.</button>
                         </div>
                     </div>
                 </div>
@@ -535,21 +519,21 @@
                 
                 <div style="position: relative; width: 420px; height: 420px; margin: 0 auto 20px;">
                     <canvas id="rouletteCanvas" width="420" height="420" style="width: 420px; height: 420px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
-                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 22px solid transparent; border-right: 22px solid transparent; border-top: 45px solid #d4af37; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); z-index: 10;"></div>
+                    <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; z-index: 10;"></div>
                 </div>
                 
                 <div style="background: #2c1810; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                     <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 5px;">
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 180px; overflow-y: auto; padding: 5px;">
                         ${generateNumberButtons()}
                     </div>
                     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔴 КРАСНОЕ (x2)</button>
-                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">⚫ ЧЕРНОЕ (x2)</button>
+                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔴 КРАСНОЕ (x2)</button>
+                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">⚫ ЧЕРНОЕ (x2)</button>
                         <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 ЧЕТНОЕ (x2)</button>
                         <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 НЕЧЕТНОЕ (x2)</button>
                     </div>
-                    <div id="betDisplay" style="margin-top: 10px; color: #b89a7a; font-size: 0.9em;"></div>
+                    <div id="betDisplay" style="margin-top: 12px; color: #b89a7a;"></div>
                 </div>
                 
                 <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
