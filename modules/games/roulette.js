@@ -1,10 +1,8 @@
 // ========== РУЛЕТКА ==========
 
 (function() {
-    // Конфигурация
-    const NUMBERS = Array.from({length: 37}, (_, i) => i);
+    const NUMBERS = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-    const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
     
     let balance = 1000;
     let currentBet = 10;
@@ -15,8 +13,8 @@
         color: null,
         parity: null
     };
+    let currentRotation = 0;
     
-    // Загрузка баланса
     function loadBalance() {
         const saved = localStorage.getItem('rouletteBalance');
         if (saved) balance = parseInt(saved);
@@ -42,11 +40,9 @@
             <div style="text-align: center;">
                 <h3 style="color: #d4af37; margin-bottom: 15px; font-size: 1.8em;">🎰 РУЛЕТКА</h3>
                 
-                <div style="background: #2c5a2c; border-radius: 50%; width: 300px; height: 300px; margin: 0 auto 20px; position: relative; border: 3px solid #d4af37; overflow: hidden;">
-                    <div id="rouletteWheel" style="width: 100%; height: 100%; position: relative; transition: transform 3s cubic-bezier(0.2, 0.9, 0.4, 1.1);">
-                        ${generateWheelSegments()}
-                    </div>
-                    <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #d4af37; z-index: 10;"></div>
+                <div style="position: relative; width: 400px; height: 400px; margin: 0 auto 20px;">
+                    <canvas id="rouletteCanvas" width="400" height="400" style="width: 400px; height: 400px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
+                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); z-index: 10;"></div>
                 </div>
                 
                 <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
@@ -64,7 +60,7 @@
                 
                 <div style="background: #2c1810; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px;">
                         ${generateNumberButtons()}
                     </div>
                     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
@@ -94,27 +90,69 @@
             </div>
         `;
         
+        drawWheel(currentRotation);
         updateBetDisplay();
         renderHistory();
     };
     
-    function generateWheelSegments() {
-        let segments = '';
-        const angleStep = 360 / 37;
-        for (let i = 0; i <= 36; i++) {
-            const color = getNumberColor(i);
-            const bgColor = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
-            segments += `
-                <div style="position: absolute; width: 50%; height: 25px; background: ${bgColor}; left: 50%; top: 50%; transform-origin: 0% 50%; transform: rotate(${i * angleStep}deg) translateY(-12px); display: flex; justify-content: flex-end; align-items: center; padding-right: 15px;">
-                    <span style="color: white; font-size: 12px; font-weight: bold;">${i}</span>
-                </div>
-            `;
+    function drawWheel(rotationAngle) {
+        const canvas = document.getElementById('rouletteCanvas');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const size = 400;
+        const centerX = size / 2;
+        const centerY = size / 2;
+        const radius = size / 2 - 10;
+        
+        canvas.width = size;
+        canvas.height = size;
+        
+        ctx.clearRect(0, 0, size, size);
+        
+        const angleStep = (Math.PI * 2) / NUMBERS.length;
+        
+        for (let i = 0; i < NUMBERS.length; i++) {
+            const startAngle = i * angleStep + rotationAngle;
+            const endAngle = (i + 1) * angleStep + rotationAngle;
+            const number = NUMBERS[i];
+            const color = getNumberColor(number);
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.closePath();
+            
+            ctx.fillStyle = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
+            ctx.fill();
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + angleStep / 2);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = 'white';
+            ctx.shadowBlur = 0;
+            ctx.fillText(number.toString(), radius - 25, 0);
+            ctx.restore();
         }
-        return `<div style="position: relative; width: 100%; height: 100%;">${segments}<div style="position: absolute; width: 60px; height: 60px; background: #d4af37; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div></div>`;
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+        ctx.fillStyle = '#d4af37';
+        ctx.fill();
+        ctx.strokeStyle = '#2c1810';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
     
     function generateNumberButtons() {
         let html = '';
+        const standardOrder = Array.from({length: 37}, (_, i) => i);
         for (let i = 0; i <= 36; i++) {
             const color = getNumberColor(i);
             const bgColor = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
@@ -142,7 +180,7 @@
             currentBets.numbers[num] = (currentBets.numbers[num] || 0) + currentBet;
         }
         updateBetDisplay();
-        renderRoulette();
+        window.renderRoulette();
     };
     
     window.placeColorBet = function(color) {
@@ -161,7 +199,7 @@
             currentBets.color = color;
         }
         updateBetDisplay();
-        renderRoulette();
+        window.renderRoulette();
     };
     
     window.placeParityBet = function(parity) {
@@ -180,14 +218,15 @@
             currentBets.parity = parity;
         }
         updateBetDisplay();
-        renderRoulette();
+        window.renderRoulette();
     };
     
     window.changeBet = function(amount) {
         let newBet = currentBet + amount;
         if (newBet >= 5 && newBet <= 500) {
             currentBet = newBet;
-            document.getElementById('rouletteBet').textContent = currentBet;
+            const betSpan = document.getElementById('rouletteBet');
+            if (betSpan) betSpan.textContent = currentBet;
         }
     };
     
@@ -225,7 +264,7 @@
         }
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
-        renderRoulette();
+        window.renderRoulette();
     };
     
     window.spinRoulette = function() {
@@ -252,23 +291,46 @@
         
         balance -= totalBet;
         saveBalance();
-        document.getElementById('rouletteBalance').textContent = balance;
+        const balanceSpan = document.getElementById('rouletteBalance');
+        if (balanceSpan) balanceSpan.textContent = balance;
         
-        const result = Math.floor(Math.random() * 37);
+        const resultIndex = Math.floor(Math.random() * NUMBERS.length);
+        const resultNumber = NUMBERS[resultIndex];
         
-        const wheel = document.getElementById('rouletteWheel');
-        if (wheel) {
-            const angleStep = 360 / 37;
-            const spinAngle = 360 * 10 + (result * angleStep);
-            wheel.style.transform = `rotate(${spinAngle}deg)`;
+        const angleStep = (Math.PI * 2) / NUMBERS.length;
+        const currentPointerAngle = (Math.PI * 2) - (Math.PI / 2);
+        
+        let resultAngle = resultIndex * angleStep + angleStep / 2;
+        let targetRotation = (currentPointerAngle - resultAngle) + (Math.PI * 2) * 6;
+        
+        targetRotation = targetRotation % (Math.PI * 2);
+        
+        let startRotation = currentRotation;
+        let startTime = null;
+        const duration = 2500;
+        
+        function animateSpin(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            
+            currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+            drawWheel(currentRotation);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateSpin);
+            } else {
+                currentRotation = targetRotation;
+                drawWheel(currentRotation);
+                processResult(resultNumber, totalBet);
+                spinning = false;
+                if (spinBtn) spinBtn.disabled = false;
+            }
         }
         
-        setTimeout(() => {
-            processResult(result, totalBet);
-            spinning = false;
-            if (spinBtn) spinBtn.disabled = false;
-            renderRoulette();
-        }, 3000);
+        requestAnimationFrame(animateSpin);
     };
     
     function processResult(result, totalBet) {
@@ -302,6 +364,9 @@
         saveBalance();
         
         const resultDisplay = document.getElementById('resultDisplay');
+        const balanceSpan = document.getElementById('rouletteBalance');
+        if (balanceSpan) balanceSpan.textContent = balance;
+        
         if (resultDisplay) {
             const colorDisplay = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
             resultDisplay.style.display = 'block';
@@ -320,6 +385,7 @@
         
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
+        window.renderRoulette();
     }
     
     function renderHistory() {
