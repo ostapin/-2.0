@@ -166,16 +166,21 @@
                     background: ${bgColor};
                     color: white;
                     border: ${isActive ? '3px solid #d4af37' : '1px solid #8b4513'};
-                    padding: 12px 0;
+                    padding: 8px 0;
                     border-radius: 8px;
                     cursor: pointer;
                     font-weight: bold;
-                    font-size: 1.1em;
-                    min-width: 45px;
+                    font-size: 1em;
+                    min-width: 44px;
+                    height: 52px;
                     transition: all 0.1s;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
                 ">
-                    ${i}
-                    ${betAmount > 0 ? `<div style="font-size: 0.7em; color: #d4af37; margin-top: 3px;">${betAmount}</div>` : ''}
+                    <span>${i}</span>
+                    ${betAmount > 0 ? `<span style="font-size: 0.65em; color: #d4af37; margin-top: 2px;">${betAmount}</span>` : '<span style="font-size: 0.65em; visibility: hidden;">.</span>'}
                 </button>
             `;
         }
@@ -276,10 +281,18 @@
         return 1 - Math.pow(1 - t, 3);
     }
     
+    // Исправленная функция определения числа под стрелкой [citation:3]
     function getNumberAtPointer(rotationAngle) {
         const angleStep = (Math.PI * 2) / NUMBERS.length;
-        const pointerAngle = Math.PI / 2;
+        const pointerAngle = Math.PI / 2; // Стрелка на 12 часах (90 градусов)
+        
+        // Угол от стрелки до начала сектора
         let angleFromPointer = (pointerAngle - rotationAngle + Math.PI * 2) % (Math.PI * 2);
+        
+        // Добавляем половину сектора, чтобы определить, на какой сектор указывает стрелка
+        angleFromPointer += angleStep / 2;
+        angleFromPointer = (angleFromPointer + Math.PI * 2) % (Math.PI * 2);
+        
         let sectorIndex = Math.floor(angleFromPointer / angleStep);
         if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
         return NUMBERS[sectorIndex];
