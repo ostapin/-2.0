@@ -280,9 +280,30 @@
         window.renderRoulette();
     };
     
-    // Функция плавного замедления (easeOutCubic) [citation:7][citation:9]
     function easeOutCubic(t) {
         return 1 - Math.pow(1 - t, 3);
+    }
+    
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ОПРЕДЕЛЕНИЯ ЧИСЛА (СО СМЕЩЕНИЕМ В ЦЕНТР)
+    function getNumberAtPointer(rotationAngleDeg) {
+        const angleStep = 360 / NUMBERS.length;
+        // Нормализуем угол поворота
+        let normalizedRotation = ((rotationAngleDeg % 360) + 360) % 360;
+        
+        // Угол стрелки всегда 90° (12 часов)
+        const pointerAngle = 90;
+        
+        // Вычисляем угол от стрелки до поворота колеса
+        let angleFromPointer = (pointerAngle - normalizedRotation + 360) % 360;
+        
+        // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: смещаем на половину сектора, чтобы стрелка указывала в центр числа
+        const adjustedAngle = (angleFromPointer + angleStep / 2) % 360;
+        
+        // Определяем индекс сектора
+        let sectorIndex = Math.floor(adjustedAngle / angleStep);
+        if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
+        
+        return NUMBERS[sectorIndex];
     }
     
     window.spinRoulette = function() {
@@ -302,60 +323,54 @@
         
         balance -= totalBet;
         saveBalance();
+        document.getElementById('rouletteBalance').textContent = formatBalance();
         
-        // Выбираем случайное выигрышное число
+        // Выбираем случайное число
         const resultNumber = Math.floor(Math.random() * 37);
         
         const angleStep = 360 / NUMBERS.length;
         const resultIndex = NUMBERS.indexOf(resultNumber);
         
-        // Расчет финального угла с учетом центра сектора [citation:2][citation:5]
-        // sectorCenterAngle - угол центра сектора, на который должна указывать стрелка
+        // ИСПРАВЛЕННЫЙ РАСЧЁТ ФИНАЛЬНОГО УГЛА
+        // Центр сектора, на который должна указывать стрелка
         const sectorCenterAngle = resultIndex * angleStep + angleStep / 2;
         
-        // Базовое количество полных оборотов: от 8 до 12 [citation:2]
+        // Базовое количество полных оборотов: от 8 до 12
         const baseRotations = 8 + Math.floor(Math.random() * 5);
         
-        // Стрелка на 12 часах = 90 градусов
-        // Вычисляем финальный угол: (стрелка - центр сектора) + полные обороты
+        // Стрелка всегда на 90 градусов
+        // Вычисляем угол, при котором центр нужного сектора окажется под стрелкой
         let targetRotation = (90 - sectorCenterAngle) + (baseRotations * 360);
-        targetRotation = targetRotation % 360;
+        targetRotation = ((targetRotation % 360) + 360) % 360;
         
         const startRotation = currentRotation;
         let delta = targetRotation - startRotation;
-        // Нормализуем дельту, чтобы колесо всегда крутилось в одну сторону
-        if (delta < 0) delta += 360;
+        // Нормализуем дельту для вращения вперёд
+        if (delta <= 0) delta += 360;
         
         const startTime = performance.now();
-        const duration = 4000; // 4 секунды анимации
+        const duration = 4000;
         
-        // Останавливаем предыдущую анимацию если есть
         if (animationId) cancelAnimationFrame(animationId);
         
         function animateSpin(now) {
             const elapsed = now - startTime;
             let progress = Math.min(1, elapsed / duration);
-            const easedProgress = easeOutCubic(progress);
+            const eased = easeOutCubic(progress);
             
-            // Плавная интерполяция угла
-            currentRotation = startRotation + delta * easedProgress;
+            // Плавная интерполяция
+            currentRotation = startRotation + delta * eased;
             drawWheel(currentRotation);
             
             if (progress < 1) {
                 animationId = requestAnimationFrame(animateSpin);
             } else {
-                // Фиксируем точный финальный угол (без телепортации)
-                currentRotation = targetRotation;
+                // НЕ присваиваем targetRotation, оставляем последний кадр анимации
+                // Но для точности один раз перерисовываем с текущим углом
                 drawWheel(currentRotation);
                 
-                // Определяем выигрышное число: добавляем половину сектора, чтобы стрелка попадала в центр [citation:5][citation:8]
-                const pointerAngle = 90;
-                let angleFromPointer = (pointerAngle - currentRotation + 360) % 360;
-                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: добавляем половину сектора, чтобы стрелка целилась в центр числа
-                const adjustedAngle = (angleFromPointer + angleStep / 2) % 360;
-                let sectorIndex = Math.floor(adjustedAngle / angleStep);
-                if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
-                const finalNumber = NUMBERS[sectorIndex];
+                // Определяем выигрышное число по реальному положению колеса
+                const finalNumber = getNumberAtPointer(currentRotation);
                 
                 processResult(finalNumber, totalBet);
                 spinning = false;
