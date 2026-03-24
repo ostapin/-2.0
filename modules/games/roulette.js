@@ -1,7 +1,7 @@
 // ========== РУЛЕТКА ==========
 
 (function() {
-    // Порядок чисел на колесе (европейская рулетка)
+    // Правильный порядок чисел на европейской рулетке (по часовой стрелке) [citation:1][citation:10]
     const NUMBERS = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
     
@@ -38,8 +38,8 @@
         elemental_ether: "Кристалл эфира (цветной)"
     };
     
-    let balance = 1000; // в медных
-    let currentBet = 10; // в медных
+    let balance = 1000;
+    let currentBet = 10;
     let currentCurrency = "copper";
     let spinning = false;
     let lastResults = [];
@@ -49,6 +49,7 @@
         parity: null
     };
     let currentRotation = 0;
+    let animationId = null;
     
     function loadBalance() {
         const saved = localStorage.getItem('rouletteBalance');
@@ -103,98 +104,7 @@
         return `${Math.floor(amount / 1000000)} платиновых`;
     }
     
-    window.renderRoulette = function() {
-        const container = document.getElementById('activeGameContainer');
-        if (!container) return;
-        
-        loadBalance();
-        
-        container.innerHTML = `
-            <div style="text-align: center; max-width: 900px; margin: 0 auto;">
-                <h3 style="color: #d4af37; margin-bottom: 15px; font-size: 1.8em;">🎰 РУЛЕТКА</h3>
-                
-                <!-- Верхняя панель с балансом и валютой -->
-                <div style="background: #3d2418; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #e0d0c0;">💰 БАЛАНС:</span>
-                            <span id="rouletteBalance" style="color: #d4af37; font-size: 1.3em; font-weight: bold;">${formatBalance()}</span>
-                            <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✏️ Установить</button>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #e0d0c0;">💱 ВАЛЮТА:</span>
-                            <select id="currencySelect" onchange="window.changeCurrency()" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px; padding: 5px;">
-                                <option value="copper" ${currentCurrency === 'copper' ? 'selected' : ''}>Медные</option>
-                                <option value="silver" ${currentCurrency === 'silver' ? 'selected' : ''}>Серебряные</option>
-                                <option value="gold" ${currentCurrency === 'gold' ? 'selected' : ''}>Золотые</option>
-                                <option value="platinum" ${currentCurrency === 'platinum' ? 'selected' : ''}>Платиновые</option>
-                                <option value="amber_sphere" ${currentCurrency === 'amber_sphere' ? 'selected' : ''}>Сфера (янтарная)</option>
-                                <option value="blood_sphere" ${currentCurrency === 'blood_sphere' ? 'selected' : ''}>Сфера (Крови)</option>
-                                <option value="ice_sphere" ${currentCurrency === 'ice_sphere' ? 'selected' : ''}>Сфера (Льда)</option>
-                                <option value="fire_sphere" ${currentCurrency === 'fire_sphere' ? 'selected' : ''}>Сфера (Огня)</option>
-                                <option value="earth_sphere" ${currentCurrency === 'earth_sphere' ? 'selected' : ''}>Сфера (Земли)</option>
-                                <option value="water_sphere" ${currentCurrency === 'water_sphere' ? 'selected' : ''}>Сфера (Воды)</option>
-                                <option value="lightning_sphere" ${currentCurrency === 'lightning_sphere' ? 'selected' : ''}>Сфера (Молнии)</option>
-                                <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>Кристалл эфира (бесцветный)</option>
-                                <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>Кристалл эфира (цветной)</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #e0d0c0;">🎲 СТАВКА:</span>
-                            <input type="number" id="betInput" value="${currentBet}" min="1" step="1" style="width: 100px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
-                            <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Установить</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Кнопка крутить сверху -->
-                <div style="margin-bottom: 15px;">
-                    <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 15px 50px; border-radius: 12px; font-size: 1.4em; font-weight: bold; cursor: pointer;">🎲 КРУТИТЬ</button>
-                </div>
-                
-                <!-- Колесо -->
-                <div style="position: relative; width: 400px; height: 400px; margin: 0 auto 20px;">
-                    <canvas id="rouletteCanvas" width="400" height="400" style="width: 400px; height: 400px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
-                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); z-index: 10;"></div>
-                </div>
-                
-                <!-- Ставки -->
-                <div style="background: #2c1810; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 5px;">
-                        ${generateNumberButtons()}
-                    </div>
-                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔴 КРАСНОЕ (x2)</button>
-                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">⚫ ЧЕРНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 ЧЕТНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 НЕЧЕТНОЕ (x2)</button>
-                    </div>
-                    <div id="betDisplay" style="margin-top: 10px; color: #b89a7a; font-size: 0.9em;"></div>
-                </div>
-                
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                    <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
-                </div>
-                
-                <div id="resultDisplay" style="margin-top: 20px; padding: 15px; background: #3d2418; border-radius: 8px; display: none;"></div>
-                
-                <div style="margin-top: 20px;">
-                    <h4 style="color: #d4af37;">📜 ИСТОРИЯ</h4>
-                    <div id="historyDisplay" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;"></div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">🏠 ГЛАВНОЕ МЕНЮ</button>
-                </div>
-            </div>
-        `;
-        
-        drawWheel(currentRotation);
-        updateBetDisplay();
-        renderHistory();
-    };
-    
+    // Отрисовка колеса
     function drawWheel(rotationAngle) {
         const canvas = document.getElementById('rouletteCanvas');
         if (!canvas) return;
@@ -384,6 +294,11 @@
         window.renderRoulette();
     };
     
+    // Функция плавного замедления (cubic ease-out) [citation:5][citation:8]
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
     window.spinRoulette = function() {
         if (spinning) return;
         
@@ -406,41 +321,52 @@
         const spinBtn = document.getElementById('spinBtn');
         if (spinBtn) spinBtn.disabled = true;
         
+        // Снимаем ставки с баланса
         balance -= totalBet;
         saveBalance();
         const balanceSpan = document.getElementById('rouletteBalance');
         if (balanceSpan) balanceSpan.textContent = formatBalance();
         
+        // Выбираем случайный результат
         const resultIndex = Math.floor(Math.random() * NUMBERS.length);
         const resultNumber = NUMBERS[resultIndex];
         
+        // Параметры анимации
         const angleStep = (Math.PI * 2) / NUMBERS.length;
-        const currentPointerAngle = (Math.PI * 2) - (Math.PI / 2);
+        const pointerAngle = Math.PI / 2; // Стрелка сверху (90 градусов)
         
-        let resultAngle = resultIndex * angleStep + angleStep / 2;
-        let targetRotation = (currentPointerAngle - resultAngle) + (Math.PI * 2) * 12;
+        // Вычисляем угол, на который нужно повернуть колесо, чтобы результат оказался под стрелкой
+        const targetSegmentAngle = resultIndex * angleStep + angleStep / 2;
+        let targetRotation = (pointerAngle - targetSegmentAngle) % (Math.PI * 2);
+        if (targetRotation < 0) targetRotation += Math.PI * 2;
         
-        targetRotation = targetRotation % (Math.PI * 2);
+        // Добавляем 8-12 полных оборотов для реалистичности [citation:7]
+        const fullSpins = 8 + Math.floor(Math.random() * 5); // 8-12 оборотов
+        const totalDelta = targetRotation + (Math.PI * 2 * fullSpins);
         
-        let startRotation = currentRotation;
-        let startTime = null;
-        const duration = 4000;
+        const startRotation = currentRotation;
+        const startTime = performance.now();
+        const duration = 4000; // 4 секунды анимации
         
-        function animateSpin(timestamp) {
-            if (!startTime) startTime = timestamp;
-            const elapsed = timestamp - startTime;
-            const progress = Math.min(1, elapsed / duration);
+        function animateSpin(now) {
+            const elapsed = now - startTime;
+            let progress = Math.min(1, elapsed / duration);
             
-            const easeOut = 1 - Math.pow(1 - progress, 4);
+            // Применяем easing для плавного замедления [citation:5][citation:8]
+            const easedProgress = easeOutCubic(progress);
             
-            currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
-            drawWheel(currentRotation);
+            // Интерполяция угла
+            currentRotation = startRotation + totalDelta * easedProgress;
+            drawWheel(currentRotation % (Math.PI * 2));
             
             if (progress < 1) {
                 requestAnimationFrame(animateSpin);
             } else {
-                currentRotation = targetRotation;
+                // Анимация завершена, фиксируем точный угол
+                currentRotation = (startRotation + totalDelta) % (Math.PI * 2);
                 drawWheel(currentRotation);
+                
+                // Обрабатываем результат
                 processResult(resultNumber, totalBet);
                 spinning = false;
                 if (spinBtn) spinBtn.disabled = false;
@@ -457,6 +383,7 @@
         const resultColor = getNumberColor(result);
         const resultParity = result === 0 ? 'zero' : (result % 2 === 0 ? 'even' : 'odd');
         
+        // Проверяем ставки на числа
         for (const [num, bet] of Object.entries(currentBets.numbers)) {
             if (parseInt(num) === result) {
                 const win = bet * 35;
@@ -465,12 +392,14 @@
             }
         }
         
+        // Проверяем ставки на цвет
         if (currentBets.color && currentBets.color === resultColor && result !== 0) {
             const win = currentBet * 2;
             winnings += win;
             winDetails.push(`${currentBets.color === 'red' ? 'Красное' : 'Черное'}: +${formatBet(win)}`);
         }
         
+        // Проверяем ставки на чет/нечет
         if (currentBets.parity && resultParity === currentBets.parity && result !== 0) {
             const win = currentBet * 2;
             winnings += win;
@@ -519,7 +448,100 @@
         `).join('');
     }
     
+    window.renderRoulette = function() {
+        const container = document.getElementById('activeGameContainer');
+        if (!container) return;
+        
+        loadBalance();
+        
+        container.innerHTML = `
+            <div style="text-align: center; max-width: 900px; margin: 0 auto;">
+                <h3 style="color: #d4af37; margin-bottom: 15px; font-size: 1.8em;">🎰 РУЛЕТКА</h3>
+                
+                <!-- Верхняя панель с балансом и валютой -->
+                <div style="background: #3d2418; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #e0d0c0;">💰 БАЛАНС:</span>
+                            <span id="rouletteBalance" style="color: #d4af37; font-size: 1.3em; font-weight: bold;">${formatBalance()}</span>
+                            <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✏️ Установить</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #e0d0c0;">💱 ВАЛЮТА:</span>
+                            <select id="currencySelect" onchange="window.changeCurrency()" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px; padding: 5px;">
+                                <option value="copper" ${currentCurrency === 'copper' ? 'selected' : ''}>Медные</option>
+                                <option value="silver" ${currentCurrency === 'silver' ? 'selected' : ''}>Серебряные</option>
+                                <option value="gold" ${currentCurrency === 'gold' ? 'selected' : ''}>Золотые</option>
+                                <option value="platinum" ${currentCurrency === 'platinum' ? 'selected' : ''}>Платиновые</option>
+                                <option value="amber_sphere" ${currentCurrency === 'amber_sphere' ? 'selected' : ''}>Сфера (янтарная)</option>
+                                <option value="blood_sphere" ${currentCurrency === 'blood_sphere' ? 'selected' : ''}>Сфера (Крови)</option>
+                                <option value="ice_sphere" ${currentCurrency === 'ice_sphere' ? 'selected' : ''}>Сфера (Льда)</option>
+                                <option value="fire_sphere" ${currentCurrency === 'fire_sphere' ? 'selected' : ''}>Сфера (Огня)</option>
+                                <option value="earth_sphere" ${currentCurrency === 'earth_sphere' ? 'selected' : ''}>Сфера (Земли)</option>
+                                <option value="water_sphere" ${currentCurrency === 'water_sphere' ? 'selected' : ''}>Сфера (Воды)</option>
+                                <option value="lightning_sphere" ${currentCurrency === 'lightning_sphere' ? 'selected' : ''}>Сфера (Молнии)</option>
+                                <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>Кристалл эфира (бесцветный)</option>
+                                <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>Кристалл эфира (цветной)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #e0d0c0;">🎲 СТАВКА:</span>
+                            <input type="number" id="betInput" value="${currentBet}" min="1" step="1" style="width: 100px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                            <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Установить</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Кнопка крутить над колесом -->
+                <div style="margin-bottom: 15px;">
+                    <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 15px 50px; border-radius: 12px; font-size: 1.4em; font-weight: bold; cursor: pointer;">🎲 КРУТИТЬ</button>
+                </div>
+                
+                <!-- Колесо -->
+                <div style="position: relative; width: 400px; height: 400px; margin: 0 auto 20px;">
+                    <canvas id="rouletteCanvas" width="400" height="400" style="width: 400px; height: 400px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
+                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); z-index: 10;"></div>
+                </div>
+                
+                <!-- Ставки -->
+                <div style="background: #2c1810; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 5px;">
+                        ${generateNumberButtons()}
+                    </div>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔴 КРАСНОЕ (x2)</button>
+                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">⚫ ЧЕРНОЕ (x2)</button>
+                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 ЧЕТНОЕ (x2)</button>
+                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 НЕЧЕТНОЕ (x2)</button>
+                    </div>
+                    <div id="betDisplay" style="margin-top: 10px; color: #b89a7a; font-size: 0.9em;"></div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                    <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
+                </div>
+                
+                <div id="resultDisplay" style="margin-top: 20px; padding: 15px; background: #3d2418; border-radius: 8px; display: none;"></div>
+                
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #d4af37;">📜 ИСТОРИЯ</h4>
+                    <div id="historyDisplay" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;"></div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">🏠 ГЛАВНОЕ МЕНЮ</button>
+                </div>
+            </div>
+        `;
+        
+        drawWheel(currentRotation);
+        updateBetDisplay();
+        renderHistory();
+    };
+    
     window.backToMenu = function() {
+        if (animationId) cancelAnimationFrame(animationId);
         const container = document.getElementById('activeGameContainer');
         if (container) {
             container.innerHTML = `
