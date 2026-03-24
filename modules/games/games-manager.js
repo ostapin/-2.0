@@ -1,11 +1,12 @@
 // ========== МЕНЕДЖЕР ИГР ==========
 
 const gamesList = {
-    ticTacToe: { name: "❌ Крестики-нолики", icon: "❌" },
-    memory: { name: "🧠 Мемори", icon: "🧠" }
+    ticTacToe: { name: "❌ Крестики-нолики", icon: "❌", file: "ticTacToe.js", render: "renderTicTacToe" },
+    memory: { name: "🧠 Мемори", icon: "🧠", file: "memory.js", render: "renderMemory" }
 };
 
 let currentGame = 'ticTacToe';
+let gameScriptLoaded = false;
 
 function renderGamesManager() {
     const container = document.getElementById('gamesContainer');
@@ -33,42 +34,52 @@ function renderGamesManager() {
         `;
     }
     buttonsHtml += '</div>';
-    buttonsHtml += `
-        <div id="activeGameContainer" style="
-            background: #2c1810;
-            border-radius: 20px;
-            padding: 40px;
-            border: 2px solid #d4af37;
-            min-height: 400px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        ">
-            <p style="color: #b89a7a; font-size: 1.2em;">🎮 Выберите игру</p>
-        </div>
-    `;
+    buttonsHtml += '<div id="activeGameContainer" style="background: #2c1810; border-radius: 20px; padding: 40px; border: 2px solid #d4af37; min-height: 400px; text-align: center; display: flex; align-items: center; justify-content: center;"><p style="color: #b89a7a;">🎮 Загрузка...</p></div>';
     
     container.innerHTML = buttonsHtml;
+    loadGame(currentGame);
 }
 
 function switchGame(gameKey) {
     if (gamesList[gameKey]) {
         currentGame = gameKey;
         renderGamesManager();
-        
-        const container = document.getElementById('activeGameContainer');
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center;">
-                    <p style="color: #d4af37; font-size: 1.5em; margin-bottom: 20px;">${gamesList[currentGame].icon} ${gamesList[currentGame].name}</p>
-                    <p style="color: #b89a7a;">📁 Игра будет загружена из отдельного файла</p>
-                    <p style="color: #8b7d6b; font-size: 0.9em;">modules/games/${currentGame}/game.js</p>
-                </div>
-            `;
-        }
     }
 }
 
+function loadGame(gameKey) {
+    const game = gamesList[gameKey];
+    if (!game) return;
+    
+    const container = document.getElementById('activeGameContainer');
+    if (!container) return;
+    
+    container.innerHTML = '<p style="color: #b89a7a;">🎮 Загрузка игры...</p>';
+    
+    // Удаляем старый скрипт если есть
+    const oldScript = document.getElementById('game-script');
+    if (oldScript) oldScript.remove();
+    
+    // Загружаем новый скрипт игры
+    const script = document.createElement('script');
+    script.id = 'game-script';
+    script.src = `modules/games/${game.file}`;
+    script.onload = function() {
+        // Ждём немного чтобы скрипт инициализировался
+        setTimeout(() => {
+            if (typeof window[game.render] === 'function') {
+                window[game.render]();
+            } else {
+                container.innerHTML = '<p style="color: #e74c3c;">❌ Ошибка загрузки игры</p>';
+            }
+        }, 50);
+    };
+    script.onerror = function() {
+        container.innerHTML = '<p style="color: #e74c3c;">❌ Не удалось загрузить игру. Файл не найден.</p>';
+    };
+    document.head.appendChild(script);
+}
+
+// Глобальные функции
 window.renderGamesManager = renderGamesManager;
 window.switchGame = switchGame;
