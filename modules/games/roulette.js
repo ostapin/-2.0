@@ -128,7 +128,6 @@
             ctx.restore();
         }
         
-        // Ограничители
         for (let i = 0; i < NUMBERS.length; i++) {
             const pinAngle = i * angleStep + angleStep / 2 + rotationAngle;
             const pinX = centerX + (radius - 6) * Math.cos(pinAngle);
@@ -159,8 +158,26 @@
         for (let i = 0; i <= 36; i++) {
             const color = getNumberColor(i);
             const bgColor = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
-            const isActive = currentBets.numbers[i] ? '3px solid #d4af37' : 'none';
-            html += `<button onclick="window.placeNumberBet(${i})" style="background: ${bgColor}; color: white; border: ${isActive}; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">${i}</button>`;
+            const isActive = currentBets.numbers[i];
+            const betAmount = isActive || 0;
+            
+            html += `
+                <button onclick="window.placeNumberBet(${i})" style="
+                    background: ${bgColor};
+                    color: white;
+                    border: ${isActive ? '3px solid #d4af37' : '1px solid #8b4513'};
+                    padding: 10px 5px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    font-size: 1em;
+                    position: relative;
+                    transition: all 0.1s;
+                ">
+                    ${i}
+                    ${betAmount > 0 ? `<div style="font-size: 0.7em; color: #d4af37; margin-top: 2px;">${betAmount}</div>` : ''}
+                </button>
+            `;
         }
         return html;
     }
@@ -286,20 +303,16 @@
         balance -= totalBet;
         saveBalance();
         
-        // Выбираем случайное число
         const resultNumber = Math.floor(Math.random() * 37);
         
         const angleStep = (Math.PI * 2) / NUMBERS.length;
         const pointerAngle = Math.PI / 2;
         
-        // Находим позицию числа в массиве NUMBERS
         const resultIndex = NUMBERS.indexOf(resultNumber);
         const targetSectorCenter = resultIndex * angleStep + angleStep / 2;
         
-        // Вычисляем угол, при котором сектор с результатом окажется под стрелкой
         let targetRotation = (pointerAngle - targetSectorCenter + Math.PI * 2) % (Math.PI * 2);
         
-        // Добавляем много полных оборотов
         const fullSpins = 10 + Math.floor(Math.random() * 8);
         const totalDelta = targetRotation + (Math.PI * 2 * fullSpins);
         
@@ -321,7 +334,6 @@
                 currentRotation = targetRotation;
                 drawWheel(currentRotation);
                 
-                // Проверяем какое число выпало
                 const finalNumber = getNumberAtPointer(currentRotation);
                 
                 processResult(finalNumber, totalBet);
@@ -394,19 +406,15 @@
         
         const netChange = winnings - totalBet;
         
-        // Показываем модальное окно с результатом
         showResultModal(result, totalBet, winnings, winDetails, netChange);
         
-        // Обновляем баланс на странице
         const balanceSpan = document.getElementById('rouletteBalance');
         if (balanceSpan) balanceSpan.textContent = formatBalance();
         
-        // Добавляем в историю
         lastResults.unshift({ num: result, color: resultColor });
         if (lastResults.length > 10) lastResults.pop();
         renderHistory();
         
-        // Очищаем ставки
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
         window.renderRoulette();
@@ -467,11 +475,13 @@
                 </div>
                 
                 <div style="background: #2c1810; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 180px; overflow-y: auto; padding: 5px;">${generateNumberButtons()}</div>
-                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔴 КРАСНОЕ (x2)</button>
-                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">⚫ ЧЕРНОЕ (x2)</button>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ НА ЧИСЛА</h4>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; padding: 5px;">
+                        ${generateNumberButtons()}
+                    </div>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
+                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔴 КРАСНОЕ (x2)</button>
+                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">⚫ ЧЕРНОЕ (x2)</button>
                         <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">ЧЕТНОЕ (x2)</button>
                         <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">НЕЧЕТНОЕ (x2)</button>
                     </div>
