@@ -50,6 +50,7 @@
         parity: null
     };
     let currentRotation = 0;
+    let animationId = null;
     
     function loadBalance() {
         const saved = localStorage.getItem('rouletteBalance');
@@ -279,7 +280,7 @@
         window.renderRoulette();
     };
     
-    // Функция плавного замедления (easeOutCubic)
+    // Функция плавного замедления (easeOutCubic) [citation:7][citation:9]
     function easeOutCubic(t) {
         return 1 - Math.pow(1 - t, 3);
     }
@@ -308,56 +309,62 @@
         const angleStep = 360 / NUMBERS.length;
         const resultIndex = NUMBERS.indexOf(resultNumber);
         
-        // Базовое количество оборотов: 8-12 полных оборотов [citation:3]
-        const baseRotations = 8 + Math.floor(Math.random() * 5);
-        
-        // Вычисляем угол центра сектора результата
+        // Расчет финального угла с учетом центра сектора [citation:2][citation:5]
+        // sectorCenterAngle - угол центра сектора, на который должна указывать стрелка
         const sectorCenterAngle = resultIndex * angleStep + angleStep / 2;
         
-        // Стрелка находится на 12 часах = 90 градусов
-        // Нужный угол поворота: чтобы сектор оказался под стрелкой
-        // Формула: (стрелка - центр сектора) + обороты * 360 [citation:3]
+        // Базовое количество полных оборотов: от 8 до 12 [citation:2]
+        const baseRotations = 8 + Math.floor(Math.random() * 5);
+        
+        // Стрелка на 12 часах = 90 градусов
+        // Вычисляем финальный угол: (стрелка - центр сектора) + полные обороты
         let targetRotation = (90 - sectorCenterAngle) + (baseRotations * 360);
         targetRotation = targetRotation % 360;
         
         const startRotation = currentRotation;
-        // Вычисляем направление вращения и дельту
         let delta = targetRotation - startRotation;
-        // Нормализуем дельту, чтобы вращение было в правильную сторону
+        // Нормализуем дельту, чтобы колесо всегда крутилось в одну сторону
         if (delta < 0) delta += 360;
         
         const startTime = performance.now();
-        const duration = 4000;
+        const duration = 4000; // 4 секунды анимации
+        
+        // Останавливаем предыдущую анимацию если есть
+        if (animationId) cancelAnimationFrame(animationId);
         
         function animateSpin(now) {
             const elapsed = now - startTime;
             let progress = Math.min(1, elapsed / duration);
-            const eased = easeOutCubic(progress);
+            const easedProgress = easeOutCubic(progress);
             
-            currentRotation = startRotation + delta * eased;
+            // Плавная интерполяция угла
+            currentRotation = startRotation + delta * easedProgress;
             drawWheel(currentRotation);
             
             if (progress < 1) {
-                requestAnimationFrame(animateSpin);
+                animationId = requestAnimationFrame(animateSpin);
             } else {
-                // Фиксируем точный финальный угол
+                // Фиксируем точный финальный угол (без телепортации)
                 currentRotation = targetRotation;
                 drawWheel(currentRotation);
                 
-                // Определяем выигрышное число по реальному положению
-                const pointerAngle = 90; // стрелка на 12 часов
+                // Определяем выигрышное число: добавляем половину сектора, чтобы стрелка попадала в центр [citation:5][citation:8]
+                const pointerAngle = 90;
                 let angleFromPointer = (pointerAngle - currentRotation + 360) % 360;
-                let sectorIndex = Math.floor(angleFromPointer / angleStep);
+                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: добавляем половину сектора, чтобы стрелка целилась в центр числа
+                const adjustedAngle = (angleFromPointer + angleStep / 2) % 360;
+                let sectorIndex = Math.floor(adjustedAngle / angleStep);
                 if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
                 const finalNumber = NUMBERS[sectorIndex];
                 
                 processResult(finalNumber, totalBet);
                 spinning = false;
+                animationId = null;
                 if (spinBtn) spinBtn.disabled = false;
             }
         }
         
-        requestAnimationFrame(animateSpin);
+        animationId = requestAnimationFrame(animateSpin);
     };
     
     function processResult(result, totalBet) {
@@ -529,6 +536,7 @@
     };
     
     window.backToMenu = function() {
+        if (animationId) cancelAnimationFrame(animationId);
         spinning = false;
         const container = document.getElementById('activeGameContainer');
         if (container) {
