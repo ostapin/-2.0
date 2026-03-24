@@ -50,6 +50,8 @@
         parity: null
     };
     let currentRotation = 0;
+    let canvas = null;
+    let ctx = null;
     
     function loadBalance() {
         const saved = localStorage.getItem('rouletteBalance');
@@ -84,11 +86,16 @@
         return `${Math.floor(amount / 1000000)} платиновых`;
     }
     
-    function drawWheel(rotationAngle) {
-        const canvas = document.getElementById('rouletteCanvas');
+    function initCanvas() {
+        canvas = document.getElementById('rouletteCanvas');
         if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        drawWheel(0);
+    }
+    
+    function drawWheel(rotationAngle) {
+        if (!canvas || !ctx) return;
         
-        const ctx = canvas.getContext('2d');
         const size = 420;
         const centerX = size / 2;
         const centerY = size / 2;
@@ -278,21 +285,7 @@
         window.renderRoulette();
     };
     
-    function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
-    }
-    
-    function getNumberAtPointer(rotationAngle) {
-        const angleStep = (Math.PI * 2) / NUMBERS.length;
-        const pointerAngle = Math.PI / 2;
-        
-        let angleFromPointer = (pointerAngle - rotationAngle + Math.PI * 2) % (Math.PI * 2);
-        let sectorIndex = Math.floor(angleFromPointer / angleStep);
-        if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
-        
-        return NUMBERS[sectorIndex];
-    }
-    
+    // Функция для плавного вращения с CSS-анимацией (без рывков)
     window.spinRoulette = function() {
         if (spinning) return;
         
@@ -311,38 +304,60 @@
         balance -= totalBet;
         saveBalance();
         
+        // Выбираем случайный выигрышный номер
         const resultNumber = Math.floor(Math.random() * 37);
         
-        const angleStep = (Math.PI * 2) / NUMBERS.length;
-        const pointerAngle = Math.PI / 2;
-        
+        const angleStep = 360 / NUMBERS.length;
         const resultIndex = NUMBERS.indexOf(resultNumber);
         
-        let targetRotation = (pointerAngle - (resultIndex * angleStep)) + (Math.PI * 2);
-        targetRotation = targetRotation % (Math.PI * 2);
+        // Базовое количество оборотов (от 8 до 12)
+        const baseRotations = 8 + Math.floor(Math.random() * 5);
         
-        const fullSpins = 10 + Math.floor(Math.random() * 8);
-        const totalDelta = targetRotation + (Math.PI * 2 * fullSpins);
+        // Вычисляем финальный угол: база * 360 + смещение до нужного сектора
+        // Сектор 0 (число 0) находится на угле 0
+        // Чтобы стрелка (вверху, 12 часов) указывала на нужный сектор,
+        // нужно повернуть колесо так, чтобы центр сектора оказался под стрелкой
+        const sectorCenterAngle = resultIndex * angleStep + angleStep / 2;
+        // Стрелка на 12 часах = 90 градусов
+        // Нужный угол поворота = (стрелка - центр сектора) + обороты*360
+        let finalAngle = (90 - sectorCenterAngle) + (baseRotations * 360);
+        finalAngle = finalAngle % 360;
         
-        const startRotation = currentRotation;
+        // Сохраняем текущий угол как начальный
+        const startAngle = currentRotation;
+        const totalDelta = finalAngle - startAngle;
+        
+        // Используем requestAnimationFrame с ease-out функцией для плавного замедления
         const startTime = performance.now();
         const duration = 4000;
+        
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
         
         function animateSpin(now) {
             const elapsed = now - startTime;
             let progress = Math.min(1, elapsed / duration);
-            const easedProgress = easeOutCubic(progress);
+            const eased = easeOutCubic(progress);
             
-            currentRotation = startRotation + totalDelta * easedProgress;
-            drawWheel(currentRotation % (Math.PI * 2));
+            currentRotation = startAngle + totalDelta * eased;
+            drawWheel(currentRotation * Math.PI / 180);
             
             if (progress < 1) {
                 requestAnimationFrame(animateSpin);
             } else {
-                currentRotation = targetRotation;
-                drawWheel(currentRotation);
+                // Фиксируем точный финальный угол
+                currentRotation = finalAngle;
+                drawWheel(currentRotation * Math.PI / 180);
                 
-                const finalNumber = getNumberAtPointer(currentRotation);
+                // Определяем выигрышное число по реальному положению колеса
+                // Вычисляем, какой сектор сейчас под стрелкой
+                let pointerAngle = 90; // стрелка на 12 часов
+                let wheelAngle = currentRotation % 360;
+                let angleFromPointer = (pointerAngle - wheelAngle + 360) % 360;
+                let sectorIndex = Math.floor(angleFromPointer / angleStep);
+                if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
+                const finalNumber = NUMBERS[sectorIndex];
                 
                 processResult(finalNumber, totalBet);
                 spinning = false;
@@ -401,9 +416,6 @@
         lastResults.unshift({ num: result, color: resultColor });
         if (lastResults.length > 10) lastResults.pop();
         
-        const balanceSpan = document.getElementById('rouletteBalance');
-        if (balanceSpan) balanceSpan.textContent = formatBalance();
-        
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
         window.renderRoulette();
@@ -450,7 +462,6 @@
         
         container.innerHTML = `
             <div style="display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
-                <!-- Левая колонка - колесо и ставки -->
                 <div style="flex: 2; min-width: 450px;">
                     <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">🎰 РУЛЕТКА</h3>
                     
@@ -481,8 +492,8 @@
                         <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 12px 50px; border-radius: 12px; font-size: 1.3em; font-weight: bold; cursor: pointer;">🎲 КРУТИТЬ</button>
                     </div>
                     
-                    <div style="position: relative; width: 400px; height: 400px; margin: 0 auto 20px;">
-                        <canvas id="rouletteCanvas" width="400" height="400" style="width: 400px; height: 400px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
+                    <div style="position: relative; width: 420px; height: 420px; margin: 0 auto 20px;">
+                        <canvas id="rouletteCanvas" width="420" height="420" style="width: 420px; height: 420px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
                         <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; z-index: 10;"></div>
                     </div>
                     
@@ -504,7 +515,6 @@
                     </div>
                 </div>
                 
-                <!-- Правая колонка - результат и история -->
                 <div style="flex: 1; min-width: 280px;">
                     ${renderLastResult()}
                     
@@ -522,7 +532,7 @@
             </div>
         `;
         
-        drawWheel(currentRotation);
+        initCanvas();
         updateBetDisplay();
     };
     
