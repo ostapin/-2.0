@@ -50,8 +50,6 @@
         parity: null
     };
     let currentRotation = 0;
-    let canvas = null;
-    let ctx = null;
     
     function loadBalance() {
         const saved = localStorage.getItem('rouletteBalance');
@@ -86,16 +84,11 @@
         return `${Math.floor(amount / 1000000)} платиновых`;
     }
     
-    function initCanvas() {
-        canvas = document.getElementById('rouletteCanvas');
+    function drawWheel(rotationAngleDeg) {
+        const canvas = document.getElementById('rouletteCanvas');
         if (!canvas) return;
-        ctx = canvas.getContext('2d');
-        drawWheel(0);
-    }
-    
-    function drawWheel(rotationAngle) {
-        if (!canvas || !ctx) return;
         
+        const ctx = canvas.getContext('2d');
         const size = 420;
         const centerX = size / 2;
         const centerY = size / 2;
@@ -107,10 +100,11 @@
         ctx.clearRect(0, 0, size, size);
         
         const angleStep = (Math.PI * 2) / NUMBERS.length;
+        const rotationRad = rotationAngleDeg * Math.PI / 180;
         
         for (let i = 0; i < NUMBERS.length; i++) {
-            const startAngle = i * angleStep + rotationAngle;
-            const endAngle = (i + 1) * angleStep + rotationAngle;
+            const startAngle = i * angleStep + rotationRad;
+            const endAngle = (i + 1) * angleStep + rotationRad;
             const number = NUMBERS[i];
             const color = getNumberColor(number);
             
@@ -137,7 +131,7 @@
         }
         
         for (let i = 0; i < NUMBERS.length; i++) {
-            const pinAngle = i * angleStep + angleStep / 2 + rotationAngle;
+            const pinAngle = i * angleStep + angleStep / 2 + rotationRad;
             const pinX = centerX + (radius - 6) * Math.cos(pinAngle);
             const pinY = centerY + (radius - 6) * Math.sin(pinAngle);
             
@@ -285,7 +279,11 @@
         window.renderRoulette();
     };
     
-    // Функция для плавного вращения с CSS-анимацией (без рывков)
+    // Функция плавного замедления (easeOutCubic)
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
     window.spinRoulette = function() {
         if (spinning) return;
         
@@ -304,57 +302,51 @@
         balance -= totalBet;
         saveBalance();
         
-        // Выбираем случайный выигрышный номер
+        // Выбираем случайное выигрышное число
         const resultNumber = Math.floor(Math.random() * 37);
         
         const angleStep = 360 / NUMBERS.length;
         const resultIndex = NUMBERS.indexOf(resultNumber);
         
-        // Базовое количество оборотов (от 8 до 12)
+        // Базовое количество оборотов: 8-12 полных оборотов [citation:3]
         const baseRotations = 8 + Math.floor(Math.random() * 5);
         
-        // Вычисляем финальный угол: база * 360 + смещение до нужного сектора
-        // Сектор 0 (число 0) находится на угле 0
-        // Чтобы стрелка (вверху, 12 часов) указывала на нужный сектор,
-        // нужно повернуть колесо так, чтобы центр сектора оказался под стрелкой
+        // Вычисляем угол центра сектора результата
         const sectorCenterAngle = resultIndex * angleStep + angleStep / 2;
-        // Стрелка на 12 часах = 90 градусов
-        // Нужный угол поворота = (стрелка - центр сектора) + обороты*360
-        let finalAngle = (90 - sectorCenterAngle) + (baseRotations * 360);
-        finalAngle = finalAngle % 360;
         
-        // Сохраняем текущий угол как начальный
-        const startAngle = currentRotation;
-        const totalDelta = finalAngle - startAngle;
+        // Стрелка находится на 12 часах = 90 градусов
+        // Нужный угол поворота: чтобы сектор оказался под стрелкой
+        // Формула: (стрелка - центр сектора) + обороты * 360 [citation:3]
+        let targetRotation = (90 - sectorCenterAngle) + (baseRotations * 360);
+        targetRotation = targetRotation % 360;
         
-        // Используем requestAnimationFrame с ease-out функцией для плавного замедления
+        const startRotation = currentRotation;
+        // Вычисляем направление вращения и дельту
+        let delta = targetRotation - startRotation;
+        // Нормализуем дельту, чтобы вращение было в правильную сторону
+        if (delta < 0) delta += 360;
+        
         const startTime = performance.now();
         const duration = 4000;
-        
-        function easeOutCubic(t) {
-            return 1 - Math.pow(1 - t, 3);
-        }
         
         function animateSpin(now) {
             const elapsed = now - startTime;
             let progress = Math.min(1, elapsed / duration);
             const eased = easeOutCubic(progress);
             
-            currentRotation = startAngle + totalDelta * eased;
-            drawWheel(currentRotation * Math.PI / 180);
+            currentRotation = startRotation + delta * eased;
+            drawWheel(currentRotation);
             
             if (progress < 1) {
                 requestAnimationFrame(animateSpin);
             } else {
                 // Фиксируем точный финальный угол
-                currentRotation = finalAngle;
-                drawWheel(currentRotation * Math.PI / 180);
+                currentRotation = targetRotation;
+                drawWheel(currentRotation);
                 
-                // Определяем выигрышное число по реальному положению колеса
-                // Вычисляем, какой сектор сейчас под стрелкой
-                let pointerAngle = 90; // стрелка на 12 часов
-                let wheelAngle = currentRotation % 360;
-                let angleFromPointer = (pointerAngle - wheelAngle + 360) % 360;
+                // Определяем выигрышное число по реальному положению
+                const pointerAngle = 90; // стрелка на 12 часов
+                let angleFromPointer = (pointerAngle - currentRotation + 360) % 360;
                 let sectorIndex = Math.floor(angleFromPointer / angleStep);
                 if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
                 const finalNumber = NUMBERS[sectorIndex];
@@ -532,11 +524,12 @@
             </div>
         `;
         
-        initCanvas();
+        drawWheel(currentRotation);
         updateBetDisplay();
     };
     
     window.backToMenu = function() {
+        spinning = false;
         const container = document.getElementById('activeGameContainer');
         if (container) {
             container.innerHTML = `<div style="text-align: center;"><p style="color: #b89a7a; font-size: 1.2em;">🎮 Выберите игру</p></div>`;
