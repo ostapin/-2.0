@@ -166,16 +166,16 @@
                     background: ${bgColor};
                     color: white;
                     border: ${isActive ? '3px solid #d4af37' : '1px solid #8b4513'};
-                    padding: 10px 5px;
-                    border-radius: 6px;
+                    padding: 12px 0;
+                    border-radius: 8px;
                     cursor: pointer;
                     font-weight: bold;
-                    font-size: 1em;
-                    position: relative;
+                    font-size: 1.1em;
+                    min-width: 45px;
                     transition: all 0.1s;
                 ">
                     ${i}
-                    ${betAmount > 0 ? `<div style="font-size: 0.7em; color: #d4af37; margin-top: 2px;">${betAmount}</div>` : ''}
+                    ${betAmount > 0 ? `<div style="font-size: 0.7em; color: #d4af37; margin-top: 3px;">${betAmount}</div>` : ''}
                 </button>
             `;
         }
@@ -351,10 +351,10 @@
         const colorIcon = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
         
         const modal = document.createElement('div');
-        modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c1810; border: 3px solid #d4af37; border-radius: 20px; padding: 25px; text-align: center; z-index: 1000; min-width: 300px; box-shadow: 0 0 50px rgba(0,0,0,0.8);';
+        modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c1810; border: 3px solid #d4af37; border-radius: 20px; padding: 25px; text-align: center; z-index: 1000; min-width: 320px; box-shadow: 0 0 50px rgba(0,0,0,0.8);';
         modal.innerHTML = `
             <h2 style="color: #d4af37; margin-bottom: 20px;">🎲 РЕЗУЛЬТАТ</h2>
-            <div style="font-size: 2.5em; margin-bottom: 15px;">
+            <div style="font-size: 3em; margin-bottom: 15px;">
                 <span style="color: ${resultColor === 'red' ? '#c44536' : (resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${result}</span> ${colorIcon}
             </div>
             <div style="font-size: 1.2em; margin-bottom: 15px; color: #e0d0c0;">${colorName}</div>
@@ -441,7 +441,7 @@
         loadBalance();
         
         container.innerHTML = `
-            <div style="text-align: center; max-width: 950px; margin: 0 auto;">
+            <div style="text-align: center; max-width: 1000px; margin: 0 auto;">
                 <h3 style="color: #d4af37; margin-bottom: 15px; font-size: 1.8em;">🎰 РУЛЕТКА</h3>
                 
                 <div style="background: #3d2418; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
@@ -463,7 +463,7 @@
                             <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>💎 Кристалл эфира (бесцветный)</option>
                             <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>🌈 Кристалл эфира (цветной)</option>
                         </select></div>
-                        <div><span style="color: #e0d0c0;">🎲 СТАВКА:</span> <input type="number" id="betInput" value="${currentBet}" min="1" style="width: 90px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;"> <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">Уст.</button></div>
+                        <div><span style="color: #e0d0c0;">🎲 СТАВКА:</span> <input type="number" id="betInput" value="${currentBet}" min="1" style="width: 100px; padding: 6px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;"> <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 6px 15px; border-radius: 4px; cursor: pointer;">Уст.</button></div>
                     </div>
                 </div>
                 
@@ -476,26 +476,26 @@
                 
                 <div style="background: #2c1810; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                     <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ НА ЧИСЛА</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; padding: 5px;">
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 15px; padding: 5px;">
                         ${generateNumberButtons()}
                     </div>
                     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
-                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔴 КРАСНОЕ (x2)</button>
-                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">⚫ ЧЕРНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">ЧЕТНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">НЕЧЕТНОЕ (x2)</button>
+                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔴 КРАСНОЕ (x2)</button>
+                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold;">⚫ ЧЕРНОЕ (x2)</button>
+                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">ЧЕТНОЕ (x2)</button>
+                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">НЕЧЕТНОЕ (x2)</button>
                     </div>
                     <div id="betDisplay" style="margin-top: 12px; color: #b89a7a;"></div>
                 </div>
                 
-                <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; margin-bottom: 20px;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
+                <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 35px; border-radius: 6px; cursor: pointer; margin-bottom: 20px;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
                 
                 <div style="margin-top: 20px;">
                     <h4 style="color: #d4af37;">📜 ИСТОРИЯ</h4>
                     <div id="historyDisplay" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px;"></div>
                 </div>
                 
-                <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; margin-top: 20px;">🏠 ГЛАВНОЕ МЕНЮ</button>
+                <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 35px; border-radius: 6px; cursor: pointer; margin-top: 20px;">🏠 ГЛАВНОЕ МЕНЮ</button>
             </div>
         `;
         
