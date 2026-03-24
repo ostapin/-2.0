@@ -2,11 +2,11 @@
 
 const gamesList = {
     ticTacToe: { name: "❌ Крестики-нолики", icon: "❌", file: "ticTacToe.js", render: "renderTicTacToe" },
-    memory: { name: "🧠 Мемори", icon: "🧠", file: "memory.js", render: "renderMemory" }
+    memory: { name: "🧠 Мемори", icon: "🧠", file: "memory.js", render: "renderMemory" },
+    roulette: { name: "🎰 Рулетка", icon: "🎰", file: "roulette.js", render: "renderRoulette" }
 };
 
 let currentGame = 'ticTacToe';
-let gameScriptLoaded = false;
 
 function renderGamesManager() {
     const container = document.getElementById('gamesContainer');
@@ -56,16 +56,13 @@ function loadGame(gameKey) {
     
     container.innerHTML = '<p style="color: #b89a7a;">🎮 Загрузка игры...</p>';
     
-    // Удаляем старый скрипт если есть
     const oldScript = document.getElementById('game-script');
     if (oldScript) oldScript.remove();
     
-    // Загружаем новый скрипт игры
     const script = document.createElement('script');
     script.id = 'game-script';
     script.src = `modules/games/${game.file}`;
     script.onload = function() {
-        // Ждём немного чтобы скрипт инициализировался
         setTimeout(() => {
             if (typeof window[game.render] === 'function') {
                 window[game.render]();
@@ -80,6 +77,5 @@ function loadGame(gameKey) {
     document.head.appendChild(script);
 }
 
-// Глобальные функции
 window.renderGamesManager = renderGamesManager;
 window.switchGame = switchGame;
