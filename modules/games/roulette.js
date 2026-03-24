@@ -1,7 +1,7 @@
 // ========== РУЛЕТКА ==========
 
 (function() {
-    // Правильный порядок чисел на европейской рулетке (по часовой стрелке) [citation:1][citation:10]
+    // Порядок чисел на европейской рулетке
     const NUMBERS = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
     
@@ -49,7 +49,6 @@
         parity: null
     };
     let currentRotation = 0;
-    let animationId = null;
     
     function loadBalance() {
         const saved = localStorage.getItem('rouletteBalance');
@@ -104,7 +103,7 @@
         return `${Math.floor(amount / 1000000)} платиновых`;
     }
     
-    // Отрисовка колеса
+    // Отрисовка колеса с штырьками
     function drawWheel(rotationAngle) {
         const canvas = document.getElementById('rouletteCanvas');
         if (!canvas) return;
@@ -114,6 +113,7 @@
         const centerX = size / 2;
         const centerY = size / 2;
         const radius = size / 2 - 10;
+        const pocketRadius = radius - 5;
         
         canvas.width = size;
         canvas.height = size;
@@ -122,6 +122,7 @@
         
         const angleStep = (Math.PI * 2) / NUMBERS.length;
         
+        // Рисуем карманы
         for (let i = 0; i < NUMBERS.length; i++) {
             const startAngle = i * angleStep + rotationAngle;
             const endAngle = (i + 1) * angleStep + rotationAngle;
@@ -130,15 +131,16 @@
             
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.arc(centerX, centerY, pocketRadius, startAngle, endAngle);
             ctx.closePath();
             
             ctx.fillStyle = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
             ctx.fill();
             ctx.strokeStyle = '#d4af37';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
             
+            // Номер в кармане
             ctx.save();
             ctx.translate(centerX, centerY);
             ctx.rotate(startAngle + angleStep / 2);
@@ -146,17 +148,51 @@
             ctx.textBaseline = 'middle';
             ctx.font = 'bold 12px Arial';
             ctx.fillStyle = 'white';
-            ctx.fillText(number.toString(), radius - 22, 0);
+            ctx.shadowBlur = 0;
+            ctx.fillText(number.toString(), pocketRadius - 20, 0);
             ctx.restore();
         }
         
+        // Рисуем фрикционные штырьки (металлические)
+        for (let i = 0; i < NUMBERS.length; i++) {
+            const pinAngle = i * angleStep + rotationAngle;
+            const pinX = centerX + (radius - 8) * Math.cos(pinAngle);
+            const pinY = centerY + (radius - 8) * Math.sin(pinAngle);
+            
+            ctx.beginPath();
+            ctx.arc(pinX, pinY, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#b89a7a';
+            ctx.fill();
+            ctx.strokeStyle = '#5a3a2a';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Добавляем блик
+            ctx.beginPath();
+            ctx.arc(pinX - 1, pinY - 1, 1, 0, Math.PI * 2);
+            ctx.fillStyle = '#e0d0c0';
+            ctx.fill();
+        }
+        
+        // Центральная часть
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, 32, 0, Math.PI * 2);
         ctx.fillStyle = '#d4af37';
         ctx.fill();
         ctx.strokeStyle = '#2c1810';
         ctx.lineWidth = 2;
         ctx.stroke();
+        
+        // Декоративный центр
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c1810';
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#d4af37';
+        ctx.fill();
     }
     
     function generateNumberButtons() {
@@ -294,7 +330,7 @@
         window.renderRoulette();
     };
     
-    // Функция плавного замедления (cubic ease-out) [citation:5][citation:8]
+    // Функция плавного замедления
     function easeOutCubic(t) {
         return 1 - Math.pow(1 - t, 3);
     }
@@ -321,52 +357,46 @@
         const spinBtn = document.getElementById('spinBtn');
         if (spinBtn) spinBtn.disabled = true;
         
-        // Снимаем ставки с баланса
         balance -= totalBet;
         saveBalance();
         const balanceSpan = document.getElementById('rouletteBalance');
         if (balanceSpan) balanceSpan.textContent = formatBalance();
         
-        // Выбираем случайный результат
         const resultIndex = Math.floor(Math.random() * NUMBERS.length);
         const resultNumber = NUMBERS[resultIndex];
         
-        // Параметры анимации
         const angleStep = (Math.PI * 2) / NUMBERS.length;
         const pointerAngle = Math.PI / 2; // Стрелка сверху (90 градусов)
         
-        // Вычисляем угол, на который нужно повернуть колесо, чтобы результат оказался под стрелкой
+        // Вычисляем угол, на который нужно повернуть колесо, чтобы сектор с результатом оказался под стрелкой
         const targetSegmentAngle = resultIndex * angleStep + angleStep / 2;
         let targetRotation = (pointerAngle - targetSegmentAngle) % (Math.PI * 2);
         if (targetRotation < 0) targetRotation += Math.PI * 2;
         
-        // Добавляем 8-12 полных оборотов для реалистичности [citation:7]
-        const fullSpins = 8 + Math.floor(Math.random() * 5); // 8-12 оборотов
+        // Добавляем 8-12 полных оборотов
+        const fullSpins = 8 + Math.floor(Math.random() * 5);
         const totalDelta = targetRotation + (Math.PI * 2 * fullSpins);
         
         const startRotation = currentRotation;
         const startTime = performance.now();
-        const duration = 4000; // 4 секунды анимации
+        const duration = 4000;
         
         function animateSpin(now) {
             const elapsed = now - startTime;
             let progress = Math.min(1, elapsed / duration);
             
-            // Применяем easing для плавного замедления [citation:5][citation:8]
             const easedProgress = easeOutCubic(progress);
             
-            // Интерполяция угла
             currentRotation = startRotation + totalDelta * easedProgress;
             drawWheel(currentRotation % (Math.PI * 2));
             
             if (progress < 1) {
                 requestAnimationFrame(animateSpin);
             } else {
-                // Анимация завершена, фиксируем точный угол
+                // Фиксируем точный угол
                 currentRotation = (startRotation + totalDelta) % (Math.PI * 2);
                 drawWheel(currentRotation);
                 
-                // Обрабатываем результат
                 processResult(resultNumber, totalBet);
                 spinning = false;
                 if (spinBtn) spinBtn.disabled = false;
@@ -383,7 +413,6 @@
         const resultColor = getNumberColor(result);
         const resultParity = result === 0 ? 'zero' : (result % 2 === 0 ? 'even' : 'odd');
         
-        // Проверяем ставки на числа
         for (const [num, bet] of Object.entries(currentBets.numbers)) {
             if (parseInt(num) === result) {
                 const win = bet * 35;
@@ -392,14 +421,12 @@
             }
         }
         
-        // Проверяем ставки на цвет
         if (currentBets.color && currentBets.color === resultColor && result !== 0) {
             const win = currentBet * 2;
             winnings += win;
             winDetails.push(`${currentBets.color === 'red' ? 'Красное' : 'Черное'}: +${formatBet(win)}`);
         }
         
-        // Проверяем ставки на чет/нечет
         if (currentBets.parity && resultParity === currentBets.parity && result !== 0) {
             const win = currentBet * 2;
             winnings += win;
@@ -458,7 +485,6 @@
             <div style="text-align: center; max-width: 900px; margin: 0 auto;">
                 <h3 style="color: #d4af37; margin-bottom: 15px; font-size: 1.8em;">🎰 РУЛЕТКА</h3>
                 
-                <!-- Верхняя панель с балансом и валютой -->
                 <div style="background: #3d2418; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -492,18 +518,15 @@
                     </div>
                 </div>
                 
-                <!-- Кнопка крутить над колесом -->
                 <div style="margin-bottom: 15px;">
                     <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 15px 50px; border-radius: 12px; font-size: 1.4em; font-weight: bold; cursor: pointer;">🎲 КРУТИТЬ</button>
                 </div>
                 
-                <!-- Колесо -->
                 <div style="position: relative; width: 400px; height: 400px; margin: 0 auto 20px;">
                     <canvas id="rouletteCanvas" width="400" height="400" style="width: 400px; height: 400px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
                     <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); z-index: 10;"></div>
                 </div>
                 
-                <!-- Ставки -->
                 <div style="background: #2c1810; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
                     <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 5px;">
@@ -541,7 +564,6 @@
     };
     
     window.backToMenu = function() {
-        if (animationId) cancelAnimationFrame(animationId);
         const container = document.getElementById('activeGameContainer');
         if (container) {
             container.innerHTML = `
