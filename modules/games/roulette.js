@@ -1,11 +1,9 @@
 // ========== РУЛЕТКА ==========
 
 (function() {
-    // Порядок чисел на европейской рулетке
     const NUMBERS = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
     
-    // Курсы валют (полные)
     const CURRENCY_RATES = {
         chips: 1,
         copper: 1,
@@ -68,51 +66,23 @@
     }
     
     function formatBalance() {
-        if (currentCurrency === 'chips') {
-            return `${balance} ${CURRENCY_NAMES.chips}`;
-        }
-        
+        if (currentCurrency === 'chips') return `${balance} ${CURRENCY_NAMES.chips}`;
         let value = balance;
-        const rates = Object.entries(CURRENCY_RATES).sort((a,b) => b[1] - a[1]);
-        
-        for (let [currency, rate] of rates) {
-            if (value >= rate && rate > 1 && currency !== 'chips') {
-                const amount = Math.floor(value / rate);
-                const remainder = value % rate;
-                if (remainder === 0) {
-                    return `${amount} ${CURRENCY_NAMES[currency]}`;
-                } else {
-                    const remainderFormatted = formatBalanceSmall(remainder);
-                    return `${amount} ${CURRENCY_NAMES[currency]}, ${remainderFormatted}`;
-                }
-            }
-        }
-        return `${value} ${CURRENCY_NAMES.copper}`;
-    }
-    
-    function formatBalanceSmall(value) {
-        if (value === 0) return '';
         if (value < 100) return `${value} ${CURRENCY_NAMES.copper}`;
-        if (value < 10000) {
-            const silver = Math.floor(value / 100);
-            const copper = value % 100;
-            if (copper === 0) return `${silver} ${CURRENCY_NAMES.silver}`;
-            return `${silver} ${CURRENCY_NAMES.silver}, ${copper} ${CURRENCY_NAMES.copper}`;
-        }
-        return `${value} ${CURRENCY_NAMES.copper}`;
+        if (value < 10000) return `${Math.floor(value / 100)} ${CURRENCY_NAMES.silver}`;
+        if (value < 1000000) return `${Math.floor(value / 10000)} ${CURRENCY_NAMES.gold}`;
+        if (value < 100000000) return `${Math.floor(value / 1000000)} ${CURRENCY_NAMES.platinum}`;
+        return `${balance} ${CURRENCY_NAMES.copper}`;
     }
     
     function formatBet(amount) {
-        if (currentCurrency === 'chips') {
-            return `${amount} фишек`;
-        }
+        if (currentCurrency === 'chips') return `${amount} фишек`;
         if (amount < 100) return `${amount} медных`;
         if (amount < 10000) return `${Math.floor(amount / 100)} серебряных`;
         if (amount < 1000000) return `${Math.floor(amount / 10000)} золотых`;
         return `${Math.floor(amount / 1000000)} платиновых`;
     }
     
-    // Отрисовка колеса с ограничителями
     function drawWheel(rotationAngle) {
         const canvas = document.getElementById('rouletteCanvas');
         if (!canvas) return;
@@ -130,7 +100,6 @@
         
         const angleStep = (Math.PI * 2) / NUMBERS.length;
         
-        // Рисуем карманы
         for (let i = 0; i < NUMBERS.length; i++) {
             const startAngle = i * angleStep + rotationAngle;
             const endAngle = (i + 1) * angleStep + rotationAngle;
@@ -159,7 +128,7 @@
             ctx.restore();
         }
         
-        // Ограничители (штырьки) между карманами
+        // Ограничители
         for (let i = 0; i < NUMBERS.length; i++) {
             const pinAngle = i * angleStep + angleStep / 2 + rotationAngle;
             const pinX = centerX + (radius - 6) * Math.cos(pinAngle);
@@ -169,13 +138,12 @@
             ctx.arc(pinX, pinY, 3, 0, Math.PI * 2);
             ctx.fillStyle = '#b89a7a';
             ctx.fill();
-            ctx.fillStyle = '#5a3a2a';
             ctx.beginPath();
             ctx.arc(pinX - 1, pinY - 1, 1, 0, Math.PI * 2);
+            ctx.fillStyle = '#e0d0c0';
             ctx.fill();
         }
         
-        // Центр
         ctx.beginPath();
         ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
         ctx.fillStyle = '#d4af37';
@@ -192,22 +160,14 @@
             const color = getNumberColor(i);
             const bgColor = color === 'red' ? '#c44536' : (color === 'black' ? '#2c2c2c' : '#2c5a2c');
             const isActive = currentBets.numbers[i] ? '3px solid #d4af37' : 'none';
-            html += `
-                <button onclick="window.placeNumberBet(${i})" style="background: ${bgColor}; color: white; border: ${isActive}; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">${i}</button>
-            `;
+            html += `<button onclick="window.placeNumberBet(${i})" style="background: ${bgColor}; color: white; border: ${isActive}; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">${i}</button>`;
         }
         return html;
     }
     
     window.placeNumberBet = function(num) {
-        if (spinning) {
-            alert("Сначала дождитесь окончания вращения!");
-            return;
-        }
-        if (balance < currentBet) {
-            alert("Недостаточно средств!");
-            return;
-        }
+        if (spinning) { alert("Дождитесь окончания вращения!"); return; }
+        if (balance < currentBet) { alert("Недостаточно средств!"); return; }
         
         if (currentBets.numbers[num]) {
             delete currentBets.numbers[num];
@@ -219,14 +179,8 @@
     };
     
     window.placeColorBet = function(color) {
-        if (spinning) {
-            alert("Сначала дождитесь окончания вращения!");
-            return;
-        }
-        if (balance < currentBet) {
-            alert("Недостаточно средств!");
-            return;
-        }
+        if (spinning) { alert("Дождитесь окончания вращения!"); return; }
+        if (balance < currentBet) { alert("Недостаточно средств!"); return; }
         
         if (currentBets.color === color) {
             currentBets.color = null;
@@ -238,14 +192,8 @@
     };
     
     window.placeParityBet = function(parity) {
-        if (spinning) {
-            alert("Сначала дождитесь окончания вращения!");
-            return;
-        }
-        if (balance < currentBet) {
-            alert("Недостаточно средств!");
-            return;
-        }
+        if (spinning) { alert("Дождитесь окончания вращения!"); return; }
+        if (balance < currentBet) { alert("Недостаточно средств!"); return; }
         
         if (currentBets.parity === parity) {
             currentBets.parity = null;
@@ -267,7 +215,6 @@
     window.changeCurrency = function() {
         const select = document.getElementById('currencySelect');
         currentCurrency = select.value;
-        updateBetDisplay();
         window.renderRoulette();
     };
     
@@ -276,8 +223,7 @@
         if (newBalance !== null && !isNaN(parseInt(newBalance))) {
             balance = parseInt(newBalance);
             saveBalance();
-            const balanceSpan = document.getElementById('rouletteBalance');
-            if (balanceSpan) balanceSpan.textContent = formatBalance();
+            window.renderRoulette();
         }
     };
     
@@ -286,15 +232,9 @@
         if (!display) return;
         
         let bets = [];
-        if (Object.keys(currentBets.numbers).length > 0) {
-            bets.push(`Числа: ${Object.keys(currentBets.numbers).join(', ')}`);
-        }
-        if (currentBets.color) {
-            bets.push(`${currentBets.color === 'red' ? '🔴 Красное' : '⚫ Черное'}`);
-        }
-        if (currentBets.parity) {
-            bets.push(`${currentBets.parity === 'even' ? 'Четное' : 'Нечетное'}`);
-        }
+        if (Object.keys(currentBets.numbers).length > 0) bets.push(`Числа: ${Object.keys(currentBets.numbers).join(', ')}`);
+        if (currentBets.color) bets.push(`${currentBets.color === 'red' ? '🔴 Красное' : '⚫ Черное'}`);
+        if (currentBets.parity) bets.push(`${currentBets.parity === 'even' ? 'Четное' : 'Нечетное'}`);
         
         let totalBet = 0;
         totalBet += Object.values(currentBets.numbers).reduce((a,b) => a + b, 0);
@@ -309,10 +249,7 @@
     }
     
     window.clearBets = function() {
-        if (spinning) {
-            alert("Сначала дождитесь окончания вращения!");
-            return;
-        }
+        if (spinning) { alert("Дождитесь окончания вращения!"); return; }
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
         window.renderRoulette();
@@ -320,6 +257,15 @@
     
     function easeOutCubic(t) {
         return 1 - Math.pow(1 - t, 3);
+    }
+    
+    function getNumberAtPointer(rotationAngle) {
+        const angleStep = (Math.PI * 2) / NUMBERS.length;
+        const pointerAngle = Math.PI / 2;
+        let angleFromPointer = (pointerAngle - rotationAngle + Math.PI * 2) % (Math.PI * 2);
+        let sectorIndex = Math.floor(angleFromPointer / angleStep);
+        if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
+        return NUMBERS[sectorIndex];
     }
     
     window.spinRoulette = function() {
@@ -330,15 +276,8 @@
         if (currentBets.color) totalBet += currentBet;
         if (currentBets.parity) totalBet += currentBet;
         
-        if (totalBet === 0) {
-            alert("Сделайте ставку!");
-            return;
-        }
-        
-        if (balance < totalBet) {
-            alert("Недостаточно средств!");
-            return;
-        }
+        if (totalBet === 0) { alert("Сделайте ставку!"); return; }
+        if (balance < totalBet) { alert("Недостаточно средств!"); return; }
         
         spinning = true;
         const spinBtn = document.getElementById('spinBtn');
@@ -346,20 +285,22 @@
         
         balance -= totalBet;
         saveBalance();
-        const balanceSpan = document.getElementById('rouletteBalance');
-        if (balanceSpan) balanceSpan.textContent = formatBalance();
         
-        const resultIndex = Math.floor(Math.random() * NUMBERS.length);
-        const resultNumber = NUMBERS[resultIndex];
+        // Выбираем случайное число
+        const resultNumber = Math.floor(Math.random() * 37);
         
         const angleStep = (Math.PI * 2) / NUMBERS.length;
         const pointerAngle = Math.PI / 2;
         
-        const targetSegmentAngle = resultIndex * angleStep + angleStep / 2;
-        let targetRotation = (pointerAngle - targetSegmentAngle) % (Math.PI * 2);
-        if (targetRotation < 0) targetRotation += Math.PI * 2;
+        // Находим позицию числа в массиве NUMBERS
+        const resultIndex = NUMBERS.indexOf(resultNumber);
+        const targetSectorCenter = resultIndex * angleStep + angleStep / 2;
         
-        const fullSpins = 8 + Math.floor(Math.random() * 5);
+        // Вычисляем угол, при котором сектор с результатом окажется под стрелкой
+        let targetRotation = (pointerAngle - targetSectorCenter + Math.PI * 2) % (Math.PI * 2);
+        
+        // Добавляем много полных оборотов
+        const fullSpins = 10 + Math.floor(Math.random() * 8);
         const totalDelta = targetRotation + (Math.PI * 2 * fullSpins);
         
         const startRotation = currentRotation;
@@ -377,9 +318,13 @@
             if (progress < 1) {
                 requestAnimationFrame(animateSpin);
             } else {
-                currentRotation = (startRotation + totalDelta) % (Math.PI * 2);
+                currentRotation = targetRotation;
                 drawWheel(currentRotation);
-                processResult(resultNumber, totalBet);
+                
+                // Проверяем какое число выпало
+                const finalNumber = getNumberAtPointer(currentRotation);
+                
+                processResult(finalNumber, totalBet);
                 spinning = false;
                 if (spinBtn) spinBtn.disabled = false;
             }
@@ -388,14 +333,41 @@
         requestAnimationFrame(animateSpin);
     };
     
+    function showResultModal(result, totalBet, winnings, winDetails, netChange) {
+        const resultColor = getNumberColor(result);
+        const colorName = resultColor === 'red' ? 'КРАСНОЕ' : (resultColor === 'black' ? 'ЧЕРНОЕ' : 'ЗЕРО');
+        const colorIcon = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
+        
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c1810; border: 3px solid #d4af37; border-radius: 20px; padding: 25px; text-align: center; z-index: 1000; min-width: 300px; box-shadow: 0 0 50px rgba(0,0,0,0.8);';
+        modal.innerHTML = `
+            <h2 style="color: #d4af37; margin-bottom: 20px;">🎲 РЕЗУЛЬТАТ</h2>
+            <div style="font-size: 2.5em; margin-bottom: 15px;">
+                <span style="color: ${resultColor === 'red' ? '#c44536' : (resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${result}</span> ${colorIcon}
+            </div>
+            <div style="font-size: 1.2em; margin-bottom: 15px; color: #e0d0c0;">${colorName}</div>
+            ${winDetails.length > 0 ? `<div style="color: #27ae60; margin: 10px 0;">🏆 ВЫИГРЫШ:<br> ${winDetails.join('<br>')}</div>` : '<div style="color: #c44536; margin: 10px 0;">💔 ПРОИГРЫШ</div>'}
+            <div style="border-top: 1px solid #8b4513; padding-top: 15px; margin-top: 15px;">
+                <div>💰 СТАВКА: ${formatBet(totalBet)}</div>
+                <div>🎁 ВЫИГРЫШ: ${formatBet(winnings)}</div>
+                <div style="color: ${netChange >= 0 ? '#27ae60' : '#c44536'};">📊 ИТОГ: ${netChange >= 0 ? '+' : ''}${formatBet(netChange)}</div>
+                <div style="color: #d4af37;">💎 БАЛАНС: ${formatBalance()}</div>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: #8b4513; color: white; border: none; padding: 10px 30px; border-radius: 6px; margin-top: 20px; cursor: pointer;">ЗАКРЫТЬ</button>
+        `;
+        document.body.appendChild(modal);
+        
+        setTimeout(() => {
+            if (modal.parentElement) modal.remove();
+        }, 5000);
+    }
+    
     function processResult(result, totalBet) {
         let winnings = 0;
         let winDetails = [];
         
         const resultColor = getNumberColor(result);
         const resultParity = result === 0 ? 'zero' : (result % 2 === 0 ? 'even' : 'odd');
-        const colorName = resultColor === 'red' ? 'КРАСНОЕ' : (resultColor === 'black' ? 'ЧЕРНОЕ' : 'ЗЕРО');
-        const colorIcon = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
         
         for (const [num, bet] of Object.entries(currentBets.numbers)) {
             if (parseInt(num) === result) {
@@ -421,35 +393,20 @@
         saveBalance();
         
         const netChange = winnings - totalBet;
-        const netChangeText = netChange >= 0 ? `+${formatBet(netChange)}` : formatBet(netChange);
         
-        const resultDisplay = document.getElementById('resultDisplay');
+        // Показываем модальное окно с результатом
+        showResultModal(result, totalBet, winnings, winDetails, netChange);
+        
+        // Обновляем баланс на странице
         const balanceSpan = document.getElementById('rouletteBalance');
         if (balanceSpan) balanceSpan.textContent = formatBalance();
         
-        if (resultDisplay) {
-            resultDisplay.style.display = 'block';
-            resultDisplay.innerHTML = `
-                <div style="text-align: center;">
-                    <div style="font-size: 2em; margin-bottom: 15px;">
-                        🎲 <span style="color: ${resultColor === 'red' ? '#c44536' : (resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${result}</span> ${colorIcon}
-                    </div>
-                    <div style="font-size: 1.2em; margin-bottom: 15px; color: #d4af37;">${colorName}</div>
-                    ${winDetails.length > 0 ? `<div style="color: #27ae60; margin: 10px 0;">🏆 ВЫИГРЫШ: ${winDetails.join(', ')}</div>` : '<div style="color: #c44536; margin: 10px 0;">💔 ПРОИГРЫШ</div>'}
-                    <div style="border-top: 1px solid #8b4513; padding-top: 12px; margin-top: 12px;">
-                        <div>💰 СТАВКА: ${formatBet(totalBet)}</div>
-                        <div>🎁 ВЫИГРЫШ: ${formatBet(winnings)}</div>
-                        <div style="color: ${netChange >= 0 ? '#27ae60' : '#c44536'};">📊 ИТОГ: ${netChangeText}</div>
-                        <div style="color: #d4af37;">💎 БАЛАНС: ${formatBalance()}</div>
-                    </div>
-                </div>
-            `;
-        }
-        
+        // Добавляем в историю
         lastResults.unshift({ num: result, color: resultColor });
         if (lastResults.length > 10) lastResults.pop();
         renderHistory();
         
+        // Очищаем ставки
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
         window.renderRoulette();
@@ -481,41 +438,28 @@
                 
                 <div style="background: #3d2418; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #e0d0c0;">💰 БАЛАНС:</span>
-                            <span id="rouletteBalance" style="color: #d4af37; font-size: 1.3em; font-weight: bold;">${formatBalance()}</span>
-                            <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">✏️</button>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #e0d0c0;">💱 ВАЛЮТА:</span>
-                            <select id="currencySelect" onchange="window.changeCurrency()" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px; padding: 5px;">
-                                <option value="chips" ${currentCurrency === 'chips' ? 'selected' : ''}>🎲 Фишки</option>
-                                <option value="copper" ${currentCurrency === 'copper' ? 'selected' : ''}>🟤 Медные</option>
-                                <option value="silver" ${currentCurrency === 'silver' ? 'selected' : ''}>⚪ Серебряные</option>
-                                <option value="gold" ${currentCurrency === 'gold' ? 'selected' : ''}>🟡 Золотые</option>
-                                <option value="platinum" ${currentCurrency === 'platinum' ? 'selected' : ''}>🔵 Платиновые</option>
-                                <option value="amber_sphere" ${currentCurrency === 'amber_sphere' ? 'selected' : ''}>🟠 Сфера (янтарная)</option>
-                                <option value="blood_sphere" ${currentCurrency === 'blood_sphere' ? 'selected' : ''}>🔴 Сфера (Крови)</option>
-                                <option value="ice_sphere" ${currentCurrency === 'ice_sphere' ? 'selected' : ''}>🔵 Сфера (Льда)</option>
-                                <option value="fire_sphere" ${currentCurrency === 'fire_sphere' ? 'selected' : ''}>🔥 Сфера (Огня)</option>
-                                <option value="earth_sphere" ${currentCurrency === 'earth_sphere' ? 'selected' : ''}>⛰️ Сфера (Земли)</option>
-                                <option value="water_sphere" ${currentCurrency === 'water_sphere' ? 'selected' : ''}>💧 Сфера (Воды)</option>
-                                <option value="lightning_sphere" ${currentCurrency === 'lightning_sphere' ? 'selected' : ''}>⚡ Сфера (Молнии)</option>
-                                <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>💎 Кристалл эфира (бесцветный)</option>
-                                <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>🌈 Кристалл эфира (цветной)</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #e0d0c0;">🎲 СТАВКА:</span>
-                            <input type="number" id="betInput" value="${currentBet}" min="1" step="1" style="width: 90px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
-                            <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">Уст.</button>
-                        </div>
+                        <div><span style="color: #e0d0c0;">💰 БАЛАНС:</span> <span id="rouletteBalance" style="color: #d4af37; font-size: 1.3em; font-weight: bold;">${formatBalance()}</span> <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">✏️</button></div>
+                        <div><span style="color: #e0d0c0;">💱 ВАЛЮТА:</span> <select id="currencySelect" onchange="window.changeCurrency()" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px; padding: 5px;">
+                            <option value="chips" ${currentCurrency === 'chips' ? 'selected' : ''}>🎲 Фишки</option>
+                            <option value="copper" ${currentCurrency === 'copper' ? 'selected' : ''}>🟤 Медные</option>
+                            <option value="silver" ${currentCurrency === 'silver' ? 'selected' : ''}>⚪ Серебряные</option>
+                            <option value="gold" ${currentCurrency === 'gold' ? 'selected' : ''}>🟡 Золотые</option>
+                            <option value="platinum" ${currentCurrency === 'platinum' ? 'selected' : ''}>🔵 Платиновые</option>
+                            <option value="amber_sphere" ${currentCurrency === 'amber_sphere' ? 'selected' : ''}>🟠 Сфера (янтарная)</option>
+                            <option value="blood_sphere" ${currentCurrency === 'blood_sphere' ? 'selected' : ''}>🔴 Сфера (Крови)</option>
+                            <option value="ice_sphere" ${currentCurrency === 'ice_sphere' ? 'selected' : ''}>🔵 Сфера (Льда)</option>
+                            <option value="fire_sphere" ${currentCurrency === 'fire_sphere' ? 'selected' : ''}>🔥 Сфера (Огня)</option>
+                            <option value="earth_sphere" ${currentCurrency === 'earth_sphere' ? 'selected' : ''}>⛰️ Сфера (Земли)</option>
+                            <option value="water_sphere" ${currentCurrency === 'water_sphere' ? 'selected' : ''}>💧 Сфера (Воды)</option>
+                            <option value="lightning_sphere" ${currentCurrency === 'lightning_sphere' ? 'selected' : ''}>⚡ Сфера (Молнии)</option>
+                            <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>💎 Кристалл эфира (бесцветный)</option>
+                            <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>🌈 Кристалл эфира (цветной)</option>
+                        </select></div>
+                        <div><span style="color: #e0d0c0;">🎲 СТАВКА:</span> <input type="number" id="betInput" value="${currentBet}" min="1" style="width: 90px; padding: 5px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;"> <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">Уст.</button></div>
                     </div>
                 </div>
                 
-                <div style="margin-bottom: 15px;">
-                    <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 15px 60px; border-radius: 12px; font-size: 1.4em; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">🎲 КРУТИТЬ</button>
-                </div>
+                <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 15px 60px; border-radius: 12px; font-size: 1.4em; font-weight: bold; cursor: pointer; margin-bottom: 20px;">🎲 КРУТИТЬ</button>
                 
                 <div style="position: relative; width: 420px; height: 420px; margin: 0 auto 20px;">
                     <canvas id="rouletteCanvas" width="420" height="420" style="width: 420px; height: 420px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
@@ -524,32 +468,24 @@
                 
                 <div style="background: #2c1810; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                     <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 180px; overflow-y: auto; padding: 5px;">
-                        ${generateNumberButtons()}
-                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; max-height: 180px; overflow-y: auto; padding: 5px;">${generateNumberButtons()}</div>
                     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
                         <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔴 КРАСНОЕ (x2)</button>
                         <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">⚫ ЧЕРНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 ЧЕТНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">🔢 НЕЧЕТНОЕ (x2)</button>
+                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">ЧЕТНОЕ (x2)</button>
+                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">НЕЧЕТНОЕ (x2)</button>
                     </div>
                     <div id="betDisplay" style="margin-top: 12px; color: #b89a7a;"></div>
                 </div>
                 
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                    <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
-                </div>
-                
-                <div id="resultDisplay" style="margin-top: 20px; padding: 15px; background: #1a0f0b; border-radius: 12px; display: none; border: 1px solid #d4af37;"></div>
+                <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; margin-bottom: 20px;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
                 
                 <div style="margin-top: 20px;">
-                    <h4 style="color: #d4af37;">📜 ИСТОРИЯ ПОСЛЕДНИХ 10 СПИНОВ</h4>
+                    <h4 style="color: #d4af37;">📜 ИСТОРИЯ</h4>
                     <div id="historyDisplay" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px;"></div>
                 </div>
                 
-                <div style="margin-top: 20px;">
-                    <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer;">🏠 ГЛАВНОЕ МЕНЮ</button>
-                </div>
+                <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; margin-top: 20px;">🏠 ГЛАВНОЕ МЕНЮ</button>
             </div>
         `;
         
@@ -561,15 +497,9 @@
     window.backToMenu = function() {
         const container = document.getElementById('activeGameContainer');
         if (container) {
-            container.innerHTML = `
-                <div style="text-align: center;">
-                    <p style="color: #b89a7a; font-size: 1.2em;">🎮 Выберите игру</p>
-                </div>
-            `;
+            container.innerHTML = `<div style="text-align: center;"><p style="color: #b89a7a; font-size: 1.2em;">🎮 Выберите игру</p></div>`;
         }
-        if (typeof renderGamesManager === 'function') {
-            renderGamesManager();
-        }
+        if (typeof renderGamesManager === 'function') renderGamesManager();
     };
     
     loadBalance();
