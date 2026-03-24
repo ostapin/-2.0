@@ -43,6 +43,7 @@
     let currentCurrency = "chips";
     let spinning = false;
     let lastResults = [];
+    let lastResultDetail = null;
     let currentBets = {
         numbers: {},
         color: null,
@@ -281,20 +282,14 @@
         return 1 - Math.pow(1 - t, 3);
     }
     
-    // Исправленная функция определения числа под стрелкой [citation:3]
     function getNumberAtPointer(rotationAngle) {
         const angleStep = (Math.PI * 2) / NUMBERS.length;
-        const pointerAngle = Math.PI / 2; // Стрелка на 12 часах (90 градусов)
+        const pointerAngle = Math.PI / 2;
         
-        // Угол от стрелки до начала сектора
         let angleFromPointer = (pointerAngle - rotationAngle + Math.PI * 2) % (Math.PI * 2);
-        
-        // Добавляем половину сектора, чтобы определить, на какой сектор указывает стрелка
-        angleFromPointer += angleStep / 2;
-        angleFromPointer = (angleFromPointer + Math.PI * 2) % (Math.PI * 2);
-        
         let sectorIndex = Math.floor(angleFromPointer / angleStep);
         if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
+        
         return NUMBERS[sectorIndex];
     }
     
@@ -322,9 +317,9 @@
         const pointerAngle = Math.PI / 2;
         
         const resultIndex = NUMBERS.indexOf(resultNumber);
-        const targetSectorCenter = resultIndex * angleStep + angleStep / 2;
         
-        let targetRotation = (pointerAngle - targetSectorCenter + Math.PI * 2) % (Math.PI * 2);
+        let targetRotation = (pointerAngle - (resultIndex * angleStep)) + (Math.PI * 2);
+        targetRotation = targetRotation % (Math.PI * 2);
         
         const fullSpins = 10 + Math.floor(Math.random() * 8);
         const totalDelta = targetRotation + (Math.PI * 2 * fullSpins);
@@ -358,41 +353,14 @@
         requestAnimationFrame(animateSpin);
     };
     
-    function showResultModal(result, totalBet, winnings, winDetails, netChange) {
-        const resultColor = getNumberColor(result);
-        const colorName = resultColor === 'red' ? 'КРАСНОЕ' : (resultColor === 'black' ? 'ЧЕРНОЕ' : 'ЗЕРО');
-        const colorIcon = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
-        
-        const modal = document.createElement('div');
-        modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2c1810; border: 3px solid #d4af37; border-radius: 20px; padding: 25px; text-align: center; z-index: 1000; min-width: 320px; box-shadow: 0 0 50px rgba(0,0,0,0.8);';
-        modal.innerHTML = `
-            <h2 style="color: #d4af37; margin-bottom: 20px;">🎲 РЕЗУЛЬТАТ</h2>
-            <div style="font-size: 3em; margin-bottom: 15px;">
-                <span style="color: ${resultColor === 'red' ? '#c44536' : (resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${result}</span> ${colorIcon}
-            </div>
-            <div style="font-size: 1.2em; margin-bottom: 15px; color: #e0d0c0;">${colorName}</div>
-            ${winDetails.length > 0 ? `<div style="color: #27ae60; margin: 10px 0;">🏆 ВЫИГРЫШ:<br> ${winDetails.join('<br>')}</div>` : '<div style="color: #c44536; margin: 10px 0;">💔 ПРОИГРЫШ</div>'}
-            <div style="border-top: 1px solid #8b4513; padding-top: 15px; margin-top: 15px;">
-                <div>💰 СТАВКА: ${formatBet(totalBet)}</div>
-                <div>🎁 ВЫИГРЫШ: ${formatBet(winnings)}</div>
-                <div style="color: ${netChange >= 0 ? '#27ae60' : '#c44536'};">📊 ИТОГ: ${netChange >= 0 ? '+' : ''}${formatBet(netChange)}</div>
-                <div style="color: #d4af37;">💎 БАЛАНС: ${formatBalance()}</div>
-            </div>
-            <button onclick="this.parentElement.remove()" style="background: #8b4513; color: white; border: none; padding: 10px 30px; border-radius: 6px; margin-top: 20px; cursor: pointer;">ЗАКРЫТЬ</button>
-        `;
-        document.body.appendChild(modal);
-        
-        setTimeout(() => {
-            if (modal.parentElement) modal.remove();
-        }, 5000);
-    }
-    
     function processResult(result, totalBet) {
         let winnings = 0;
         let winDetails = [];
         
         const resultColor = getNumberColor(result);
         const resultParity = result === 0 ? 'zero' : (result % 2 === 0 ? 'even' : 'odd');
+        const colorName = resultColor === 'red' ? 'КРАСНОЕ' : (resultColor === 'black' ? 'ЧЕРНОЕ' : 'ЗЕРО');
+        const colorIcon = resultColor === 'red' ? '🔴' : (resultColor === 'black' ? '⚫' : '🟢');
         
         for (const [num, bet] of Object.entries(currentBets.numbers)) {
             if (parseInt(num) === result) {
@@ -419,30 +387,57 @@
         
         const netChange = winnings - totalBet;
         
-        showResultModal(result, totalBet, winnings, winDetails, netChange);
-        
-        const balanceSpan = document.getElementById('rouletteBalance');
-        if (balanceSpan) balanceSpan.textContent = formatBalance();
+        lastResultDetail = {
+            result,
+            resultColor,
+            colorName,
+            colorIcon,
+            totalBet,
+            winnings,
+            winDetails,
+            netChange
+        };
         
         lastResults.unshift({ num: result, color: resultColor });
         if (lastResults.length > 10) lastResults.pop();
-        renderHistory();
+        
+        const balanceSpan = document.getElementById('rouletteBalance');
+        if (balanceSpan) balanceSpan.textContent = formatBalance();
         
         currentBets = { numbers: {}, color: null, parity: null };
         updateBetDisplay();
         window.renderRoulette();
     }
     
+    function renderLastResult() {
+        if (!lastResultDetail) return '';
+        
+        const r = lastResultDetail;
+        const netChangeText = r.netChange >= 0 ? `+${formatBet(r.netChange)}` : formatBet(r.netChange);
+        
+        return `
+            <div style="background: #2c1810; border: 2px solid #d4af37; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                <h4 style="color: #d4af37; margin-bottom: 10px; text-align: center;">🎲 ПОСЛЕДНИЙ РЕЗУЛЬТАТ</h4>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; margin-bottom: 8px;">
+                        <span style="color: ${r.resultColor === 'red' ? '#c44536' : (r.resultColor === 'black' ? '#fff' : '#2c5a2c')}; font-weight: bold;">${r.result}</span> ${r.colorIcon}
+                    </div>
+                    <div style="font-size: 1em; margin-bottom: 10px; color: #e0d0c0;">${r.colorName}</div>
+                    ${r.winDetails.length > 0 ? `<div style="color: #27ae60; font-size: 0.9em;">${r.winDetails.join('<br>')}</div>` : '<div style="color: #c44536;">ПРОИГРЫШ</div>'}
+                    <div style="border-top: 1px solid #8b4513; padding-top: 8px; margin-top: 8px; font-size: 0.85em;">
+                        <div>💰 Ставка: ${formatBet(r.totalBet)}</div>
+                        <div>🎁 Выигрыш: ${formatBet(r.winnings)}</div>
+                        <div style="color: ${r.netChange >= 0 ? '#27ae60' : '#c44536'};">📊 Итог: ${netChangeText}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
     function renderHistory() {
-        const historyDiv = document.getElementById('historyDisplay');
-        if (!historyDiv) return;
+        if (lastResults.length === 0) return '<span style="color: #8b7d6b;">Нет результатов</span>';
         
-        if (lastResults.length === 0) {
-            historyDiv.innerHTML = '<span style="color: #8b7d6b;">Нет результатов</span>';
-            return;
-        }
-        
-        historyDiv.innerHTML = lastResults.map(r => `
+        return lastResults.map(r => `
             <div style="background: ${r.color === 'red' ? '#c44536' : (r.color === 'black' ? '#2c2c2c' : '#2c5a2c')}; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${r.num}</div>
         `).join('');
     }
@@ -454,67 +449,81 @@
         loadBalance();
         
         container.innerHTML = `
-            <div style="text-align: center; max-width: 1000px; margin: 0 auto;">
-                <h3 style="color: #d4af37; margin-bottom: 15px; font-size: 1.8em;">🎰 РУЛЕТКА</h3>
-                
-                <div style="background: #3d2418; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                        <div><span style="color: #e0d0c0;">💰 БАЛАНС:</span> <span id="rouletteBalance" style="color: #d4af37; font-size: 1.3em; font-weight: bold;">${formatBalance()}</span> <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;">✏️</button></div>
-                        <div><span style="color: #e0d0c0;">💱 ВАЛЮТА:</span> <select id="currencySelect" onchange="window.changeCurrency()" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px; padding: 5px;">
-                            <option value="chips" ${currentCurrency === 'chips' ? 'selected' : ''}>🎲 Фишки</option>
-                            <option value="copper" ${currentCurrency === 'copper' ? 'selected' : ''}>🟤 Медные</option>
-                            <option value="silver" ${currentCurrency === 'silver' ? 'selected' : ''}>⚪ Серебряные</option>
-                            <option value="gold" ${currentCurrency === 'gold' ? 'selected' : ''}>🟡 Золотые</option>
-                            <option value="platinum" ${currentCurrency === 'platinum' ? 'selected' : ''}>🔵 Платиновые</option>
-                            <option value="amber_sphere" ${currentCurrency === 'amber_sphere' ? 'selected' : ''}>🟠 Сфера (янтарная)</option>
-                            <option value="blood_sphere" ${currentCurrency === 'blood_sphere' ? 'selected' : ''}>🔴 Сфера (Крови)</option>
-                            <option value="ice_sphere" ${currentCurrency === 'ice_sphere' ? 'selected' : ''}>🔵 Сфера (Льда)</option>
-                            <option value="fire_sphere" ${currentCurrency === 'fire_sphere' ? 'selected' : ''}>🔥 Сфера (Огня)</option>
-                            <option value="earth_sphere" ${currentCurrency === 'earth_sphere' ? 'selected' : ''}>⛰️ Сфера (Земли)</option>
-                            <option value="water_sphere" ${currentCurrency === 'water_sphere' ? 'selected' : ''}>💧 Сфера (Воды)</option>
-                            <option value="lightning_sphere" ${currentCurrency === 'lightning_sphere' ? 'selected' : ''}>⚡ Сфера (Молнии)</option>
-                            <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>💎 Кристалл эфира (бесцветный)</option>
-                            <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>🌈 Кристалл эфира (цветной)</option>
-                        </select></div>
-                        <div><span style="color: #e0d0c0;">🎲 СТАВКА:</span> <input type="number" id="betInput" value="${currentBet}" min="1" style="width: 100px; padding: 6px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;"> <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 6px 15px; border-radius: 4px; cursor: pointer;">Уст.</button></div>
+            <div style="display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                <!-- Левая колонка - колесо и ставки -->
+                <div style="flex: 2; min-width: 450px;">
+                    <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">🎰 РУЛЕТКА</h3>
+                    
+                    <div style="background: #3d2418; padding: 12px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div><span style="color: #e0d0c0;">💰 БАЛАНС:</span> <span id="rouletteBalance" style="color: #d4af37; font-size: 1.2em; font-weight: bold;">${formatBalance()}</span> <button onclick="window.setBalance()" style="background: #8b4513; border: none; color: white; padding: 3px 8px; border-radius: 4px; cursor: pointer;">✏️</button></div>
+                            <div><span style="color: #e0d0c0;">💱 ВАЛЮТА:</span> <select id="currencySelect" onchange="window.changeCurrency()" style="background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px; padding: 5px;">
+                                <option value="chips" ${currentCurrency === 'chips' ? 'selected' : ''}>🎲 Фишки</option>
+                                <option value="copper" ${currentCurrency === 'copper' ? 'selected' : ''}>🟤 Медные</option>
+                                <option value="silver" ${currentCurrency === 'silver' ? 'selected' : ''}>⚪ Серебряные</option>
+                                <option value="gold" ${currentCurrency === 'gold' ? 'selected' : ''}>🟡 Золотые</option>
+                                <option value="platinum" ${currentCurrency === 'platinum' ? 'selected' : ''}>🔵 Платиновые</option>
+                                <option value="amber_sphere" ${currentCurrency === 'amber_sphere' ? 'selected' : ''}>🟠 Сфера</option>
+                                <option value="blood_sphere" ${currentCurrency === 'blood_sphere' ? 'selected' : ''}>🔴 Сфера(Крови)</option>
+                                <option value="ice_sphere" ${currentCurrency === 'ice_sphere' ? 'selected' : ''}>🔵 Сфера(Льда)</option>
+                                <option value="fire_sphere" ${currentCurrency === 'fire_sphere' ? 'selected' : ''}>🔥 Сфера(Огня)</option>
+                                <option value="earth_sphere" ${currentCurrency === 'earth_sphere' ? 'selected' : ''}>⛰️ Сфера(Земли)</option>
+                                <option value="water_sphere" ${currentCurrency === 'water_sphere' ? 'selected' : ''}>💧 Сфера(Воды)</option>
+                                <option value="lightning_sphere" ${currentCurrency === 'lightning_sphere' ? 'selected' : ''}>⚡ Сфера(Молнии)</option>
+                                <option value="colorless_ether" ${currentCurrency === 'colorless_ether' ? 'selected' : ''}>💎 Кристалл(бесцв)</option>
+                                <option value="elemental_ether" ${currentCurrency === 'elemental_ether' ? 'selected' : ''}>🌈 Кристалл(цветной)</option>
+                            </select></div>
+                            <div><span style="color: #e0d0c0;">🎲 СТАВКА:</span> <input type="number" id="betInput" value="${currentBet}" min="1" style="width: 80px; padding: 4px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;"> <button onclick="window.updateBet()" style="background: #8b4513; border: none; color: white; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Уст.</button></div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 12px 50px; border-radius: 12px; font-size: 1.3em; font-weight: bold; cursor: pointer;">🎲 КРУТИТЬ</button>
+                    </div>
+                    
+                    <div style="position: relative; width: 400px; height: 400px; margin: 0 auto 20px;">
+                        <canvas id="rouletteCanvas" width="400" height="400" style="width: 400px; height: 400px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
+                        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; z-index: 10;"></div>
+                    </div>
+                    
+                    <div style="background: #2c1810; padding: 12px; border-radius: 12px;">
+                        <h4 style="color: #d4af37; margin-bottom: 8px; text-align: center;">🎯 СТАВКИ НА ЧИСЛА</h4>
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px;">
+                            ${generateNumberButtons()}
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                            <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔴 КРАСНОЕ (x2)</button>
+                            <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">⚫ ЧЕРНОЕ (x2)</button>
+                            <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer;">ЧЕТНОЕ (x2)</button>
+                            <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer;">НЕЧЕТНОЕ (x2)</button>
+                        </div>
+                        <div id="betDisplay" style="margin-top: 10px; color: #b89a7a; text-align: center;"></div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 6px 20px; border-radius: 6px; cursor: pointer;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
+                        </div>
                     </div>
                 </div>
                 
-                <button id="spinBtn" onclick="window.spinRoulette()" style="background: #27ae60; color: white; border: none; padding: 15px 60px; border-radius: 12px; font-size: 1.4em; font-weight: bold; cursor: pointer; margin-bottom: 20px;">🎲 КРУТИТЬ</button>
-                
-                <div style="position: relative; width: 420px; height: 420px; margin: 0 auto 20px;">
-                    <canvas id="rouletteCanvas" width="420" height="420" style="width: 420px; height: 420px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5);"></canvas>
-                    <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #d4af37; z-index: 10;"></div>
-                </div>
-                
-                <div style="background: #2c1810; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🎯 СТАВКИ НА ЧИСЛА</h4>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 15px; padding: 5px;">
-                        ${generateNumberButtons()}
+                <!-- Правая колонка - результат и история -->
+                <div style="flex: 1; min-width: 280px;">
+                    ${renderLastResult()}
+                    
+                    <div style="background: #2c1810; border-radius: 12px; padding: 12px; border: 1px solid #8b4513;">
+                        <h4 style="color: #d4af37; margin-bottom: 10px; text-align: center;">📜 ИСТОРИЯ</h4>
+                        <div id="historyDisplay" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                            ${renderHistory()}
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
-                        <button onclick="window.placeColorBet('red')" style="background: #c44536; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔴 КРАСНОЕ (x2)</button>
-                        <button onclick="window.placeColorBet('black')" style="background: #2c2c2c; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold;">⚫ ЧЕРНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('even')" style="background: #5a3a2a; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">ЧЕТНОЕ (x2)</button>
-                        <button onclick="window.placeParityBet('odd')" style="background: #5a3a2a; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer;">НЕЧЕТНОЕ (x2)</button>
+                    
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 8px 25px; border-radius: 6px; cursor: pointer;">🏠 ГЛАВНОЕ МЕНЮ</button>
                     </div>
-                    <div id="betDisplay" style="margin-top: 12px; color: #b89a7a;"></div>
                 </div>
-                
-                <button onclick="window.clearBets()" style="background: #8b4513; color: white; border: none; padding: 10px 35px; border-radius: 6px; cursor: pointer; margin-bottom: 20px;">🗑️ ОЧИСТИТЬ СТАВКИ</button>
-                
-                <div style="margin-top: 20px;">
-                    <h4 style="color: #d4af37;">📜 ИСТОРИЯ</h4>
-                    <div id="historyDisplay" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px;"></div>
-                </div>
-                
-                <button onclick="window.backToMenu()" style="background: #5a3a2a; color: white; border: none; padding: 10px 35px; border-radius: 6px; cursor: pointer; margin-top: 20px;">🏠 ГЛАВНОЕ МЕНЮ</button>
             </div>
         `;
         
         drawWheel(currentRotation);
         updateBetDisplay();
-        renderHistory();
     };
     
     window.backToMenu = function() {
