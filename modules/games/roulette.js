@@ -284,88 +284,76 @@
         return 1 - Math.pow(1 - t, 3);
     }
     
-    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ОПРЕДЕЛЕНИЯ ЧИСЛА (СО СМЕЩЕНИЕМ В ЦЕНТР)
     function getNumberAtPointer(rotationAngleDeg) {
         const angleStep = 360 / NUMBERS.length;
-        // Нормализуем угол поворота
         let normalizedRotation = ((rotationAngleDeg % 360) + 360) % 360;
-        
-        // Угол стрелки всегда 90° (12 часов)
         const pointerAngle = 90;
-        
-        // Вычисляем угол от стрелки до поворота колеса
         let angleFromPointer = (pointerAngle - normalizedRotation + 360) % 360;
-        
-        // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: смещаем на половину сектора, чтобы стрелка указывала в центр числа
         const adjustedAngle = (angleFromPointer + angleStep / 2) % 360;
-        
-        // Определяем индекс сектора
         let sectorIndex = Math.floor(adjustedAngle / angleStep);
         if (sectorIndex >= NUMBERS.length) sectorIndex = 0;
-        
         return NUMBERS[sectorIndex];
     }
     
     window.spinRoulette = function() {
-    if (spinning) return;
-    
-    let totalBet = 0;
-    totalBet += Object.values(currentBets.numbers).reduce((a,b) => a + b, 0);
-    if (currentBets.color) totalBet += currentBet;
-    if (currentBets.parity) totalBet += currentBet;
-    
-    if (totalBet === 0) { alert("Сделайте ставку!"); return; }
-    if (balance < totalBet) { alert("Недостаточно средств!"); return; }
-    
-    spinning = true;
-    const spinBtn = document.getElementById('spinBtn');
-    if (spinBtn) spinBtn.disabled = true;
-    
-    balance -= totalBet;
-    saveBalance();
-    document.getElementById('rouletteBalance').textContent = formatBalance();
-    
-    const resultNumber = Math.floor(Math.random() * 37);
-    const angleStep = 360 / NUMBERS.length;
-    const resultIndex = NUMBERS.indexOf(resultNumber);
-    const sectorCenterAngle = resultIndex * angleStep + angleStep / 2;
-    
-    const baseRotations = 8 + Math.floor(Math.random() * 5); // 8-12 оборотов
-    // НЕ приводим к 0-360, оставляем с оборотами
-    const targetRotation = (90 - sectorCenterAngle) + (baseRotations * 360);
-    
-    const startRotation = currentRotation;
-    let delta = targetRotation - startRotation;
-    // delta уже большая, нормализация не нужна
-    
-    const startTime = performance.now();
-    const duration = 4000;
-    
-    if (animationId) cancelAnimationFrame(animationId);
-    
-    function animateSpin(now) {
-        const elapsed = now - startTime;
-        let progress = Math.min(1, elapsed / duration);
-        const eased = easeOutCubic(progress);
+        if (spinning) return;
         
-        currentRotation = startRotation + delta * eased;
-        drawWheel(currentRotation % 360);
+        let totalBet = 0;
+        totalBet += Object.values(currentBets.numbers).reduce((a,b) => a + b, 0);
+        if (currentBets.color) totalBet += currentBet;
+        if (currentBets.parity) totalBet += currentBet;
         
-        if (progress < 1) {
-            animationId = requestAnimationFrame(animateSpin);
-        } else {
-            drawWheel(targetRotation % 360);
-            currentRotation = targetRotation % 360;
-            const finalNumber = getNumberAtPointer(currentRotation);
-            processResult(finalNumber, totalBet);
-            spinning = false;
-            animationId = null;
-            if (spinBtn) spinBtn.disabled = false;
+        if (totalBet === 0) { alert("Сделайте ставку!"); return; }
+        if (balance < totalBet) { alert("Недостаточно средств!"); return; }
+        
+        spinning = true;
+        const spinBtn = document.getElementById('spinBtn');
+        if (spinBtn) spinBtn.disabled = true;
+        
+        balance -= totalBet;
+        saveBalance();
+        document.getElementById('rouletteBalance').textContent = formatBalance();
+        
+        const resultNumber = Math.floor(Math.random() * 37);
+        const angleStep = 360 / NUMBERS.length;
+        const resultIndex = NUMBERS.indexOf(resultNumber);
+        const sectorCenterAngle = resultIndex * angleStep + angleStep / 2;
+        
+        const baseRotations = 8 + Math.floor(Math.random() * 5);
+        // Исправление: добавляем половину сектора, чтобы стрелка указывала в центр числа
+        const targetRotation = (90 - (sectorCenterAngle + angleStep / 2)) + (baseRotations * 360);
+        
+        const startRotation = currentRotation;
+        let delta = targetRotation - startRotation;
+        
+        const startTime = performance.now();
+        const duration = 4000;
+        
+        if (animationId) cancelAnimationFrame(animationId);
+        
+        function animateSpin(now) {
+            const elapsed = now - startTime;
+            let progress = Math.min(1, elapsed / duration);
+            const eased = easeOutCubic(progress);
+            
+            currentRotation = startRotation + delta * eased;
+            drawWheel(currentRotation % 360);
+            
+            if (progress < 1) {
+                animationId = requestAnimationFrame(animateSpin);
+            } else {
+                drawWheel(targetRotation % 360);
+                currentRotation = targetRotation % 360;
+                const finalNumber = getNumberAtPointer(currentRotation);
+                processResult(finalNumber, totalBet);
+                spinning = false;
+                animationId = null;
+                if (spinBtn) spinBtn.disabled = false;
+            }
         }
-    }
-    
-    animationId = requestAnimationFrame(animateSpin);
-};
+        
+        animationId = requestAnimationFrame(animateSpin);
+    };
     
     function processResult(result, totalBet) {
         let winnings = 0;
