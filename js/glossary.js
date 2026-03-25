@@ -934,7 +934,10 @@ function applyFilters() {
         renderGiants();
         return;
     }
-    
+        if (currentSubcategory === 'books') {
+        renderBooks();
+        return;
+    }
     // Обработка магии
     if (currentSubcategory === 'spells' || currentSubcategory === 'formation' || currentSubcategory === 'runes') {
         renderMagic();
@@ -1100,6 +1103,22 @@ function showArmorForMetal(metalId) {
         document.getElementById('glossarySearch').value = metalsData[metalId].name;
         applyFilters();
     }, 100);
+}
+
+function renderBooks() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '📚 Книги';
+    
+    if (typeof booksData === 'undefined') {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о книгах не загружены</p>';
+        return;
+    }
+    
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
 }
 
 // Загружаем данные при старте
