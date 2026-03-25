@@ -934,10 +934,12 @@ function applyFilters() {
         renderGiants();
         return;
     }
-        if (currentSubcategory === 'books') {
+    
+    if (currentSubcategory === 'books') {
         renderBooks();
         return;
     }
+    
     // Обработка магии
     if (currentSubcategory === 'spells' || currentSubcategory === 'formation' || currentSubcategory === 'runes') {
         renderMagic();
@@ -1118,7 +1120,21 @@ function renderBooks() {
         return;
     }
     
-    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+    
+    booksData.forEach(book => {
+        html += `
+            <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
+                <h3 style="color: #d4af37; margin-bottom: 5px;">📖 ${book.title}</h3>
+                <p style="color: #b89a7a; margin-bottom: 10px;">Автор: ${book.author}</p>
+                <p style="color: #e0d0c0; margin-bottom: 15px;">${book.description}</p>
+                <button class="btn btn-roll" onclick="openBook('${book.file}')" style="background: #8b4513;">📖 Читать</button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    resultsList.innerHTML = html;
 }
 
 // Загружаем данные при старте
