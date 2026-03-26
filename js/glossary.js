@@ -1152,11 +1152,24 @@ function renderPerks() {
         return;
     }
     
-    // Получаем список навыков из perksData
+    // Описание системы перков
+    let html = `
+        <div style="background: #3d2418; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+            <h3 style="color: #d4af37; margin-bottom: 10px;">✨ Что такое перки?</h3>
+            <p style="color: #e0d0c0; margin-bottom: 10px;">Когда навык персонажа достигает 20 уровня, ему становятся доступны особые способности — <strong>перки</strong>.</p>
+            <p style="color: #e0d0c0; margin-bottom: 10px;">Каждый перк стоит <strong>10 очков</strong> для распределения.</p>
+            <p style="color: #e0d0c0; margin-bottom: 5px;">Перки делятся на два типа:</p>
+            <ul style="color: #e0d0c0; margin-left: 20px;">
+                <li><span style="color: #2ecc71;">● Пассивные</span> — действуют постоянно, не требуют активации.</li>
+                <li><span style="color: #e67e22;">● Активные</span> — можно использовать <strong>1 раз в сутки</strong> для конкретных целей.</li>
+            </ul>
+        </div>
+    `;
+    
+    // Список навыков
     const skills = Object.keys(perksData);
     
-    // Создаём выпадающий список
-    let html = `
+    html += `
         <div style="background: #3d2418; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
             <label style="color: #d4af37; display: block; margin-bottom: 10px;">Выберите навык:</label>
             <select id="perkSkillSelect" style="width: 100%; padding: 10px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
@@ -1186,10 +1199,8 @@ function renderPerks() {
             let perksHtml = '<div style="display: flex; flex-direction: column; gap: 15px;">';
             
             perks.forEach(perk => {
-                let typeColor = '#8b4513';
-                if (perk.type === 'Пассивный') {
-                    typeColor = '#2ecc71';
-                } else if (perk.type.includes('Активный')) {
+                let typeColor = '#2ecc71';
+                if (perk.type.includes('Активный')) {
                     typeColor = '#e67e22';
                 }
                 
