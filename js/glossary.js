@@ -1152,10 +1152,60 @@ function renderPerks() {
         return;
     }
     
-    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    // Получаем список навыков из perksData
+    const skills = Object.keys(perksData);
+    
+    // Создаём выпадающий список
+    let html = `
+        <div style="background: #3d2418; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+            <label style="color: #d4af37; display: block; margin-bottom: 10px;">Выберите навык:</label>
+            <select id="perkSkillSelect" style="width: 100%; padding: 10px; background: #1a0f0b; color: #e0d0c0; border: 2px solid #8b4513; border-radius: 4px;">
+                <option value="">-- Выберите навык --</option>
+                ${skills.map(skill => `<option value="${skill}">${skill}</option>`).join('')}
+            </select>
+        </div>
+        <div id="perksContainer"></div>
+    `;
+    
+    resultsList.innerHTML = html;
+    
+    // Добавляем обработчик на выпадающий список
+    const skillSelect = document.getElementById('perkSkillSelect');
+    if (skillSelect) {
+        skillSelect.addEventListener('change', function() {
+            const selectedSkill = this.value;
+            const container = document.getElementById('perksContainer');
+            
+            if (!selectedSkill || !perksData[selectedSkill]) {
+                container.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Выберите навык для просмотра перков</p>';
+                return;
+            }
+            
+            const perks = perksData[selectedSkill];
+            
+            let perksHtml = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+            
+            perks.forEach(perk => {
+                let typeColor = '#8b4513';
+                if (perk.type === 'Пассивный') {
+                    typeColor = '#2ecc71';
+                } else if (perk.type.includes('Активный')) {
+                    typeColor = '#e67e22';
+                }
+                
+                perksHtml += `
+                    <div style="background: #2a1a0f; border-radius: 6px; padding: 15px; border-left: 4px solid ${typeColor};">
+                        <h4 style="color: #d4af37; margin-bottom: 8px;">✨ ${perk.name}</h4>
+                        <p style="color: #b89a7a; margin-bottom: 8px; font-size: 0.9em;">Тип: <span style="color: ${typeColor};">${perk.type}</span></p>
+                        <p style="color: #e0d0c0;">${perk.description}</p>
+                    </div>
+                `;
+            });
+            
+            perksHtml += '</div>';
+            container.innerHTML = perksHtml;
+        });
+    }
 }
-
-// Загружаем данные при старте
-document.addEventListener('DOMContentLoaded', loadGlossary);
 // Загружаем данные при старте
 document.addEventListener('DOMContentLoaded', loadGlossary);
