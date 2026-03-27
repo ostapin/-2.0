@@ -947,6 +947,26 @@ function applyFilters() {
     renderEnchanting();
     return;
 }
+    if (currentSubcategory === 'alchemy') {
+    renderAlchemy();
+    return;
+}
+if (currentSubcategory === 'runes') {
+    renderRunes();
+    return;
+}
+if (currentSubcategory === 'formation') {
+    renderFormation();
+    return;
+}
+if (currentSubcategory === 'crafting') {
+    renderCrafting();
+    return;
+}
+if (currentSubcategory === 'smithing') {
+    renderSmithing();
+    return;
+}
     // Обработка магии
     if (currentSubcategory === 'spells' || currentSubcategory === 'formation' || currentSubcategory === 'runes') {
         renderMagic();
@@ -1235,6 +1255,45 @@ function renderEnchanting() {
         return;
     }
     
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+}
+function renderAlchemy() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    if (!resultsList) return;
+    resultsTitle.innerHTML = '🧪 Алхимия';
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+}
+
+function renderRunes() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    if (!resultsList) return;
+    resultsTitle.innerHTML = '⚡ Руны';
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+}
+
+function renderFormation() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    if (!resultsList) return;
+    resultsTitle.innerHTML = '🔮 Формация';
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+}
+
+function renderCrafting() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    if (!resultsList) return;
+    resultsTitle.innerHTML = '🛠️ Ремесло';
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+}
+
+function renderSmithing() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    if (!resultsList) return;
+    resultsTitle.innerHTML = '⚒️ Кузнечное дело';
     resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
 }
 // Загружаем данные при старте
