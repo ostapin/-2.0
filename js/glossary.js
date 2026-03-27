@@ -943,6 +943,10 @@ function applyFilters() {
     renderPerks();
     return;
 }
+    if (currentSubcategory === 'enchanting') {
+    renderEnchanting();
+    return;
+}
     // Обработка магии
     if (currentSubcategory === 'spells' || currentSubcategory === 'formation' || currentSubcategory === 'runes') {
         renderMagic();
@@ -1217,6 +1221,21 @@ function renderPerks() {
             container.innerHTML = perksHtml;
         });
     }
+}
+function renderEnchanting() {
+    const resultsList = document.getElementById('resultsList');
+    const resultsTitle = document.getElementById('resultsTitle');
+    
+    if (!resultsList) return;
+    
+    resultsTitle.innerHTML = '🔮 Зачарование';
+    
+    if (typeof enchantingData === 'undefined') {
+        resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о зачаровании не загружены</p>';
+        return;
+    }
+    
+    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
 }
 // Загружаем данные при старте
 document.addEventListener('DOMContentLoaded', loadGlossary);
