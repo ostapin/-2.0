@@ -1255,7 +1255,7 @@ function renderEnchanting() {
         return;
     }
     
-    resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Раздел в разработке</p>';
+    resultsList.innerHTML = enchantingData.introduction;
 }
 function renderAlchemy() {
     const resultsList = document.getElementById('resultsList');
