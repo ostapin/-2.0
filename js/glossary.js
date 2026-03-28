@@ -640,7 +640,7 @@ function renderMagic() {
                             
                             <p style="color: #e0d0c0; margin: 10px 0;"><strong>✨ Эффект:</strong> ${spell.effect}</p>
                             
-                            ${spell.enhancement ? `<p style="color: #e0d0c0; margin: 5px 0;"><strong>⚡ Усиление:</strong> ${spell.enhancement}</p>` : ''}
+                            ${spell.enhancement ? `<p style="color: #e0d0c0; margin: 5px 0; white-space: pre-line;"><strong>⚡ Усиление:</strong> ${spell.enhancement}</p>` : ''}
                         </div>
                     `;
                 });
