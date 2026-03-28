@@ -129,6 +129,3 @@ const magicData = {
     formation: {},
     runes: {}
 };
-    formation: {},
-    runes: {}
-};
