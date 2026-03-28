@@ -630,7 +630,7 @@ function renderMagic() {
                             <h4 style="color: #d4af37; margin-bottom: 10px; font-size: 1.2em;">${spell.name}</h4>
                             
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
-                                ${spell.level ? `<div><span style="color: #b89a7a;">📊 Уровень:</span> ${spell.level}</div>` : ''}
+                                ${spell.level ? `<div><span style="color: #b89a7a;">📊 Магия ${spell.level} порядка</span></div>` : ''}
                                 ${spell.type ? `<div><span style="color: #b89a7a;">🎯 Тип:</span> ${spell.type}</div>` : ''}
                                 ${spell.cast_time ? `<div><span style="color: #b89a7a;">⏱️ Время каста:</span> ${spell.cast_time}</div>` : ''}
                                 ${spell.duration ? `<div><span style="color: #b89a7a;">⌛ Длительность:</span> ${spell.duration}</div>` : ''}
@@ -667,7 +667,6 @@ function renderMagic() {
     html += '</div>';
     resultsList.innerHTML = html;
 }
-
 // Отображение системы
 function renderSystem() {
     const resultsList = document.getElementById('resultsList');
