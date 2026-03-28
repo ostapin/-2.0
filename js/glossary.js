@@ -1150,12 +1150,18 @@ function renderBooks() {
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
     booksData.forEach(book => {
+        let readButton = '';
+        // Если есть файл и он не пустой — показываем кнопку
+        if (book.file && book.file !== '') {
+            readButton = `<button class="btn btn-roll" onclick="openBook('${book.file}')" style="background: #8b4513;">📖 Читать</button>`;
+        }
+        
         html += `
             <div style="background: #3d2418; border-radius: 6px; padding: 15px; border-left: 4px solid #d4af37;">
                 <h3 style="color: #d4af37; margin-bottom: 5px;">📖 ${book.title}</h3>
-                <p style="color: #b89a7a; margin-bottom: 10px;">Автор: ${book.author}</p>
+                ${book.author ? `<p style="color: #b89a7a; margin-bottom: 10px;">Автор: ${book.author}</p>` : ''}
                 <p style="color: #e0d0c0; margin-bottom: 15px;">${book.description}</p>
-                <button class="btn btn-roll" onclick="openBook('${book.file}')" style="background: #8b4513;">📖 Читать</button>
+                ${readButton}
             </div>
         `;
     });
