@@ -636,11 +636,18 @@ function renderMagic() {
                                 ${spell.duration ? `<div><span style="color: #b89a7a;">⌛ Длительность:</span> ${spell.duration}</div>` : ''}
                                 ${spell.cooldown ? `<div><span style="color: #b89a7a;">🔄 Перезарядка:</span> ${spell.cooldown}</div>` : ''}
                                 ${spell.cost ? `<div><span style="color: #b89a7a;">💙 Затраты:</span> ${spell.cost}</div>` : ''}
+                                ${spell.damage ? `<div><span style="color: #b89a7a;">💥 Урон:</span> ${spell.damage}</div>` : ''}
+                                ${spell.debuff ? `<div><span style="color: #b89a7a;">⚠️ Эффект:</span> ${spell.debuff}</div>` : ''}
+                                ${spell.escape ? `<div><span style="color: #b89a7a;">🔄 Освобождение:</span> ${spell.escape}</div>` : ''}
+                                ${spell.durability ? `<div><span style="color: #b89a7a;">🛡️ Прочность:</span> ${spell.durability}</div>` : ''}
+                                ${spell.abilities ? `<div><span style="color: #b89a7a;">✨ Способности:</span> ${spell.abilities}</div>` : ''}
                             </div>
                             
                             <p style="color: #e0d0c0; margin: 10px 0;"><strong>✨ Эффект:</strong> ${spell.effect}</p>
                             
                             ${spell.enhancement ? `<p style="color: #e0d0c0; margin: 5px 0; white-space: pre-line;"><strong>⚡ Усиление:</strong> ${spell.enhancement}</p>` : ''}
+                            
+                            ${addExtraSpellFields(spell)}
                         </div>
                     `;
                 });
@@ -666,6 +673,52 @@ function renderMagic() {
     
     html += '</div>';
     resultsList.innerHTML = html;
+}
+
+// Вспомогательная функция для отображения любых дополнительных полей заклинания
+function addExtraSpellFields(spell) {
+    let extraHtml = '';
+    
+    // Список полей, которые уже обработаны в основном блоке
+    const handledFields = ['name', 'level', 'type', 'cast_time', 'duration', 'cooldown', 'cost', 'effect', 'enhancement', 'damage', 'debuff', 'escape', 'durability', 'abilities'];
+    
+    // Перебираем все поля spell и добавляем те, которые не обработаны
+    for (let key in spell) {
+        if (!handledFields.includes(key) && spell[key] && spell[key] !== '') {
+            // Форматируем название поля для отображения
+            let displayName = key;
+            switch(key) {
+                case 'range': displayName = '📏 Дальность'; break;
+                case 'area': displayName = '🌐 Область'; break;
+                case 'target': displayName = '🎯 Цель'; break;
+                case 'resistance': displayName = '🛡️ Сопротивление'; break;
+                case 'requirement': displayName = '📜 Требование'; break;
+                case 'material': displayName = '🧪 Материалы'; break;
+                case 'skill_check': displayName = '🎲 Проверка навыка'; break;
+                case 'heal': displayName = '💚 Лечение'; break;
+                case 'shield': displayName = '🛡️ Щит'; break;
+                case 'buff': displayName = '✨ Бафф'; break;
+                case 'condition': displayName = '📋 Условие'; break;
+                default: displayName = `📌 ${key.charAt(0).toUpperCase() + key.slice(1)}`;
+            }
+            
+            // Если значение - массив или объект, красиво форматируем
+            let displayValue = spell[key];
+            if (Array.isArray(displayValue)) {
+                displayValue = displayValue.join(', ');
+            } else if (typeof displayValue === 'object') {
+                displayValue = JSON.stringify(displayValue);
+            }
+            
+            extraHtml += `<div><span style="color: #b89a7a;">${displayName}:</span> ${displayValue}</div>`;
+        }
+    }
+    
+    if (extraHtml) {
+        return `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 10px 0 0 0;">${extraHtml}</div>`;
+    }
+    
+    return '';
 }
 // Отображение системы
 function renderSystem() {
