@@ -20,7 +20,13 @@ const booksData = [
         description: "Завершающая часть...",
         file: "modules/glossary/books/alchemist_vol3.html"
     },
-
+    {
+        id: "geographica_aldanara_vol1",
+        title: "Том I. Географика Альданара",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Географический трактат о континенте Альданар: его размерах, климате, магии и государствах.",
+        file: "modules/glossary/books/geographica_aldanara_vol1.html"
+    },
     // ========== ВЫЖИВАНИЕ ПО РЕГИОНАМ ==========
     {
         id: "выживание_в_лесу_vol1",
