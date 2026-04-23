@@ -33,5 +33,12 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Общие сведения об Империи Руда, её географии, климате и вулкане Игнис-Монс.",
         file: "modules/glossary/books/empire_ruda_vol1.html"
+    },
+    {
+        id: "empire_ruda_vol2",
+        title: "Империя Руда. Том II. Структура",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Административное деление, вертикаль власти и древние руины Империи Руда.",
+        file: "modules/glossary/books/empire_ruda_vol2.html"
     }
 ];
