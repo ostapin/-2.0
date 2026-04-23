@@ -1212,14 +1212,23 @@ function renderBooks() {
     resultsTitle.innerHTML = '📚 Книги';
     
     let allBooks = [];
+    let ids = new Set();
     
     if (typeof booksData !== 'undefined') {
-        allBooks = [...booksData];
+        for (let i = 0; i < booksData.length; i++) {
+            if (!ids.has(booksData[i].id)) {
+                ids.add(booksData[i].id);
+                allBooks.push(booksData[i]);
+            }
+        }
     }
     
     if (typeof booksDataSkills !== 'undefined') {
         for (let i = 0; i < booksDataSkills.length; i++) {
-            allBooks.push(booksDataSkills[i]);
+            if (!ids.has(booksDataSkills[i].id)) {
+                ids.add(booksDataSkills[i].id);
+                allBooks.push(booksDataSkills[i]);
+            }
         }
     }
     
@@ -1230,7 +1239,8 @@ function renderBooks() {
     
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
-    allBooks.forEach(book => {
+    for (let i = 0; i < allBooks.length; i++) {
+        const book = allBooks[i];
         let readButton = '';
         if (book.file && book.file !== '') {
             readButton = `<button class="btn btn-roll" onclick="openBook('${book.file}')" style="background: #8b4513;">📖 Читать</button>`;
@@ -1244,7 +1254,7 @@ function renderBooks() {
                 ${readButton}
             </div>
         `;
-    });
+    }
     
     html += '</div>';
     resultsList.innerHTML = html;
