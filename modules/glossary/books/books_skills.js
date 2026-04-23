@@ -1,4 +1,4 @@
-const booksDataSkills = [
+const skillsBooks = [
     {
         id: "survival_forest_vol1",
         title: "Выживание в лесу. Том 1",
