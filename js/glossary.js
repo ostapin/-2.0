@@ -1416,5 +1416,91 @@ function renderSmithing() {
     
     renderSmithingContent();
 }
+function openBook(filePath) {
+    if (!filePath) return;
+    
+    // Создаём модальное окно для чтения
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: #1a0f0b;
+        border: 3px solid #d4af37;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 900px;
+        height: 80%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    `;
+    
+    // Кнопка закрытия
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '✖';
+    closeBtn.style.cssText = `
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        background: #8b4513;
+        color: #d4af37;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        z-index: 10;
+    `;
+    closeBtn.onclick = () => modal.remove();
+    
+    // Контейнер для текста
+    const textContainer = document.createElement('div');
+    textContainer.style.cssText = `
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+        color: #e0d0c0;
+        font-family: 'Arial', serif;
+        line-height: 1.6;
+    `;
+    textContainer.innerHTML = '<p style="color: #8b7d6b; text-align: center;">Загрузка книги...</p>';
+    
+    content.appendChild(closeBtn);
+    content.appendChild(textContainer);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    
+    // Загружаем файл книги
+    fetch(filePath)
+        .then(response => {
+            if (!response.ok) throw new Error('Книга не найдена');
+            return response.text();
+        })
+        .then(html => {
+            textContainer.innerHTML = html;
+        })
+        .catch(error => {
+            textContainer.innerHTML = '<p style="color: #b89a7a; text-align: center;">❌ Ошибка загрузки книги</p>';
+            console.error('Ошибка:', error);
+        });
+    
+    // Закрытие по клику на фон
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
 // Загружаем данные при старте
 document.addEventListener('DOMContentLoaded', loadGlossary);
