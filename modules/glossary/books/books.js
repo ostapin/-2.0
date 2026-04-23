@@ -1,4 +1,4 @@
-const booksData = [
+let booksData = [
     {
         id: "alchemist_vol1",
         title: "Приключения алхимика. Том 1",
@@ -24,7 +24,7 @@ const booksData = [
         id: "geographica_aldanara_vol1",
         title: "Том I. Географика Альданара",
         author: "Магистр-картограф Линней из Дома Странствий",
-        description: "Географический трактат о континенте Альданар...",
+        description: "Географический трактат о континенте Альданар: его размерах, климате, магии и государствах.",
         file: "modules/glossary/books/geographica_aldanara_vol1.html"
     }
 ];
