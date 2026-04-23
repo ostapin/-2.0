@@ -9,8 +9,20 @@ let allCurrencies = [];
 
 let currentCategory = '';
 let currentSubcategory = '';
+let booksData = [];
+
+function loadAllBooks() {
+    booksData = [];
+    if (typeof booksDataMain !== 'undefined') {
+        booksData = [...booksDataMain];
+    }
+    if (typeof booksDataSkills !== 'undefined') {
+        booksData = [...booksData, ...booksDataSkills];
+    }
+}
 
 function loadGlossary() {
+        loadAllBooks();
     // Загружаем данные
     allMetals = Object.values(metalsData);
     allWeapons = Object.values(weaponsData);
