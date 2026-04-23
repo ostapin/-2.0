@@ -4,10 +4,6 @@ if (typeof booksDataSkills !== 'undefined') {
     }
 }
 
-
-let currentCategory = '';
-let currentSubcategory = '';
-
 function loadAllBooks() {
     booksData = [];
     if (typeof booksDataMain !== 'undefined') {
