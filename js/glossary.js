@@ -1,3 +1,9 @@
+if (typeof booksDataSkills !== 'undefined') {
+    for (let i = 0; i < booksDataSkills.length; i++) {
+        booksData.push(booksDataSkills[i]);
+    }
+}
+
 // Глобальные переменные
 let allMetals = [];
 let allWeapons = [];
@@ -9,7 +15,6 @@ let allCurrencies = [];
 
 let currentCategory = '';
 let currentSubcategory = '';
-let booksData = [];
 
 function loadAllBooks() {
     booksData = [];
