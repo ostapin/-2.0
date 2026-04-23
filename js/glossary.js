@@ -3,7 +3,8 @@ if (typeof booksDataSkills !== 'undefined') {
         booksData.push(booksDataSkills[i]);
     }
 }
-
+currentCategory = '';
+currentSubcategory = '';
 function loadAllBooks() {
     booksData = [];
     if (typeof booksDataMain !== 'undefined') {
