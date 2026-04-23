@@ -4,14 +4,6 @@ if (typeof booksDataSkills !== 'undefined') {
     }
 }
 
-// Глобальные переменные
-let allMetals = [];
-let allWeapons = [];
-let allArmor = [];
-let allCreatures = [];
-let allItems = [];
-let currencyRates = {};
-let allCurrencies = [];
 
 let currentCategory = '';
 let currentSubcategory = '';
