@@ -1,4 +1,4 @@
-if (typeof booksDataSkills !== 'undefined') {
+if (typeof booksDataSkills !== 'undefined' && typeof booksData !== 'undefined') {
     for (let i = 0; i < booksDataSkills.length; i++) {
         booksData.push(booksDataSkills[i]);
     }
