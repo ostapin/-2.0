@@ -24,6 +24,7 @@ const booksData = [
         id: "geographica_aldanara_vol1",
         title: "Том I. Географика Альданара",
         author: "Магистр-картограф Линней из Дома Странствий",
-        description: "Географический трактат о континенте Альданар: его размерах, климате, магии и государствах.",
+        description: "Географический трактат о континенте Альданар...",
         file: "modules/glossary/books/geographica_aldanara_vol1.html"
-    },
+    }
+];
