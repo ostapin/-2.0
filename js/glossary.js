@@ -1211,16 +1211,27 @@ function renderBooks() {
     
     resultsTitle.innerHTML = '📚 Книги';
     
-    if (typeof booksData === 'undefined') {
+    let allBooks = [];
+    
+    if (typeof booksData !== 'undefined') {
+        allBooks = [...booksData];
+    }
+    
+    if (typeof booksDataSkills !== 'undefined') {
+        for (let i = 0; i < booksDataSkills.length; i++) {
+            allBooks.push(booksDataSkills[i]);
+        }
+    }
+    
+    if (allBooks.length === 0) {
         resultsList.innerHTML = '<p style="color: #8b7d6b; text-align: center;">❌ Данные о книгах не загружены</p>';
         return;
     }
     
     let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
     
-    booksData.forEach(book => {
+    allBooks.forEach(book => {
         let readButton = '';
-        // Если есть файл и он не пустой — показываем кнопку
         if (book.file && book.file !== '') {
             readButton = `<button class="btn btn-roll" onclick="openBook('${book.file}')" style="background: #8b4513;">📖 Читать</button>`;
         }
