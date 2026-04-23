@@ -26,5 +26,12 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Географический трактат о континенте Альданар: его размерах, климате, магии и государствах.",
         file: "modules/glossary/books/geographica_aldanara_vol1.html"
+    },
+    {
+        id: "empire_ruda_vol1",
+        title: "Империя Руда. Том I. Основание",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Общие сведения об Империи Руда, её географии, климате и вулкане Игнис-Монс.",
+        file: "modules/glossary/books/empire_ruda_vol1.html"
     }
 ];
