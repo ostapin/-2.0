@@ -1203,6 +1203,7 @@ function renderBooks() {
     let allBooks = [];
     let ids = new Set();
     
+    // Сначала книги с текстом
     if (typeof booksData !== 'undefined') {
         for (let i = 0; i < booksData.length; i++) {
             if (!ids.has(booksData[i].id)) {
@@ -1212,6 +1213,7 @@ function renderBooks() {
         }
     }
     
+    // Потом книги навыков
     if (typeof booksDataSkills !== 'undefined') {
         for (let i = 0; i < booksDataSkills.length; i++) {
             if (!ids.has(booksDataSkills[i].id)) {
