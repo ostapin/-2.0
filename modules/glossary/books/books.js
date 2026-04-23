@@ -40,5 +40,12 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Административное деление, вертикаль власти и древние руины Империи Руда.",
         file: "modules/glossary/books/empire_ruda_vol2.html"
+    },
+    {
+        id: "empire_ruda_vol3",
+        title: "Империя Руда. Том III. Династия",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Совет Империи, императорская семья Корнелов и знатные роды.",
+        file: "modules/glossary/books/empire_ruda_vol3.html"
     }
 ];
