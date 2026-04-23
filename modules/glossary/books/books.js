@@ -47,5 +47,12 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Совет Империи, императорская семья Корнелов и знатные роды.",
         file: "modules/glossary/books/empire_ruda_vol3.html"
+    },
+    {
+        id: "empire_ruda_vol4",
+        title: "Империя Руда. Том IV. Запреты",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Магические запреты, законы Империи и магические кланы.",
+        file: "modules/glossary/books/empire_ruda_vol4.html"
     }
 ];
