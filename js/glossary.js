@@ -11,7 +11,6 @@ function loadAllBooks() {
 }
 
 function loadGlossary() {
-        loadAllBooks();
     // Загружаем данные
     allMetals = Object.values(metalsData);
     allWeapons = Object.values(weaponsData);
