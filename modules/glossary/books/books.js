@@ -54,5 +54,33 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Магические запреты, законы Империи и магические кланы.",
         file: "modules/glossary/books/empire_ruda_vol4.html"
+    },
+    {
+        id: "empire_ruda_vol5",
+        title: "Империя Руда. Том V. Приговоры",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Судебная система, таблица преступлений и наказаний, городская стража.",
+        file: "modules/glossary/books/empire_ruda_vol5.html"
+    },
+    {
+        id: "empire_ruda_vol6",
+        title: "Империя Руда. Том VI. Время",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Календарь Империи, праздники и религия.",
+        file: "modules/glossary/books/empire_ruda_vol6.html"
+    },
+    {
+        id: "empire_ruda_vol7",
+        title: "Империя Руда. Том VII. Быт",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Народ и его облик, одежда, кухня и вино, манера речи и поговорки, армия.",
+        file: "modules/glossary/books/empire_ruda_vol7.html"
+    },
+    {
+        id: "empire_ruda_vol8",
+        title: "Империя Руда. Том VIII. Наследие",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Похоронные обряды, валюта и сферы, флот и Тёмные воды.",
+        file: "modules/glossary/books/empire_ruda_vol8.html"
     }
 ];
