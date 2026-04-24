@@ -82,5 +82,61 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Похоронные обряды, валюта и сферы, флот и Тёмные воды.",
         file: "modules/glossary/books/empire_ruda_vol8.html"
+    },
+    {
+        id: "empire_ruda_left_vol1",
+        title: "Империя Руда. Левая часть. Том I. Основание",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Общие сведения о левой части Империи Руда, её географии, климате и чудесах.",
+        file: "modules/glossary/books/empire_ruda_left_vol1.html"
+    },
+    {
+        id: "empire_ruda_left_vol2",
+        title: "Империя Руда. Левая часть. Том II. Структура",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Административное деление левой части, префекты и столица Прима.",
+        file: "modules/glossary/books/empire_ruda_left_vol2.html"
+    },
+    {
+        id: "empire_ruda_left_vol3",
+        title: "Империя Руда. Левая часть. Том III. Голосование",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Сенат, партии, выборы и знатные роды левой части Империи.",
+        file: "modules/glossary/books/empire_ruda_left_vol3.html"
+    },
+    {
+        id: "empire_ruda_left_vol4",
+        title: "Империя Руда. Левая часть. Том IV. Хозяйство",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Бюджет и налоги, городская стража и армия левой части Империи.",
+        file: "modules/glossary/books/empire_ruda_left_vol4.html"
+    },
+    {
+        id: "empire_ruda_left_vol5",
+        title: "Империя Руда. Левая часть. Том V. Запреты",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Магические запреты и законы левой части Империи.",
+        file: "modules/glossary/books/empire_ruda_left_vol5.html"
+    },
+    {
+        id: "empire_ruda_left_vol6",
+        title: "Империя Руда. Левая часть. Том VI. Приговоры",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Судебная система, смертная казнь и городская стража левой части Империи.",
+        file: "modules/glossary/books/empire_ruda_left_vol6.html"
+    },
+    {
+        id: "empire_ruda_left_vol7",
+        title: "Империя Руда. Левая часть. Том VII. Династия",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Император Луций Корнел, его семья и флот левой части Империи.",
+        file: "modules/glossary/books/empire_ruda_left_vol7.html"
+    },
+    {
+        id: "empire_ruda_left_vol8",
+        title: "Империя Руда. Левая часть. Том VIII. Сады",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Сенаторы, здание Сената — Висячие сады Примы, и отношения Империи с соседями.",
+        file: "modules/glossary/books/empire_ruda_left_vol8.html"
     }
 ];
