@@ -138,5 +138,33 @@ let booksData = [
         author: "Магистр-картограф Линней из Дома Странствий",
         description: "Сенаторы, здание Сената — Висячие сады Примы, и отношения Империи с соседями.",
         file: "modules/glossary/books/empire_ruda_left_vol8.html"
+    },
+    {
+        id: "gods_and_mortals_vol1",
+        title: "Боги и Смертные: Айоры и Атевры — Рождение Богов",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "О том, что было до богов, первом звуке Айо, рождении Айоров и Атевров, их вечном конфликте и посмертии.",
+        file: "modules/glossary/books/gods_and_mortals/gods_and_mortals_vol1.html"
+    },
+    {
+        id: "gods_and_mortals_vol2",
+        title: "Боги и Смертные: Айоры и Атевры — Созидатели",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Подробно о каждом из Айоров: Альвия, Кайрос, Торвин, Селина, Илоран — их заповеди, подношения, жрецы и общие обряды.",
+        file: "modules/glossary/books/gods_and_mortals/gods_and_mortals_vol2.html"
+    },
+    {
+        id: "gods_and_mortals_vol3",
+        title: "Боги и Смертные: Айоры и Атевры — Отступники",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Подробно о каждом из Атевров: Моргат, Некрут, Лилит, Сайлен, Вальгор — их заповеди, подношения, культы и обряды.",
+        file: "modules/glossary/books/gods_and_mortals/gods_and_mortals_vol3.html"
+    },
+    {
+        id: "gods_and_mortals_vol4",
+        title: "Боги и Смертные: Айоры и Атевры — Храмы, Культы и Обряды",
+        author: "Магистр-картограф Линней из Дома Странствий",
+        description: "Храмы и жрецы Айоров, святилища, праздники, обряды жизненного цикла, тайные культы Атевров и отношение к вере.",
+        file: "modules/glossary/books/gods_and_mortals/gods_and_mortals_vol4.html"
     }
 ];
