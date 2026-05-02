@@ -28,6 +28,64 @@ function loadGlossary() {
         allCurrencies.sort((a, b) => a.order - b.order);
     }
     
+    // Собираем магию из отдельных файлов
+    if (typeof window.magicData === 'undefined') {
+        window.magicData = { spells: {}, formation: {}, runes: {} };
+    }
+    
+    // Добавляем каждую школу, если она определена
+    if (typeof fireMagic !== 'undefined') {
+        window.magicData.spells.fire = fireMagic;
+    }
+    if (typeof waterMagic !== 'undefined') {
+        window.magicData.spells.water = waterMagic;
+    }
+    if (typeof earthMagic !== 'undefined') {
+        window.magicData.spells.earth = earthMagic;
+    }
+    if (typeof airMagic !== 'undefined') {
+        window.magicData.spells.air = airMagic;
+    }
+    if (typeof metalMagic !== 'undefined') {
+        window.magicData.spells.metal = metalMagic;
+    }
+    if (typeof natureMagic !== 'undefined') {
+        window.magicData.spells.nature = natureMagic;
+    }
+    if (typeof lightMagic !== 'undefined') {
+        window.magicData.spells.light = lightMagic;
+    }
+    if (typeof darkMagic !== 'undefined') {
+        window.magicData.spells.dark = darkMagic;
+    }
+    if (typeof infernoMagic !== 'undefined') {
+        window.magicData.spells.inferno = infernoMagic;
+    }
+    if (typeof chaosMagic !== 'undefined') {
+        window.magicData.spells.chaos = chaosMagic;
+    }
+    if (typeof mindMagic !== 'undefined') {
+        window.magicData.spells.mind = mindMagic;
+    }
+    if (typeof lifeMagic !== 'undefined') {
+        window.magicData.spells.life = lifeMagic;
+    }
+    if (typeof deathMagic !== 'undefined') {
+        window.magicData.spells.death = deathMagic;
+    }
+    if (typeof voidMagic !== 'undefined') {
+        window.magicData.spells.void = voidMagic;
+    }
+    if (typeof bloodMagic !== 'undefined') {
+        window.magicData.spells.blood = bloodMagic;
+    }
+    if (typeof energyMagic !== 'undefined') {
+        window.magicData.spells.energy = energyMagic;
+    }
+    if (typeof etherMagic !== 'undefined') {
+        window.magicData.spells.ether = etherMagic;
+    }
+    
     // Создаем объединенный массив предметов
     buildAllItems();
 }
