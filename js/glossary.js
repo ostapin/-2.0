@@ -729,7 +729,6 @@ function renderMagic() {
 }
 
 // Глобальная переменная для хранения выбранной школы
-let currentSchool = null;
 
 function selectSchool(schoolKey) {
     currentSchool = schoolKey;
