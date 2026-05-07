@@ -149,3 +149,40 @@
         min-height: 40px;
     }
 }
+
+/* ===== АДАПТАЦИЯ ХОЛСТОВ ===== */
+@media (max-width: 768px) {
+    /* Поле боя */
+    #battleCanvas {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100%;
+    }
+    
+    /* Холст рисовалки */
+    #drawCanvas {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100%;
+    }
+    
+    /* Контейнер карты */
+    #mapContainer {
+        min-height: 300px;
+        overflow: auto;
+    }
+    #mapCanvas {
+        max-width: 100%;
+    }
+    #mapCanvas img {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Панели управления */
+    #battle-tab > div:first-of-type,
+    #draw-tab > div:first-of-type {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
