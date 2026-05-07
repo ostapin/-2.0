@@ -153,18 +153,23 @@
 
 /* ===== АДАПТАЦИЯ ХОЛСТОВ ===== */
 @media (max-width: 768px) {
+       /* Поле боя и рисовалка — контейнеры */
+    #battle-tab > div:nth-child(2),
+    #draw-tab > div:nth-child(2) {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
     /* Поле боя */
     #battleCanvas {
-        width: 100% !important;
+        display: block;
         max-width: 100% !important;
-        height: auto !important;
     }
     
     /* Холст рисовалки */
     #drawCanvas {
-        width: 100% !important;
+        display: block;
         max-width: 100% !important;
-        height: auto !important;
     }
     
     /* Контейнер карты */
