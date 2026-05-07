@@ -1,20 +1,112 @@
-@media (max-width: 768px) {
-    .character-info, .stat-row, .skill-row { flex-direction: column; gap: 12px; }
-    .skill-controls { width: 100%; justify-content: space-between; }
-    .exp-display, .level-display { flex-direction: column; gap: 15px; }
-    .points-display { flex-direction: column; }
-    .tabs { flex-direction: column; }
-    .dice-container { flex-direction: column; }
-    .btn { min-height: 48px; font-size: 16px; }
-    .popup-content { padding: 20px; margin: 10px; }
-    .skill-name { flex-direction: column; align-items: flex-start; gap: 8px; }
+/* ===== ТЕЛЕФОНЫ (до 480px) ===== */
+@media (max-width: 480px) {
+    body { 
+        padding: 5px; 
+    }
+    .container { 
+        border-width: 2px; 
+    }
+    
+    /* Кнопки вкладок */
+    .tab-btn { 
+        padding: 10px 6px; 
+        font-size: 12px;
+        min-height: 44px;
+        border-radius: 4px;
+    }
+    
+    /* Заголовок */
+    .header h1 { 
+        font-size: 1.4em !important; 
+        margin-bottom: 15px !important; 
+    }
+    .header { 
+        padding: 15px 10px; 
+    }
+    
+    /* Характеристики персонажа */
+    .character-info { 
+        flex-direction: column; 
+        gap: 10px; 
+    }
+    .input-group { 
+        min-width: 100%; 
+    }
+    
+    /* Статы (здоровье, мана, выносливость) */
+    .stat-row { 
+        flex-direction: column; 
+        gap: 8px; 
+        align-items: stretch; 
+    }
+    .stat-label { 
+        justify-content: space-between; 
+    }
+    
+    /* Уровень и опыт */
+    .level-display { 
+        flex-direction: column; 
+        gap: 10px; 
+    }
+    .exp-display { 
+        flex-direction: column; 
+        gap: 8px; 
+    }
+    
+    /* Очки навыков */
+    .points-display { 
+        flex-direction: column; 
+        gap: 10px; 
+    }
+    
+    /* Секции */
+    .skills-section { 
+        padding: 15px 10px; 
+    }
+    .section-title { 
+        font-size: 1.2em; 
+    }
+    
+    /* Кнопки */
+    .btn { 
+        min-height: 48px; 
+        font-size: 16px; 
+        padding: 10px 12px; 
+    }
+    
+    /* Поля ввода */
+    .stat-input, .exp-input { 
+        width: 100%; 
+    }
+    
+    /* Контейнер кубиков */
+    .dice-container { 
+        gap: 5px; 
+    }
+    .btn-dice { 
+        font-size: 14px; 
+        padding: 10px; 
+        min-height: 44px; 
+    }
+    
+    /* Модальные окна */
+    .popup-content { 
+        padding: 15px; 
+        margin: 10px; 
+        width: 95%; 
+    }
 }
 
-@media (max-width: 480px) {
-    body { padding: 10px; }
-    .container { border-width: 2px; }
-    .tab-btn { padding: 12px 8px; font-size: 14px; }
-    .header { padding: 15px; }
-    .skills-section { padding: 15px; }
-    .dice { width: 45px; height: 45px; font-size: 1.3em; }
+/* ===== ПЛАНШЕТЫ (481px - 768px) ===== */
+@media (min-width: 481px) and (max-width: 768px) {
+    .character-info { 
+        gap: 10px; 
+    }
+    .input-group { 
+        min-width: 45%; 
+    }
+    .tab-btn { 
+        padding: 12px 8px; 
+        font-size: 14px; 
+    }
 }
