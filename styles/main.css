@@ -3,11 +3,12 @@ body {
     font-family: 'Times New Roman', serif; 
     background: #1a0f0b; 
     color: #e0d0c0; 
-    padding: 20px; 
+    padding: 10px; 
     min-height: 100vh; 
 }
 .container { 
-    max-width: 900px; 
+    max-width: 900px;
+    width: 100%;
     margin: 0 auto; 
     background: #2c1810; 
     border: 3px solid #8b4513; 
