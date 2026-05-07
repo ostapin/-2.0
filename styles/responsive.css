@@ -150,39 +150,53 @@
     }
 }
 
+
 /* ===== АДАПТАЦИЯ ХОЛСТОВ ===== */
 @media (max-width: 768px) {
     /* Поле боя */
     #battleCanvas {
         width: 100% !important;
+        max-width: 100% !important;
         height: auto !important;
-        max-width: 100%;
     }
     
     /* Холст рисовалки */
     #drawCanvas {
         width: 100% !important;
+        max-width: 100% !important;
         height: auto !important;
-        max-width: 100%;
     }
     
     /* Контейнер карты */
     #mapContainer {
         min-height: 300px;
+        width: 100% !important;
         overflow: auto;
     }
     #mapCanvas {
-        max-width: 100%;
+        max-width: 100% !important;
     }
     #mapCanvas img {
-        max-width: 100%;
-        height: auto;
+        max-width: 100% !important;
+        height: auto !important;
     }
     
-    /* Панели управления */
+    /* Панели управления боем и рисовалкой */
     #battle-tab > div:first-of-type,
     #draw-tab > div:first-of-type {
         flex-direction: column;
         gap: 8px;
+        overflow: hidden;
+    }
+    
+    /* Родительские контейнеры — убираем переполнение */
+    #battle-tab,
+    #draw-tab,
+    #maps-tab {
+        overflow: hidden;
+    }
+    
+    .tab-content {
+        overflow: hidden;
     }
 }
