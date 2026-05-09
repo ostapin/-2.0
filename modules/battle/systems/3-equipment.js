@@ -18,18 +18,28 @@ BattleModule.openEquipmentPanel = function(creatureId) {
         flex-direction: column;
     `;
     
-    // Кнопки фильтров по металлам
-    const metalsList = Object.keys(metalsData);
-    let filterHtml = '<div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px;">';
+    // Получаем список уникальных металлов из ItemsDB
+    const allItems = (window.ItemsDB && window.ItemsDB.items) ? window.ItemsDB.items : {};
+    const metalSet = new Set();
+    Object.values(allItems).forEach(item => {
+        if (item.metal) metalSet.add(item.metal);
+    });
+    const metalsList = Array.from(metalSet).sort();
+    
+    // Кнопки фильтров с прокруткой
+    let filterHtml = '<div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; max-height: 100px; overflow-y: auto; padding: 5px;">';
     filterHtml += '<button class="btn btn-small" onclick="BattleModule.currentMetalFilter = null; BattleModule.refreshEquipmentList()">Все</button>';
     metalsList.forEach(metalId => {
-        const metalName = metalsData[metalId].name;
+        let metalName = metalId;
+        if (window.metalsData && window.metalsData[metalId]) {
+            metalName = window.metalsData[metalId].name;
+        }
         filterHtml += `<button class="btn btn-small" onclick="BattleModule.currentMetalFilter = '${metalId}'; BattleModule.refreshEquipmentList()">${metalName}</button>`;
     });
     filterHtml += '</div>';
     
-    // Контейнер для списка предметов
-    const itemsContainer = '<div id="equipmentItemsList" style="flex-grow: 1; overflow-y: auto; min-height: 300px;"></div>';
+    // Контейнер для списка предметов с прокруткой
+    const itemsContainer = '<div id="equipmentItemsList" style="flex-grow: 1; overflow-y: auto; min-height: 300px; max-height: 400px;"></div>';
     
     // Стрелы
     const arrowsHtml = `
@@ -43,11 +53,11 @@ BattleModule.openEquipmentPanel = function(creatureId) {
     `;
     
     panel.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;">
             <h3 style="color: #d4af37; margin: 0;">🛡️ ЭКИПИРОВКА</h3>
             <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #d4af37; font-size: 20px; cursor: pointer;">✖</button>
         </div>
-        <div style="margin-bottom: 15px;">
+        <div style="margin-bottom: 15px; flex-shrink: 0;">
             <button class="btn btn-minus" onclick="BattleModule.unequipWeapon('${creature.id}')">Снять оружие</button>
         </div>
         ${filterHtml}
@@ -83,28 +93,34 @@ BattleModule.refreshEquipmentList = function() {
     
     // Оружие
     html += '<div style="margin-bottom: 20px;"><div style="color: #d4af37; font-weight: bold; margin-bottom: 10px;">⚔️ ОРУЖИЕ</div>';
-    weapons.forEach(item => {
-        html += `
-            <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; justify-content: space-between; align-items: center;">
-                <div><div style="font-weight: bold;">${item.name}</div><div style="font-size: 11px;">Урон: ${item.damage} | Прочность: ${item.durability}</div></div>
-                <button class="btn btn-small" onclick="BattleModule.equipWeapon('${BattleModule.currentEquipmentCreatureId}', '${item.id}')">Экип.</button>
-            </div>
-        `;
-    });
-    if (weapons.length === 0) html += '<div style="color: #888; padding: 5px;">Нет оружия</div>';
+    if (weapons.length === 0) {
+        html += '<div style="color: #888; padding: 5px;">Нет оружия</div>';
+    } else {
+        weapons.forEach(item => {
+            html += `
+                <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; justify-content: space-between; align-items: center;">
+                    <div><div style="font-weight: bold;">${item.name}</div><div style="font-size: 11px;">Урон: ${item.damage} | Прочность: ${item.durability}</div></div>
+                    <button class="btn btn-small" onclick="BattleModule.equipWeapon('${BattleModule.currentEquipmentCreatureId}', '${item.id}')">Экип.</button>
+                </div>
+            `;
+        });
+    }
     html += '</div>';
     
     // Броня
     html += '<div><div style="color: #d4af37; font-weight: bold; margin-bottom: 10px;">🛡️ БРОНЯ</div>';
-    armors.forEach(item => {
-        html += `
-            <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; justify-content: space-between; align-items: center;">
-                <div><div style="font-weight: bold;">${item.name}</div><div style="font-size: 11px;">КБ: ${item.armorClass} | Прочность: ${item.durability}</div></div>
-                <button class="btn btn-small" onclick="BattleModule.equipArmor('${BattleModule.currentEquipmentCreatureId}', '${item.id}')">Экип.</button>
-            </div>
-        `;
-    });
-    if (armors.length === 0) html += '<div style="color: #888; padding: 5px;">Нет брони</div>';
+    if (armors.length === 0) {
+        html += '<div style="color: #888; padding: 5px;">Нет брони</div>';
+    } else {
+        armors.forEach(item => {
+            html += `
+                <div style="background: #1a0f0b; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #8b4513; display: flex; justify-content: space-between; align-items: center;">
+                    <div><div style="font-weight: bold;">${item.name}</div><div style="font-size: 11px;">КБ: ${item.armorClass} | Прочность: ${item.durability}</div></div>
+                    <button class="btn btn-small" onclick="BattleModule.equipArmor('${BattleModule.currentEquipmentCreatureId}', '${item.id}')">Экип.</button>
+                </div>
+            `;
+        });
+    }
     html += '</div>';
     
     container.innerHTML = html;
