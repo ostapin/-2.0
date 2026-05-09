@@ -1,161 +1,13 @@
 // modules/battle/0-init.js
-// Инициализация BattleModule и создание глобального объекта
+if (!window.BattleModule) window.BattleModule = {};
 
-// Глобальный объект BattleModule
-window.BattleModule = {};
-
-// ===== CORE (ядро) =====
-// 1-grid.js - generateHexGrid
-// 2-camera.js - centerView, zoom, zoomIn, zoomOut, resetView, updateZoomDisplay
-// 3-draw.js - drawGrid, drawHexagon, drawCreature, drawObject, 
-//             findHexByPosition, highlightHex, highlightSelected, selectHex, updateHexInfo, toggleNumbers
-
-// ===== SYSTEMS =====
-// 1-creatures.js - updateCreaturesList, selectCreatureById, placeOnHex, eraseHex, damageCreature, healCreature
-// 2-turn.js - updateTurnOrder, startInitiative, nextTurn, updateInitiative
-// 3-equipment.js - openEquipmentPanel, equipWeapon, equipArrows, unequipWeapon
-// 4-attacks.js - prepareAttack, activateAttackMode, activateRangedAttackMode, findAttackTargets,
-//                findRangedTargets, tryAttackTarget, tryRangedAttack, performAttack
-// 5-ranged.js - getHexDistance, checkLineOfSight, getLinePoints, canShoot
-
-// ===== UI =====
-// 1-panels.js - createSidePanel, createTurnOrderPanel
-// 2-popup.js - openCreaturePanel, toggleSkills, modifySkill
-// 3-controls.js - createControls, setType, togglePlacementMode, toggleEraseMode, 
-//                 updateModeButtons, setHexSize, setGridSize
-
-// ===== ДВИЖЕНИЕ (осталось в core) =====
-BattleModule.activateMoveMode = function(creatureId) {
-    const creature = this.activeCreatures.find(c => c.id === creatureId);
-    if (!creature || !creature.position || creature.currentHp <= 0) return;
-    
-    if (this.turnActive && this.turnOrder[this.currentTurnIndex] !== creatureId) {
-        alert('Сейчас не ход этого существа!');
-        return;
-    }
-    
-    const panel = document.getElementById('creaturePanel');
-    if (panel) panel.remove();
-    
-    const template = CreaturesDB.get(creature.templateId);
-    const speed = template ? template.speed : 5;
-    
-    const currentHex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
-    if (!currentHex) return;
-    
-    this.moveModeActive = true;
-    this.movingCreatureId = creatureId;
-    this.availableMoveHexes = this.findReachableHexes(currentHex, speed);
-    
-    this.selectedHex = currentHex;
-    this.drawGrid();
-    this.highlightSelected();
-};
-
-BattleModule.findReachableHexes = function(startHex, maxDistance) {
-    const reachable = [];
-    const distances = new Map();
-    const queue = [{ hex: startHex, dist: 0 }];
-    
-    const hexKey = (hex) => `${hex.col},${hex.row}`;
-    distances.set(hexKey(startHex), 0);
-    
-    while (queue.length > 0) {
-        const { hex, dist } = queue.shift();
-        
-        if (dist > 0 && dist <= maxDistance) {
-            if (!hex.object && !hex.creature) {
-                reachable.push(hex);
-            }
-        }
-        
-        if (dist < maxDistance) {
-            let neighbors = [];
-            
-            if (hex.row % 2 === 0) {
-                neighbors = [
-                    { col: hex.col + 1, row: hex.row },
-                    { col: hex.col - 1, row: hex.row },
-                    { col: hex.col, row: hex.row - 1 },
-                    { col: hex.col - 1, row: hex.row - 1 },
-                    { col: hex.col, row: hex.row + 1 },
-                    { col: hex.col - 1, row: hex.row + 1 }
-                ];
-            } else {
-                neighbors = [
-                    { col: hex.col + 1, row: hex.row },
-                    { col: hex.col - 1, row: hex.row },
-                    { col: hex.col + 1, row: hex.row - 1 },
-                    { col: hex.col, row: hex.row - 1 },
-                    { col: hex.col + 1, row: hex.row + 1 },
-                    { col: hex.col, row: hex.row + 1 }
-                ];
-            }
-            
-            neighbors.forEach(pos => {
-                if (pos.col >= 0 && pos.col < this.cols && pos.row >= 0 && pos.row < this.rows) {
-                    const neighbor = this.hexes.find(h => h.col === pos.col && h.row === pos.row);
-                    if (neighbor) {
-                        const key = hexKey(neighbor);
-                        if (!distances.has(key) || distances.get(key) > dist + 1) {
-                            distances.set(key, dist + 1);
-                            queue.push({ hex: neighbor, dist: dist + 1 });
-                        }
-                    }
-                }
-            });
-        }
-    }
-    
-    return reachable;
-};
-
-BattleModule.tryMoveToHex = function(targetHex) {
-    if (!this.moveModeActive || !this.movingCreatureId) {
-        this.moveModeActive = false;
-        this.availableMoveHexes = [];
-        this.drawGrid();
-        return;
-    }
-    
-    const isAvailable = this.availableMoveHexes.some(h => h.col === targetHex.col && h.row === targetHex.row);
-    
-    if (isAvailable) {
-        const creature = this.activeCreatures.find(c => c.id === this.movingCreatureId);
-        if (creature && creature.position && creature.currentHp > 0) {
-            const oldHex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
-            if (oldHex) {
-                oldHex.creature = null;
-                oldHex.creatureId = null;
-                oldHex.occupied = false;
-            }
-            
-            targetHex.creature = creature.templateId;
-            targetHex.creatureId = creature.id;
-            targetHex.occupied = true;
-            
-            creature.position = { col: targetHex.col, row: targetHex.row };
-            
-            console.log(`Существо перемещено на [${targetHex.col}, ${targetHex.row}]`);
-            
-            if (this.turnActive) {
-                this.nextTurn();
-            }
-        }
-    }
-    
-    this.moveModeActive = false;
-    this.movingCreatureId = null;
-    this.availableMoveHexes = [];
-    
-    this.drawGrid();
-    this.highlightSelected();
-};
-
-// ===== ИНИЦИАЛИЗАЦИЯ =====
+// Инициализация боевого модуля
 BattleModule.init = function() {
     this.canvas = document.getElementById('battleCanvas');
-    if (!this.canvas) return;
+    if (!this.canvas) {
+        console.error('battleCanvas не найден');
+        return;
+    }
     
     this.ctx = this.canvas.getContext('2d');
     
@@ -233,6 +85,7 @@ BattleModule.init = function() {
     this.placementMode = false;
     this.eraseMode = false;
     
+    // Генерация поля и отрисовка
     this.generateHexGrid(this.cols, this.rows);
     this.centerView();
     this.drawGrid();
@@ -244,7 +97,7 @@ BattleModule.init = function() {
     console.log('Battle module initialized');
 };
 
-// ===== BIND EVENTS =====
+// Обработка событий мыши
 BattleModule.bindEvents = function() {
     this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
@@ -345,5 +198,132 @@ BattleModule.bindEvents = function() {
     });
 };
 
-// Запуск
-document.addEventListener('DOMContentLoaded', () => BattleModule.init());
+// Движение существа
+BattleModule.activateMoveMode = function(creatureId) {
+    const creature = this.activeCreatures.find(c => c.id === creatureId);
+    if (!creature || !creature.position || creature.currentHp <= 0) return;
+    
+    if (this.turnActive && this.turnOrder[this.currentTurnIndex] !== creatureId) {
+        alert('Сейчас не ход этого существа!');
+        return;
+    }
+    
+    const panel = document.getElementById('creaturePanel');
+    if (panel) panel.remove();
+    
+    const template = CreaturesDB.get(creature.templateId);
+    const speed = template ? template.speed : 5;
+    
+    const currentHex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
+    if (!currentHex) return;
+    
+    this.moveModeActive = true;
+    this.movingCreatureId = creatureId;
+    this.availableMoveHexes = this.findReachableHexes(currentHex, speed);
+    
+    this.selectedHex = currentHex;
+    this.drawGrid();
+    this.highlightSelected();
+};
+
+// Поиск доступных для движения гексов
+BattleModule.findReachableHexes = function(startHex, maxDistance) {
+    const reachable = [];
+    const distances = new Map();
+    const queue = [{ hex: startHex, dist: 0 }];
+    
+    const hexKey = (hex) => `${hex.col},${hex.row}`;
+    distances.set(hexKey(startHex), 0);
+    
+    while (queue.length > 0) {
+        const { hex, dist } = queue.shift();
+        
+        if (dist > 0 && dist <= maxDistance) {
+            if (!hex.object && !hex.creature) reachable.push(hex);
+        }
+        
+        if (dist < maxDistance) {
+            let neighbors = [];
+            if (hex.row % 2 === 0) {
+                neighbors = [
+                    { col: hex.col + 1, row: hex.row },
+                    { col: hex.col - 1, row: hex.row },
+                    { col: hex.col, row: hex.row - 1 },
+                    { col: hex.col - 1, row: hex.row - 1 },
+                    { col: hex.col, row: hex.row + 1 },
+                    { col: hex.col - 1, row: hex.row + 1 }
+                ];
+            } else {
+                neighbors = [
+                    { col: hex.col + 1, row: hex.row },
+                    { col: hex.col - 1, row: hex.row },
+                    { col: hex.col + 1, row: hex.row - 1 },
+                    { col: hex.col, row: hex.row - 1 },
+                    { col: hex.col + 1, row: hex.row + 1 },
+                    { col: hex.col, row: hex.row + 1 }
+                ];
+            }
+            
+            neighbors.forEach(pos => {
+                if (pos.col >= 0 && pos.col < this.cols && pos.row >= 0 && pos.row < this.rows) {
+                    const neighbor = this.hexes.find(h => h.col === pos.col && h.row === pos.row);
+                    if (neighbor) {
+                        const key = hexKey(neighbor);
+                        if (!distances.has(key) || distances.get(key) > dist + 1) {
+                            distances.set(key, dist + 1);
+                            queue.push({ hex: neighbor, dist: dist + 1 });
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    return reachable;
+};
+
+// Попытка перемещения на гекс
+BattleModule.tryMoveToHex = function(targetHex) {
+    if (!this.moveModeActive || !this.movingCreatureId) {
+        this.moveModeActive = false;
+        this.availableMoveHexes = [];
+        this.drawGrid();
+        return;
+    }
+    
+    const isAvailable = this.availableMoveHexes.some(h => h.col === targetHex.col && h.row === targetHex.row);
+    
+    if (isAvailable) {
+        const creature = this.activeCreatures.find(c => c.id === this.movingCreatureId);
+        if (creature && creature.position && creature.currentHp > 0) {
+            const oldHex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
+            if (oldHex) {
+                oldHex.creature = null;
+                oldHex.creatureId = null;
+                oldHex.occupied = false;
+            }
+            
+            targetHex.creature = creature.templateId;
+            targetHex.creatureId = creature.id;
+            targetHex.occupied = true;
+            creature.position = { col: targetHex.col, row: targetHex.row };
+            
+            if (this.turnActive) this.nextTurn();
+        }
+    }
+    
+    this.moveModeActive = false;
+    this.movingCreatureId = null;
+    this.availableMoveHexes = [];
+    this.drawGrid();
+    this.highlightSelected();
+};
+
+// Запуск после загрузки страницы
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.BattleModule && window.BattleModule.init) {
+        window.BattleModule.init();
+    } else {
+        console.error('BattleModule не загружен или init не найден');
+    }
+});
