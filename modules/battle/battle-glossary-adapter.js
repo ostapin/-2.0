@@ -1,53 +1,62 @@
 // modules/battle/battle-glossary-adapter.js
-// Адаптер для получения данных из глоссария
 if (!window.BattleModule) window.BattleModule = {};
 
+// Получить предмет из глоссария по металлу и оружию
 BattleModule.getItem = function(metalId, weaponId) {
-    // Проверяем, загружен ли глоссарий
-    if (!window.Glossary || !window.Glossary.getAllItems) {
-        console.error('Глоссарий не загружен');
+    // Получаем данные из глобальных переменных
+    const metal = metalsData[metalId];
+    const weapon = weaponsData[weaponId];
+    
+    if (!metal) {
+        console.error(`Металл не найден: ${metalId}`);
+        return null;
+    }
+    if (!weapon) {
+        console.error(`Оружие не найдено: ${weaponId}`);
         return null;
     }
     
-    // Получаем все предметы из глоссария
-    const allItems = window.Glossary.getAllItems();
-    const metalName = metalsData[metalId]?.name || metalId;
-    const weaponName = weaponsData[weaponId]?.name || weaponId;
-    const itemName = `${metalName} ${weaponName}`;
+    // Рассчитываем характеристики
+    const slots = weapon.craft_slots || 1;
+    const damage = (weapon.base_damage || 0) + metal.stats.durability;
+    const durability = (weapon.base_durability || 0) + metal.stats.durability;
+    const magic_potential = metal.stats.magic_potential * slots;
     
-    // Ищем предмет по имени
-    const item = allItems.find(i => i.name === itemName);
-    if (!item) {
-        console.warn(`Предмет не найден: ${itemName}`);
-        return null;
-    }
-    
-    // Приводим к формату, понятному боевке
+    // Формируем объект в формате, понятном боевке
     return {
-        name: item.name,
+        id: `${metalId}_${weaponId}`,
+        name: `${metal.name} ${weapon.name}`,
         type: 'weapon',
-        damage: item.damage,
-        durability: item.durability,
-        magic_potential: item.magic_potential,
-        price: item.price,
-        attacks: weaponsData[weaponId]?.attacks || {}
+        damage: damage,
+        durability: durability,
+        magic_potential: magic_potential,
+        metal: metalId,
+        weapon: weaponId,
+        slots: slots,
+        attacks: weapon.attacks || {}
     };
 };
 
-// Загрузка всех предметов при старте
+// Загрузить все предметы в кэш (опционально)
 BattleModule.loadAllItems = function() {
-    if (!window.Glossary || !window.Glossary.getAllItems) {
-        console.warn('Глоссарий не загружен, ждём...');
+    if (!window.metalsData || !window.weaponsData) {
+        console.warn('Глоссарий не загружен, повтор через 500ms');
         setTimeout(() => this.loadAllItems(), 500);
         return;
     }
     
-    const allItems = window.Glossary.getAllItems();
-    console.log(`Загружено ${allItems.length} предметов из глоссария`);
-    
-    // Можно сохранить в кэш для быстрого доступа
     this.itemCache = {};
-    allItems.forEach(item => {
-        this.itemCache[item.name] = item;
-    });
+    let count = 0;
+    
+    for (const metalId in metalsData) {
+        for (const weaponId in weaponsData) {
+            const item = this.getItem(metalId, weaponId);
+            if (item) {
+                this.itemCache[item.name] = item;
+                count++;
+            }
+        }
+    }
+    
+    console.log(`Загружено ${count} предметов из глоссария`);
 };
