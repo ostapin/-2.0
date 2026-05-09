@@ -36,7 +36,7 @@ BattleModule.openCreaturePanel = function(creatureId) {
     
     const hpPercent = (creature.currentHp / creature.maxHp) * 100;
     const isDead = creature.currentHp <= 0;
-    const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
+    const weapon = creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon] || null) : null;
     
     let equipHtml = '';
     if (!isDead) {
@@ -47,10 +47,10 @@ BattleModule.openCreaturePanel = function(creatureId) {
                     <button class="btn btn-roll" style="padding: 4px 10px; font-size: 12px;" onclick="BattleModule.openEquipmentPanel('${creature.id}')">✏️ Сменить</button>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; font-size: 12px;">
-                    <div><span style="color: #b89a7a;">Оружие:</span> ${creature.equipment.weapon ? (ItemsDB.get(creature.equipment.weapon)?.name || 'пусто') + ' (' + (ItemsDB.materials[creature.equipment.weaponMaterial]?.name || 'сталь') + ')' : 'пусто'}</div>
+                    <div><span style="color: #b89a7a;">Оружие:</span> ${creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon]?.name || 'пусто') : 'пусто'}</div>
                     <div><span style="color: #b89a7a;">Броня:</span> пусто</div>
                     <div><span style="color: #b89a7a;">Щит:</span> пусто</div>
-                    <div><span style="color: #b89a7a;">Стрелы:</span> ${creature.equipment.arrows || 0} шт (${creature.equipment.arrowMaterial ? ItemsDB.materials[creature.equipment.arrowMaterial]?.name : 'сталь'})</div>
+                    <div><span style="color: #b89a7a;">Стрелы:</span> ${creature.equipment.arrows || 0} шт</div>
                 </div>
             </div>
         `;
@@ -61,7 +61,7 @@ BattleModule.openCreaturePanel = function(creatureId) {
         attackHtml = `<div style="margin-bottom: 15px; background: #2a1a0f; padding: 12px; border-radius: 8px;">
             <div style="color: #d4af37; font-weight: bold; margin-bottom: 10px;">⚔️ ДОСТУПНЫЕ АТАКИ</div>`;
         
-        Object.entries(weapon.attacks).forEach(([key, attack]) => {
+        Object.entries(weapon.attacks || {}).forEach(([key, attack]) => {
             const isPreparing = creature.isPreparingAttack && creature.preparedAttackType === key;
             const hasPrepared = creature.hasPreparedAttack && creature.preparedAttackType === key;
             let buttonText = '';
