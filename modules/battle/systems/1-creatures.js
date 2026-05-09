@@ -1,10 +1,10 @@
 // modules/battle/systems/1-creatures.js
-// Управление существами (создание, удаление, список)
+if (!window.BattleModule) window.BattleModule = {};
 
+// Обновление списка существ на панели
 BattleModule.updateCreaturesList = function() {
     const panel = document.getElementById('battleCreaturesPanel');
     const listDiv = document.getElementById('creaturesList');
-    
     if (!panel || !listDiv) return;
     
     if (this.activeCreatures.length === 0) {
@@ -36,11 +36,7 @@ BattleModule.updateCreaturesList = function() {
                         <div style="font-size: 12px; color: ${isDead ? '#888888' : '#e0d0c0'};">
                             HP: ${creature.currentHp}/${creature.maxHp} | Иниц: ${creature.currentInitiative}
                         </div>
-                        ${!isDead ? `
-                            <div style="height: 4px; background: #330000; margin-top: 5px;">
-                                <div style="height: 4px; width: ${hpPercent}%; background: ${hpColor};"></div>
-                            </div>
-                        ` : ''}
+                        ${!isDead ? `<div style="height: 4px; background: #330000; margin-top: 5px;"><div style="height: 4px; width: ${hpPercent}%; background: ${hpColor};"></div></div>` : ''}
                     </div>
                 </div>
             </div>
@@ -50,16 +46,16 @@ BattleModule.updateCreaturesList = function() {
     listDiv.innerHTML = html;
 };
 
+// Выбор существа по ID
 BattleModule.selectCreatureById = function(id) {
     const creature = this.activeCreatures.find(c => c.id === id);
     if (creature && creature.position) {
         const hex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
-        if (hex) {
-            this.selectHex(hex);
-        }
+        if (hex && this.selectHex) this.selectHex(hex);
     }
 };
 
+// Размещение существа на гексе (режим расстановки)
 BattleModule.placeOnHex = function(hex) {
     if (this.currentType === 'creature') {
         if (!hex.object && !hex.creature) {
@@ -74,33 +70,25 @@ BattleModule.placeOnHex = function(hex) {
                 creatureData.hasPreparedAttack = false;
                 creatureData.preparedAttackType = null;
                 creatureData.equipment = {
-                    weapon: null,
-                    weaponMaterial: null,
-                    armor: null,
-                    shield: null,
-                    helmet: null,
-                    boots: null,
-                    arrows: 0,
-                    arrowMaterial: 'steel'
+                    weapon: null, weaponMaterial: null, armor: null, shield: null,
+                    helmet: null, boots: null, arrows: 0, arrowMaterial: 'steel'
                 };
                 
                 this.activeCreatures.push(creatureData);
-                
                 hex.creature = this.currentCreature;
                 hex.creatureId = creatureId;
                 hex.occupied = true;
                 
-                this.updateCreaturesList();
-                this.updateTurnOrder();
+                if (this.updateCreaturesList) this.updateCreaturesList();
+                if (this.updateTurnOrder) this.updateTurnOrder();
             }
         } else {
             alert('На этом гексе уже есть что-то!');
             return;
         }
     } else {
-        if (!hex.creature && !hex.object) {
-            hex.object = this.currentObject;
-        } else {
+        if (!hex.creature && !hex.object) hex.object = this.currentObject;
+        else {
             alert('На этом гексе уже есть что-то!');
             return;
         }
@@ -108,9 +96,10 @@ BattleModule.placeOnHex = function(hex) {
     
     this.drawGrid();
     this.highlightSelected();
-    this.updateHexInfo(hex);
+    if (this.updateHexInfo) this.updateHexInfo(hex);
 };
 
+// Удаление всего с гекса
 BattleModule.eraseHex = function(hex) {
     if (hex.creatureId) {
         this.activeCreatures = this.activeCreatures.filter(c => c.id !== hex.creatureId);
@@ -122,15 +111,15 @@ BattleModule.eraseHex = function(hex) {
     
     this.drawGrid();
     this.highlightSelected();
-    this.updateHexInfo(hex);
-    
-    this.updateCreaturesList();
-    this.updateTurnOrder();
+    if (this.updateHexInfo) this.updateHexInfo(hex);
+    if (this.updateCreaturesList) this.updateCreaturesList();
+    if (this.updateTurnOrder) this.updateTurnOrder();
     
     const panel = document.getElementById('creaturePanel');
     if (panel) panel.remove();
 };
 
+// Нанесение урона существу
 BattleModule.damageCreature = function(creatureId, amount) {
     amount = parseInt(amount) || 0;
     const creature = this.activeCreatures.find(c => c.id === creatureId);
@@ -139,33 +128,30 @@ BattleModule.damageCreature = function(creatureId, amount) {
     creature.currentHp = Math.max(0, creature.currentHp - amount);
     
     if (creature.currentHp === 0) {
-        console.log(`Существо ${creature.name} погибло`);
         creature.isPreparingAttack = false;
         creature.hasPreparedAttack = false;
-        
         const hex = this.hexes.find(h => h.creatureId === creature.id);
         if (hex) {
             hex.creature = null;
             hex.creatureId = null;
             hex.occupied = false;
         }
-        
-        this.updateTurnOrder();
-        
+        if (this.updateTurnOrder) this.updateTurnOrder();
         const panel = document.getElementById('creaturePanel');
         if (panel) panel.remove();
     }
     
     this.drawGrid();
-    this.updateCreaturesList();
-    this.updateTurnOrder();
+    if (this.updateCreaturesList) this.updateCreaturesList();
+    if (this.updateTurnOrder) this.updateTurnOrder();
     
     const panel = document.getElementById('creaturePanel');
-    if (panel && panel.innerHTML.includes(creatureId)) {
+    if (panel && panel.innerHTML.includes(creatureId) && this.openCreaturePanel) {
         this.openCreaturePanel(creatureId);
     }
 };
 
+// Лечение существа
 BattleModule.healCreature = function(creatureId, amount) {
     amount = parseInt(amount) || 0;
     const creature = this.activeCreatures.find(c => c.id === creatureId);
@@ -174,11 +160,9 @@ BattleModule.healCreature = function(creatureId, amount) {
     creature.currentHp = Math.min(creature.maxHp, creature.currentHp + amount);
     
     this.drawGrid();
-    this.updateCreaturesList();
-    this.updateTurnOrder();
+    if (this.updateCreaturesList) this.updateCreaturesList();
+    if (this.updateTurnOrder) this.updateTurnOrder();
     
     const panel = document.getElementById('creaturePanel');
-    if (panel) {
-        this.openCreaturePanel(creatureId);
-    }
+    if (panel && this.openCreaturePanel) this.openCreaturePanel(creatureId);
 };
