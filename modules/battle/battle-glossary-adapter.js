@@ -38,22 +38,27 @@ function initGlossaryItems() {
     }
     
     // Броня
-    if (typeof armorsData !== 'undefined') {
-        for (const armorId in armorsData) {
-            const armor = armorsData[armorId];
+    if (typeof armorData !== 'undefined') {
+        for (const armorId in armorData) {
+            const armor = armorData[armorId];
             const itemId = armorId;
             
             window.ItemsDB.items[itemId] = {
                 id: itemId,
                 name: armor.name,
                 type: 'armor',
-                armorClass: armor.armorClass || 10,
-                slot: armor.slot || 'chest',
-                durability: armor.durability || 0,
-                description: armor.description || ''
+                armorClass: armor.base_defense + (armor.material ? armor.material.stats.durability : 0),
+                slot: armorId.includes('helmet') ? 'helmet' :
+                      armorId.includes('gauntlets') ? 'gauntlets' :
+                      armorId.includes('cuirass') ? 'chest' :
+                      armorId.includes('greaves') ? 'greaves' :
+                      armorId.includes('boots') ? 'boots' : 'chest',
+                durability: armor.base_durability || 0
             };
             count++;
         }
+    } else {
+        console.warn('armorData не найдена');
     }
     
     console.log(`✅ Загружено ${count} предметов в ItemsDB (оружие + броня)`);
