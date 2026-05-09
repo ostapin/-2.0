@@ -2,7 +2,6 @@
 if (!window.BattleModule) window.BattleModule = {};
 
 function initGlossaryItems() {
-    // Проверяем наличие данных
     if (typeof metalsData === 'undefined' || typeof weaponsData === 'undefined') {
         console.warn('Глоссарий не загружен, повтор через 200ms');
         setTimeout(initGlossaryItems, 200);
@@ -12,6 +11,8 @@ function initGlossaryItems() {
     if (!window.ItemsDB) window.ItemsDB = { items: {} };
     
     let count = 0;
+    
+    // Оружие
     for (const metalId in metalsData) {
         for (const weaponId in weaponsData) {
             const metal = metalsData[metalId];
@@ -29,15 +30,35 @@ function initGlossaryItems() {
                 damage: damage,
                 durability: durability,
                 magic_potential: magic_potential,
-                attacks: weapon.attacks || {}
+                attacks: weapon.attacks || {},
+                slots: slots
             };
             count++;
         }
     }
-    console.log(`✅ Загружено ${count} предметов в ItemsDB из глоссария`);
+    
+    // Броня
+    if (typeof armorsData !== 'undefined') {
+        for (const armorId in armorsData) {
+            const armor = armorsData[armorId];
+            const itemId = armorId;
+            
+            window.ItemsDB.items[itemId] = {
+                id: itemId,
+                name: armor.name,
+                type: 'armor',
+                armorClass: armor.armorClass || 10,
+                slot: armor.slot || 'chest',
+                durability: armor.durability || 0,
+                description: armor.description || ''
+            };
+            count++;
+        }
+    }
+    
+    console.log(`✅ Загружено ${count} предметов в ItemsDB (оружие + броня)`);
 }
 
-// Запускаем после загрузки страницы
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGlossaryItems);
 } else {
