@@ -3,6 +3,9 @@ if (!window.BattleModule) window.BattleModule = {};
 
 // Инициализация боевого модуля
 BattleModule.init = function() {
+    // Загружаем предметы из глоссария
+    this.loadAllItems();
+    
     this.canvas = document.getElementById('battleCanvas');
     if (!this.canvas) {
         console.error('battleCanvas не найден');
