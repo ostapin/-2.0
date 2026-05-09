@@ -663,13 +663,15 @@
 <!-- Металлы и оружие -->
 <script src="modules/glossary/metals.js"></script>
 <script src="modules/glossary/weapons.js"></script>
-<script>
-     window.metalsData = metalsData;
-    window.weaponsData = weaponsData;
-    window.armorsData = armorData;
-</script>
-<script src="modules/glossary/armor.js"></script>
+<script src="modules/glossary/armor.js"></script>      <!-- СНАЧАЛА armor.js -->
 <script src="modules/glossary/currency.js"></script>
+
+<script>
+    window.metalsData = metalsData;
+    window.weaponsData = weaponsData;
+    window.armorData = armorData;                     <!-- ПОТОМ armorData -->
+    console.log('Глобальные данные установлены');
+</script>
 
 <!-- Существа -->
 <script src="modules/glossary/creatures.js"></script>
