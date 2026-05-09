@@ -1,6 +1,7 @@
 // modules/battle/ui/3-controls.js
-// Кнопки управления, режимы, настройки
+if (!window.BattleModule) window.BattleModule = {};
 
+// Создание панели управления (режимы расстановки, выбор существа/объекта)
 BattleModule.createControls = function() {
     const panel = document.querySelector('#battle-tab .btn-roll')?.parentNode;
     if (!panel) return;
@@ -147,6 +148,7 @@ BattleModule.createControls = function() {
     panel.appendChild(controlDiv);
 };
 
+// Переключение типа (существо/объект)
 BattleModule.setType = function(type) {
     this.currentType = type;
     
@@ -168,6 +170,7 @@ BattleModule.setType = function(type) {
     }
 };
 
+// Включение/выключение режима расстановки
 BattleModule.togglePlacementMode = function() {
     this.placementMode = !this.placementMode;
     if (this.placementMode) {
@@ -179,6 +182,7 @@ BattleModule.togglePlacementMode = function() {
     this.updateModeButtons();
 };
 
+// Включение/выключение режима удаления
 BattleModule.toggleEraseMode = function() {
     this.eraseMode = !this.eraseMode;
     if (this.eraseMode) {
@@ -190,6 +194,7 @@ BattleModule.toggleEraseMode = function() {
     this.updateModeButtons();
 };
 
+// Обновление внешнего вида кнопок режимов
 BattleModule.updateModeButtons = function() {
     const placeBtn = document.getElementById('placementModeBtn');
     const eraseBtn = document.getElementById('eraseModeBtn');
@@ -205,6 +210,7 @@ BattleModule.updateModeButtons = function() {
     }
 };
 
+// Изменение размера гекса
 BattleModule.setHexSize = function(size) {
     this.hexSize = parseInt(size);
     document.getElementById('hexSizeValue').textContent = size;
@@ -215,59 +221,46 @@ BattleModule.setHexSize = function(size) {
     this.highlightSelected();
 };
 
+// Изменение размера поля
 BattleModule.setGridSize = function(size) {
     size = parseInt(size);
     
+    // Сохраняем существ
     const oldCreatures = this.activeCreatures.map(c => ({
         ...c,
-        position: c.position ? { 
-            col: c.position.col, 
-            row: c.position.row 
-        } : null
+        position: c.position ? { col: c.position.col, row: c.position.row } : null
     }));
     
-    const oldObjects = this.hexes
-        .filter(h => h.object)
-        .map(h => ({ col: h.col, row: h.row, object: h.object }));
+    // Сохраняем объекты
+    const oldObjects = this.hexes.filter(h => h.object).map(h => ({ col: h.col, row: h.row, object: h.object }));
     
     this.cols = size;
     this.rows = size;
-    
     this.generateHexGrid(this.cols, this.rows);
     
+    // Восстанавливаем объекты
     oldObjects.forEach(obj => {
         if (obj.col < this.cols && obj.row < this.rows) {
             const hex = this.hexes.find(h => h.col === obj.col && h.row === obj.row);
-            if (hex) {
-                hex.object = obj.object;
-            }
+            if (hex) hex.object = obj.object;
         }
     });
     
+    // Восстанавливаем существ
     this.activeCreatures = [];
     oldCreatures.forEach(creature => {
-        if (creature.position && 
-            creature.position.col < this.cols && 
-            creature.position.row < this.rows) {
-            
-            const hex = this.hexes.find(h => 
-                h.col === creature.position.col && 
-                h.row === creature.position.row
-            );
-            
+        if (creature.position && creature.position.col < this.cols && creature.position.row < this.rows) {
+            const hex = this.hexes.find(h => h.col === creature.position.col && h.row === creature.position.row);
             if (hex) {
-                const newCreature = { ...creature };
-                this.activeCreatures.push(newCreature);
-                
-                hex.creature = newCreature.templateId;
-                hex.creatureId = newCreature.id;
+                this.activeCreatures.push(creature);
+                hex.creature = creature.templateId;
+                hex.creatureId = creature.id;
                 hex.occupied = true;
             }
         }
     });
     
     this.centerView();
-    
     this.drawGrid();
     this.highlightSelected();
     this.updateCreaturesList();
