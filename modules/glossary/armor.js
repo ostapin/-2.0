@@ -102,3 +102,4 @@ const armorData = {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = armorData;
 }
+window.armorData = armorData;
