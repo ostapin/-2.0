@@ -2,7 +2,7 @@
 if (!window.BattleModule) window.BattleModule = {};
 
 function initGlossaryItems() {
-    if (typeof metalsData === 'undefined' || typeof weaponsData === 'undefined') {
+    if (typeof metalsData === 'undefined' || typeof weaponsData === 'undefined' || typeof armorData === 'undefined') {
         console.warn('Глоссарий не загружен, повтор через 200ms');
         setTimeout(initGlossaryItems, 200);
         return;
@@ -12,10 +12,10 @@ function initGlossaryItems() {
     
     let count = 0;
     
-    // Оружие
+    // Оружие (с металлами)
     for (const metalId in metalsData) {
+        const metal = metalsData[metalId];
         for (const weaponId in weaponsData) {
-            const metal = metalsData[metalId];
             const weapon = weaponsData[weaponId];
             const slots = weapon.craft_slots || 1;
             const damage = (weapon.base_damage || 0) + metal.stats.durability;
@@ -31,37 +31,45 @@ function initGlossaryItems() {
                 durability: durability,
                 magic_potential: magic_potential,
                 attacks: weapon.attacks || {},
-                slots: slots
+                slots: slots,
+                metal: metalId
             };
             count++;
         }
     }
     
-    // Броня
-    if (typeof armorData !== 'undefined') {
+    // Броня (с металлами)
+    for (const metalId in metalsData) {
+        const metal = metalsData[metalId];
         for (const armorId in armorData) {
             const armor = armorData[armorId];
-            const itemId = armorId;
+            const slots = armor.craft_slots || 1;
+            const defense = (armor.base_defense || 0) + metal.stats.durability;
+            const durability = (armor.base_durability || 0) + metal.stats.durability;
+            const magic_potential = metal.stats.magic_potential * slots;
+            const itemId = `${metalId}_${armorId}`;
             
             window.ItemsDB.items[itemId] = {
                 id: itemId,
-                name: armor.name,
+                name: `${metal.name} ${armor.name}`,
                 type: 'armor',
-                armorClass: armor.base_defense + (armor.material ? armor.material.stats.durability : 0),
+                armorClass: defense,
+                durability: durability,
+                magic_potential: magic_potential,
                 slot: armorId.includes('helmet') ? 'helmet' :
                       armorId.includes('gauntlets') ? 'gauntlets' :
                       armorId.includes('cuirass') ? 'chest' :
                       armorId.includes('greaves') ? 'greaves' :
-                      armorId.includes('boots') ? 'boots' : 'chest',
-                durability: armor.base_durability || 0
+                      armorId.includes('boots') ? 'boots' :
+                      armorId.includes('chainmail') ? 'chest' : 'chest',
+                slots: slots,
+                metal: metalId
             };
             count++;
         }
-    } else {
-        console.warn('armorData не найдена');
     }
     
-    console.log(`✅ Загружено ${count} предметов в ItemsDB (оружие + броня)`);
+    console.log(`✅ Загружено ${count} предметов в ItemsDB (оружие + броня с металлами)`);
 }
 
 if (document.readyState === 'loading') {
