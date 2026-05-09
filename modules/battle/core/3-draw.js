@@ -1,124 +1,26 @@
 // modules/battle/core/3-draw.js
-// Отрисовка гексов, существ, объектов
+if (!window.BattleModule) window.BattleModule = {};
 
-BattleModule.drawGrid = function() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
-    this.ctx.save();
-    this.ctx.translate(this.offsetX, this.offsetY);
-    this.ctx.scale(this.scale, this.scale);
-    
-    this.ctx.strokeStyle = this.gridColor;
-    this.ctx.lineWidth = 2 / this.scale;
-    this.ctx.fillStyle = '#2a1a0f';
-    
-    this.hexes.forEach(hex => {
-        this.drawHexagon(hex.x, hex.y, false);
-    });
-    
-    if (this.moveModeActive && this.availableMoveHexes.length > 0) {
-        this.ctx.fillStyle = this.moveHighlightColor;
-        this.ctx.globalAlpha = 0.3;
-        this.availableMoveHexes.forEach(hex => {
-            this.drawHexagon(hex.x, hex.y, false);
-        });
-        this.ctx.globalAlpha = 1;
-        
-        if (this.showNumbers) {
-            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.shadowColor = '#000000';
-            this.ctx.shadowBlur = 4;
-            this.availableMoveHexes.forEach((hex, index) => {
-                this.ctx.fillText(index + 1, hex.x, hex.y);
-            });
-            this.ctx.shadowBlur = 0;
-        }
-    }
-    
-    if (this.attackModeActive && this.availableAttackTargets.length > 0) {
-        this.ctx.fillStyle = this.attackHighlightColor;
-        this.ctx.globalAlpha = 0.3;
-        this.availableAttackTargets.forEach(hex => {
-            this.drawHexagon(hex.x, hex.y, false);
-        });
-        this.ctx.globalAlpha = 1;
-        
-        if (this.showNumbers) {
-            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.shadowColor = '#000000';
-            this.ctx.shadowBlur = 4;
-            this.availableAttackTargets.forEach((hex, index) => {
-                this.ctx.fillText(index + 1, hex.x, hex.y);
-            });
-            this.ctx.shadowBlur = 0;
-        }
-    }
-    
-    if (this.rangedAttackModeActive && this.availableRangedTargets.length > 0) {
-        this.ctx.fillStyle = this.attackHighlightColor;
-        this.ctx.globalAlpha = 0.3;
-        this.availableRangedTargets.forEach(hex => {
-            this.drawHexagon(hex.x, hex.y, false);
-        });
-        this.ctx.globalAlpha = 1;
-        
-        if (this.showNumbers) {
-            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.shadowColor = '#000000';
-            this.ctx.shadowBlur = 4;
-            this.availableRangedTargets.forEach((hex, index) => {
-                this.ctx.fillText(index + 1, hex.x, hex.y);
-            });
-            this.ctx.shadowBlur = 0;
-        }
-    }
-    
-    this.hexes.forEach(hex => {
-        if (hex.object) {
-            this.drawObject(hex);
-        }
-    });
-    
-    this.hexes.forEach(hex => {
-        if (hex.creature) {
-            this.drawCreature(hex);
-        }
-    });
-    
-    this.ctx.strokeStyle = this.gridColor;
-    this.ctx.lineWidth = 2 / this.scale;
-    this.hexes.forEach(hex => {
-        this.drawHexagon(hex.x, hex.y, true);
-    });
-    
-    this.ctx.restore();
-};
-
+// Отрисовка гекса
 BattleModule.drawHexagon = function(x, y, stroke = true) {
+    if (!this.ctx) return;
+    
     this.ctx.beginPath();
     for (let i = 0; i < 6; i++) {
         const angle = i * Math.PI / 3 - Math.PI / 6;
         const hx = x + this.hexSize * Math.cos(angle);
         const hy = y + this.hexSize * Math.sin(angle);
         
-        if (i === 0) {
-            this.ctx.moveTo(hx, hy);
-        } else {
-            this.ctx.lineTo(hx, hy);
-        }
+        if (i === 0) this.ctx.moveTo(hx, hy);
+        else this.ctx.lineTo(hx, hy);
     }
     this.ctx.closePath();
     
-    if (stroke) {
-        this.ctx.stroke();
-    } else {
-        this.ctx.fill();
-    }
+    if (stroke) this.ctx.stroke();
+    else this.ctx.fill();
 };
 
+// Отрисовка существа
 BattleModule.drawCreature = function(hex) {
     const creature = this.creatures.find(c => c.id === hex.creature);
     if (!creature) return;
@@ -130,11 +32,8 @@ BattleModule.drawCreature = function(hex) {
                          this.turnOrder[this.currentTurnIndex] === hex.creatureId;
     
     let fillColor = creature.color;
-    if (isDead) {
-        fillColor = '#555555';
-    } else if (isCurrentTurn) {
-        fillColor = this.currentTurnHighlight;
-    }
+    if (isDead) fillColor = '#555555';
+    else if (isCurrentTurn) fillColor = this.currentTurnHighlight;
     
     this.ctx.fillStyle = fillColor;
     this.ctx.globalAlpha = isDead ? 0.5 : (isCurrentTurn ? 0.9 : 0.7);
@@ -160,12 +59,11 @@ BattleModule.drawCreature = function(hex) {
     }
     
     if (this.showNumbers && !isDead && creatureData) {
-        const creatureIndex = this.activeCreatures.findIndex(c => c.id === hex.creatureId) + 1;
+        const idx = this.activeCreatures.findIndex(c => c.id === hex.creatureId) + 1;
         this.ctx.font = `${this.hexSize * 0.5}px Arial`;
         this.ctx.fillStyle = '#ffffaa';
-        this.ctx.shadowColor = '#000000';
         this.ctx.shadowBlur = 3;
-        this.ctx.fillText(`#${creatureIndex}`, hex.x - this.hexSize/2, hex.y - this.hexSize/2);
+        this.ctx.fillText(`#${idx}`, hex.x - this.hexSize/2, hex.y - this.hexSize/2);
         this.ctx.shadowBlur = 0;
     }
     
@@ -199,6 +97,7 @@ BattleModule.drawCreature = function(hex) {
     }
 };
 
+// Отрисовка объекта
 BattleModule.drawObject = function(hex) {
     const object = this.objects.find(o => o.id === hex.object);
     if (!object) return;
@@ -213,4 +112,145 @@ BattleModule.drawObject = function(hex) {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.fillText(object.icon, hex.x, hex.y);
+};
+
+// Основная отрисовка
+BattleModule.drawGrid = function() {
+    if (!this.ctx) return;
+    
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    this.ctx.save();
+    this.ctx.translate(this.offsetX, this.offsetY);
+    this.ctx.scale(this.scale, this.scale);
+    
+    this.ctx.strokeStyle = this.gridColor;
+    this.ctx.lineWidth = 2 / this.scale;
+    this.ctx.fillStyle = '#2a1a0f';
+    
+    // Фон
+    this.hexes.forEach(hex => this.drawHexagon(hex.x, hex.y, false));
+    
+    // Подсветка движения
+    if (this.moveModeActive && this.availableMoveHexes && this.availableMoveHexes.length > 0) {
+        this.ctx.fillStyle = this.moveHighlightColor;
+        this.ctx.globalAlpha = 0.3;
+        this.availableMoveHexes.forEach(hex => this.drawHexagon(hex.x, hex.y, false));
+        this.ctx.globalAlpha = 1;
+        
+        if (this.showNumbers) {
+            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
+            this.ctx.fillStyle = '#ffffff';
+            this.availableMoveHexes.forEach((hex, index) => {
+                this.ctx.fillText(index + 1, hex.x, hex.y);
+            });
+        }
+    }
+    
+    // Подсветка ближней атаки
+    if (this.attackModeActive && this.availableAttackTargets && this.availableAttackTargets.length > 0) {
+        this.ctx.fillStyle = this.attackHighlightColor;
+        this.ctx.globalAlpha = 0.3;
+        this.availableAttackTargets.forEach(hex => this.drawHexagon(hex.x, hex.y, false));
+        this.ctx.globalAlpha = 1;
+        
+        if (this.showNumbers) {
+            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
+            this.ctx.fillStyle = '#ffffff';
+            this.availableAttackTargets.forEach((hex, index) => {
+                this.ctx.fillText(index + 1, hex.x, hex.y);
+            });
+        }
+    }
+    
+    // Подсветка дальней атаки
+    if (this.rangedAttackModeActive && this.availableRangedTargets && this.availableRangedTargets.length > 0) {
+        this.ctx.fillStyle = this.attackHighlightColor;
+        this.ctx.globalAlpha = 0.3;
+        this.availableRangedTargets.forEach(hex => this.drawHexagon(hex.x, hex.y, false));
+        this.ctx.globalAlpha = 1;
+        
+        if (this.showNumbers) {
+            this.ctx.font = `${this.hexSize * 0.8}px Arial`;
+            this.ctx.fillStyle = '#ffffff';
+            this.availableRangedTargets.forEach((hex, index) => {
+                this.ctx.fillText(index + 1, hex.x, hex.y);
+            });
+        }
+    }
+    
+    // Объекты
+    this.hexes.forEach(hex => {
+        if (hex.object) this.drawObject(hex);
+    });
+    
+    // Существа
+    this.hexes.forEach(hex => {
+        if (hex.creature) this.drawCreature(hex);
+    });
+    
+    // Обводка
+    this.ctx.strokeStyle = this.gridColor;
+    this.ctx.lineWidth = 2 / this.scale;
+    this.hexes.forEach(hex => this.drawHexagon(hex.x, hex.y, true));
+    
+    this.ctx.restore();
+};
+
+// Подсветка гекса
+BattleModule.highlightHex = function(hex, isHover = false) {
+    if (!this.ctx) return;
+    
+    this.ctx.save();
+    this.ctx.translate(this.offsetX, this.offsetY);
+    this.ctx.scale(this.scale, this.scale);
+    
+    this.ctx.strokeStyle = isHover ? '#ffd700' : this.highlightColor;
+    this.ctx.lineWidth = (isHover ? 3 : 4) / this.scale;
+    
+    this.drawHexagon(hex.x, hex.y, true);
+    
+    this.ctx.restore();
+};
+
+BattleModule.highlightSelected = function() {
+    if (this.selectedHex) {
+        this.highlightHex(this.selectedHex);
+    }
+};
+
+BattleModule.selectHex = function(hex) {
+    this.selectedHex = hex;
+    this.drawGrid();
+    this.highlightSelected();
+    if (this.updateHexInfo) this.updateHexInfo(hex);
+};
+
+BattleModule.updateHexInfo = function(hex) {
+    const info = document.getElementById('hexInfo');
+    if (!info) return;
+    
+    let creatureText = 'пусто';
+    let objectText = 'пусто';
+    
+    if (hex.creature) {
+        const creature = this.creatures.find(c => c.id === hex.creature);
+        creatureText = creature ? creature.name : 'неизвестно';
+    }
+    
+    if (hex.object) {
+        const object = this.objects.find(o => o.id === hex.object);
+        objectText = object ? object.name : 'неизвестно';
+    }
+    
+    info.innerHTML = `Гекс: ряд ${hex.row + 1}, колонка ${hex.col + 1}<br>👤 Существо: ${creatureText}<br>🌲 Объект: ${objectText}`;
+};
+
+BattleModule.toggleNumbers = function() {
+    this.showNumbers = !this.showNumbers;
+    const btn = document.getElementById('toggleNumbersBtn');
+    if (btn) {
+        btn.innerHTML = this.showNumbers ? '🔢 ВКЛ' : '🔢 ВЫКЛ';
+    }
+    this.drawGrid();
 };
