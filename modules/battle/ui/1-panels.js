@@ -1,6 +1,7 @@
 // modules/battle/ui/1-panels.js
-// Боковые панели (существа, очередь)
+if (!window.BattleModule) window.BattleModule = {};
 
+// Создание боковой панели со списком существ
 BattleModule.createSidePanel = function() {
     const container = document.querySelector('#battle-tab');
     if (!container) return;
@@ -8,19 +9,10 @@ BattleModule.createSidePanel = function() {
     const panel = document.createElement('div');
     panel.id = 'battleCreaturesPanel';
     panel.style.cssText = `
-        position: fixed;
-        left: 20px;
-        top: 200px;
-        width: 250px;
-        background: #2a1a0f;
-        border: 2px solid #8b4513;
-        border-radius: 8px;
-        padding: 15px;
-        color: #e0d0c0;
-        z-index: 1000;
-        display: none;
-        max-height: 400px;
-        flex-direction: column;
+        position: fixed; left: 20px; top: 200px; width: 250px;
+        background: #2a1a0f; border: 2px solid #8b4513; border-radius: 8px;
+        padding: 15px; color: #e0d0c0; z-index: 1000; display: none;
+        max-height: 400px; flex-direction: column;
     `;
     
     panel.innerHTML = `
@@ -35,6 +27,7 @@ BattleModule.createSidePanel = function() {
     container.appendChild(panel);
 };
 
+// Создание панели очередности ходов
 BattleModule.createTurnOrderPanel = function() {
     const container = document.querySelector('#battle-tab');
     if (!container) return;
@@ -42,19 +35,10 @@ BattleModule.createTurnOrderPanel = function() {
     const panel = document.createElement('div');
     panel.id = 'turnOrderPanel';
     panel.style.cssText = `
-        position: fixed;
-        right: 20px;
-        top: 200px;
-        width: 250px;
-        background: #2a1a0f;
-        border: 2px solid #d4af37;
-        border-radius: 8px;
-        padding: 15px;
-        color: #e0d0c0;
-        z-index: 1000;
-        display: none;
-        max-height: 450px;
-        flex-direction: column;
+        position: fixed; right: 20px; top: 200px; width: 250px;
+        background: #2a1a0f; border: 2px solid #d4af37; border-radius: 8px;
+        padding: 15px; color: #e0d0c0; z-index: 1000; display: none;
+        max-height: 450px; flex-direction: column;
     `;
     
     panel.innerHTML = `
@@ -70,7 +54,7 @@ BattleModule.createTurnOrderPanel = function() {
                 <button class="btn btn-roll" onclick="BattleModule.nextTurn()">⏭ Следующий ход</button>
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="btn btn-roll" id="toggleNumbersBtn" onclick="BattleModule.toggleNumbers()" style="flex: 1;">🔢 ВКЛ</button>
+                <button class="btn btn-roll" id="toggleNumbersBtn" onclick="BattleModule.toggleNumbers()">🔢 ВКЛ</button>
             </div>
         </div>
     `;
