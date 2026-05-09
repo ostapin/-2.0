@@ -656,39 +656,22 @@
 <script src="modules/draw-module.js"></script>
 <script src="js/draw.js"></script>
 
-<!-- Core -->
-<script src="modules/battle/core/1-grid.js"></script>
-<script src="modules/battle/core/2-camera.js"></script>
-<script src="modules/battle/core/3-draw.js"></script>
+<!-- =============================================== -->
+<!-- ГЛОССАРИЙ (Все данные) -->
+<!-- =============================================== -->
 
-<!-- Systems -->
-<script src="modules/battle/systems/1-creatures.js"></script>
-<script src="modules/battle/systems/2-turn.js"></script>
-<script src="modules/battle/systems/3-equipment.js"></script>
-<script src="modules/battle/systems/4-attacks.js"></script>
-<script src="modules/battle/systems/5-ranged.js"></script>
-
-<!-- UI -->
-<script src="modules/battle/ui/1-panels.js"></script>
-<script src="modules/battle/ui/2-popup.js"></script>
-<script src="modules/battle/ui/3-controls.js"></script>
-
-<!-- Init -->
-<script src="modules/battle/0-init.js"></script>
-
-<!-- Databases -->
-<script src="modules/battle/creatures-db.js"></script>
-<script src="modules/battle/items-db.js"></script>
-
-<!-- Глоссарий -->
+<!-- Металлы и оружие -->
 <script src="modules/glossary/metals.js"></script>
 <script src="modules/glossary/weapons.js"></script>
 <script src="modules/glossary/armor.js"></script>
 <script src="modules/glossary/currency.js"></script>
+
+<!-- Существа -->
 <script src="modules/glossary/creatures.js"></script>
 <script src="modules/glossary/undead.js"></script>
 <script src="modules/glossary/demons.js"></script>
 <script src="modules/glossary/giants.js"></script>
+
 <!-- Магия по школам -->
 <script src="modules/glossary/magic/fire.js"></script>
 <script src="modules/glossary/magic/water.js"></script>
@@ -707,6 +690,7 @@
 <script src="modules/glossary/magic/blood.js"></script>
 <script src="modules/glossary/magic/energy.js"></script>
 <script src="modules/glossary/magic/ether.js"></script>
+
 <!-- Глоссарий - разделённый на модули -->
 <script src="js/glossary/01-globals.js"></script>
 <script src="js/glossary/02-utils.js"></script>
@@ -717,8 +701,9 @@
 <script src="js/glossary/07-system.js"></script>
 <script src="js/glossary/08-other-systems.js"></script>
 <script src="js/glossary/09-books.js"></script>
-<script src="js/glossary/10-main.js"></script>  
-    <!-- Система (таблицы и механики) -->
+<script src="js/glossary/10-main.js"></script>
+
+<!-- Система (таблицы и механики) -->
 <script src="modules/glossary/system/loot.js"></script>
 <script src="modules/glossary/system/hacking.js"></script>
 <script src="modules/glossary/system/reaction.js"></script>
@@ -733,13 +718,47 @@
 <script src="modules/glossary/system/formation.js"></script>
 <script src="modules/glossary/system/crafting.js"></script>
 <script src="modules/glossary/system/smithing.js"></script>
-    <!-- Калькулятор -->
+
+<!-- Калькулятор -->
 <script src="modules/calculator/basic.js"></script>
 <script src="modules/calculator/gems.js"></script>
-    <!-- Игры -->
+
+<!-- Игры -->
 <script src="modules/games/games-manager.js"></script>
-    <!-- Библиотека (книги) -->
+
+<!-- Библиотека (книги) -->
 <script src="modules/glossary/books/books.js"></script>
 <script src="modules/glossary/books/books_skills.js"></script>
+
+<!-- =============================================== -->
+<!-- БОЕВКА -->
+<!-- =============================================== -->
+
+<!-- Адаптер глоссария (ПОСЛЕ глоссария, ПЕРЕД боевкой) -->
+<script src="modules/battle/battle-glossary-adapter.js"></script>
+
+<!-- CORE (ядро) -->
+<script src="modules/battle/core/1-grid.js"></script>
+<script src="modules/battle/core/2-camera.js"></script>
+<script src="modules/battle/core/3-draw.js"></script>
+
+<!-- SYSTEMS (системы) -->
+<script src="modules/battle/systems/1-creatures.js"></script>
+<script src="modules/battle/systems/2-turn.js"></script>
+<script src="modules/battle/systems/3-equipment.js"></script>
+<script src="modules/battle/systems/4-attacks.js"></script>
+<script src="modules/battle/systems/5-ranged.js"></script>
+
+<!-- UI (интерфейс) -->
+<script src="modules/battle/ui/1-panels.js"></script>
+<script src="modules/battle/ui/2-popup.js"></script>
+<script src="modules/battle/ui/3-controls.js"></script>
+
+<!-- INIT (инициализация) -->
+<script src="modules/battle/0-init.js"></script>
+
+<!-- DATABASES (базы данных) -->
+<script src="modules/battle/creatures-db.js"></script>
+
 </body>
 </html>
