@@ -26,24 +26,28 @@ BattleModule.openEquipmentPanel = function(creatureId) {
     });
     const metalsList = Array.from(metalSet).sort();
     
-    // Кнопки фильтров с прокруткой
-    let filterHtml = '<div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; max-height: 100px; overflow-y: auto; padding: 5px;">';
-    filterHtml += '<button class="btn btn-small" onclick="BattleModule.currentMetalFilter = null; BattleModule.refreshEquipmentList()">Все</button>';
+    // Выпадающий список металлов
+    let filterHtml = `
+        <div style="margin-bottom: 15px; flex-shrink: 0;">
+            <label style="color: #d4af37; margin-right: 10px;">Фильтр по металлу:</label>
+            <select id="metalFilterSelect" style="background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513; padding: 5px 10px; border-radius: 4px;" onchange="BattleModule.currentMetalFilter = this.value === 'all' ? null : this.value; BattleModule.refreshEquipmentList()">
+                <option value="all">Все металлы</option>
+    `;
     metalsList.forEach(metalId => {
         let metalName = metalId;
         if (window.metalsData && window.metalsData[metalId]) {
             metalName = window.metalsData[metalId].name;
         }
-        filterHtml += `<button class="btn btn-small" onclick="BattleModule.currentMetalFilter = '${metalId}'; BattleModule.refreshEquipmentList()">${metalName}</button>`;
+        filterHtml += `<option value="${metalId}">${metalName}</option>`;
     });
-    filterHtml += '</div>';
+    filterHtml += `</select></div>`;
     
     // Контейнер для списка предметов с прокруткой
-    const itemsContainer = '<div id="equipmentItemsList" style="flex-grow: 1; overflow-y: auto; min-height: 300px; max-height: 400px;"></div>';
+    const itemsContainer = '<div id="equipmentItemsList" style="flex-grow: 1; overflow-y: auto; min-height: 300px;"></div>';
     
     // Стрелы
     const arrowsHtml = `
-        <div style="background: #1a0f0b; margin-top: 15px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513;">
+        <div style="background: #1a0f0b; margin-top: 15px; padding: 10px; border-radius: 4px; border: 1px solid #8b4513; flex-shrink: 0;">
             <div style="font-weight: bold; color: #d4af37; margin-bottom: 5px;">🏹 СТРЕЛЫ</div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="number" id="arrowCount" value="${creature.equipment?.arrows || 10}" min="1" max="100" style="width: 80px; padding: 6px; background: #1a0f0b; color: #e0d0c0; border: 1px solid #8b4513;">
