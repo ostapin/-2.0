@@ -656,10 +656,30 @@
 <script src="modules/draw-module.js"></script>
 <script src="js/draw.js"></script>
 
-<!-- Модуль боя и база данных -->
-<script src="modules/battle-module.js"></script>
-<script src="modules/creatures-db.js"></script>
-<script src="modules/items-db.js"></script>
+<!-- Боевка -->
+<!-- Ядро -->
+<script src="modules/battle/core/1-grid.js"></script>
+<script src="modules/battle/core/2-camera.js"></script>
+<script src="modules/battle/core/3-draw.js"></script>
+
+<!-- Системы -->
+<script src="modules/battle/systems/1-creatures.js"></script>
+<script src="modules/battle/systems/2-turn.js"></script>
+<script src="modules/battle/systems/3-equipment.js"></script>
+<script src="modules/battle/systems/4-attacks.js"></script>
+<script src="modules/battle/systems/5-ranged.js"></script>
+
+<!-- UI -->
+<script src="modules/battle/ui/1-panels.js"></script>
+<script src="modules/battle/ui/2-popup.js"></script>
+<script src="modules/battle/ui/3-controls.js"></script>
+
+<!-- Инициализация -->
+<script src="modules/battle/0-init.js"></script>
+
+<!-- Базы данных -->
+<script src="modules/battle/creatures-db.js"></script>
+<script src="modules/battle/items-db.js"></script>
 
 <!-- Глоссарий -->
 <script src="modules/glossary/metals.js"></script>
