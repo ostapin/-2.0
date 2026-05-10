@@ -110,7 +110,28 @@ function initGlossaryItems() {
     
     console.log(`✅ Загружено ${count} предметов в ItemsDB (оружие + броня с металлами)`);
 }
-
+    // Боеприпасы (стрелы, болты, метательное оружие)
+    const ammoItems = {
+        arrow: { name: 'Стрела', base_damage: 5, type: 'arrow', stackable: true },
+        bolt: { name: 'Болт', base_damage: 6, type: 'bolt', stackable: true },
+        throwing_dagger: { name: 'Метательный кинжал', base_damage: 5, type: 'thrown', stackable: true },
+        throwing_star: { name: 'Метательная звездочка', base_damage: 6, type: 'thrown', stackable: true },
+        throwing_axe: { name: 'Метательный топор', base_damage: 8, type: 'thrown', stackable: true }
+    };
+    
+    for (const ammoId in ammoItems) {
+        const ammo = ammoItems[ammoId];
+        window.ItemsDB.items[ammoId] = {
+            id: ammoId,
+            name: ammo.name,
+            type: 'ammo',
+            ammoType: ammo.type,
+            damage: ammo.base_damage,
+            stackable: true,
+            count: 0 // количество будет храниться в экипировке существа
+        };
+        count++;
+    }
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGlossaryItems);
 } else {
