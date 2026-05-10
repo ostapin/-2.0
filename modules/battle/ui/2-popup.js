@@ -48,8 +48,9 @@ BattleModule.openCreaturePanel = function(creatureId) {
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; font-size: 12px;">
                     <div><span style="color: #b89a7a;">Оружие:</span> ${creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon]?.name || 'пусто') : 'пусто'}</div>
-                    <div><span style="color: #b89a7a;">Броня:</span> пусто</div>
-                    <div><span style="color: #b89a7a;">Щит:</span> пусто</div>
+<div><span style="color: #b89a7a;">Броня:</span> ${creature.equipment.chest ? (window.ItemsDB?.items[creature.equipment.chest]?.name || 'пусто') : 'пусто'}</div>
+<div><span style="color: #b89a7a;">Щит:</span> ${creature.equipment.shield ? (window.ItemsDB?.items[creature.equipment.shield]?.name || 'пусто') : 'пусто'}</div>
+<div><span style="color: #b89a7a;">Боеприпасы:</span> 🏹${creature.ammo?.arrow || 0} ⚙️${creature.ammo?.bolt || 0} 🗡️${creature.ammo?.throwing_dagger || 0} ⭐${creature.ammo?.throwing_star || 0} 🪓${creature.ammo?.throwing_axe || 0}</div>
                 </div>
             </div>
         `;
