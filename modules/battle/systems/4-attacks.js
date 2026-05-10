@@ -269,3 +269,71 @@ BattleModule.performAttack = function(attacker, defender, attackType) {
     this.drawGrid();
     this.updateCreaturesList();
 };
+// Выполнение атаки (расчёт урона с учётом боеприпасов)
+BattleModule.performAttack = function(attacker, defender, attackType) {
+    const weapon = attacker.equipment.weapon ? (window.ItemsDB?.items[attacker.equipment.weapon] || null) : null;
+    if (!weapon) return;
+    
+    const attack = weapon.attacks[attackType];
+    if (!attack) return;
+    
+    // Инициализируем инвентарь боеприпасов
+    if (!attacker.ammo) {
+        attacker.ammo = { arrow: 0, bolt: 0, throwing_dagger: 0, throwing_star: 0, throwing_axe: 0 };
+    }
+    
+    let damage = weapon.damage || 0;
+    let ammoUsed = false;
+    
+    // Для лука или арбалета
+    if (weapon.id?.includes('bow') || weapon.id?.includes('crossbow')) {
+        const ammoType = weapon.id?.includes('bow') ? 'arrow' : 'bolt';
+        if (attacker.ammo[ammoType] <= 0) {
+            alert(`Нет ${ammoType === 'arrow' ? 'стрел' : 'болтов'}!`);
+            return;
+        }
+        // Урон стрелы/болта
+        const ammoItem = window.ItemsDB?.items[ammoType];
+        damage += ammoItem?.damage || 5;
+        attacker.ammo[ammoType]--;
+        ammoUsed = true;
+    }
+    
+    // Для метательного оружия
+    if (attackType === 'thrown') {
+        const weaponId = weapon.id?.split('_').slice(1).join('_');
+        let ammoType = null;
+        if (weaponId?.includes('throwing_dagger')) ammoType = 'throwing_dagger';
+        else if (weaponId?.includes('throwing_star')) ammoType = 'throwing_star';
+        else if (weaponId?.includes('throwing_axe')) ammoType = 'throwing_axe';
+        
+        if (ammoType && attacker.ammo[ammoType] <= 0) {
+            alert(`Нет ${weapon.name}!`);
+            return;
+        }
+        if (ammoType) {
+            attacker.ammo[ammoType]--;
+            ammoUsed = true;
+        }
+    }
+    
+    defender.currentHp = Math.max(0, defender.currentHp - damage);
+    
+    const hex = this.hexes.find(h => h.creatureId === defender.id);
+    if (hex && defender.currentHp === 0) {
+        hex.creature = null;
+        hex.creatureId = null;
+        hex.occupied = false;
+        this.updateTurnOrder();
+    }
+    
+    this.drawGrid();
+    this.updateCreaturesList();
+    
+    // Обновляем панель чтобы показать новый остаток боеприпасов
+    if (this.openEquipmentPanel && ammoUsed) {
+        const panel = document.getElementById('equipmentPanel');
+        if (panel) panel.remove();
+        this.openEquipmentPanel(attacker.id);
+    }
+};
