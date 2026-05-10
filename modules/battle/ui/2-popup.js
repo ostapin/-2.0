@@ -50,7 +50,6 @@ BattleModule.openCreaturePanel = function(creatureId) {
                     <div><span style="color: #b89a7a;">Оружие:</span> ${creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon]?.name || 'пусто') : 'пусто'}</div>
                     <div><span style="color: #b89a7a;">Броня:</span> пусто</div>
                     <div><span style="color: #b89a7a;">Щит:</span> пусто</div>
-                    <div><span style="color: #b89a7a;">Стрелы:</span> ${creature.equipment.arrows || 0} шт</div>
                 </div>
             </div>
         `;
