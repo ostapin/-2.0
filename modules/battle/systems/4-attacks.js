@@ -13,7 +13,7 @@ BattleModule.prepareAttack = function(creatureId, attackType) {
     
     // Если есть подготовленная атака - используем её
     if (creature.hasPreparedAttack && creature.preparedAttackType === attackType) {
-        const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
+        const weapon = creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon] || null) : null;
         if (!weapon) return;
         const attack = weapon.attacks[attackType];
         if (!attack) return;
@@ -33,7 +33,7 @@ BattleModule.prepareAttack = function(creatureId, attackType) {
         return;
     }
     
-    const weapon = creature.equipment.weapon ? ItemsDB.get(creature.equipment.weapon) : null;
+    const weapon = creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon] || null) : null;
     if (!weapon) {
         alert('Нет оружия!');
         return;
@@ -240,18 +240,19 @@ BattleModule.tryRangedAttack = function(targetHex) {
 
 // Выполнение атаки (расчёт урона)
 BattleModule.performAttack = function(attacker, defender, attackType) {
-    const weapon = attacker.equipment.weapon ? ItemsDB.get(attacker.equipment.weapon) : null;
+    const weapon = attacker.equipment.weapon ? (window.ItemsDB?.items[attacker.equipment.weapon] || null) : null;
     if (!weapon) return;
     
     const attack = weapon.attacks[attackType];
     if (!attack) return;
     
-    const material = attacker.equipment.weaponMaterial || 'steel';
-    let damage = attack.materialDamage[material] || 0;
+    // Получаем урон из атаки для текущего металла
+    const metal = attacker.equipment.weaponMetal || 'steel';
+    let damage = attack.materialDamage?.[metal] || weapon.damage || 0;
     
-    if (weapon.ammoType === 'arrow' && attacker.equipment.arrows > 0) {
-        const arrowDamage = ItemsDB.get('arrow').materialDamage[attacker.equipment.arrowMaterial || 'steel'] || 0;
-        damage += arrowDamage;
+    // Для лука добавляем урон стрелы
+    if (weapon.id?.includes('bow') && attacker.equipment.arrows > 0) {
+        damage += 5; // базовый урон стрелы
         attacker.equipment.arrows--;
     }
     
