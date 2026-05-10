@@ -15,8 +15,6 @@ BattleModule.prepareAttack = function(creatureId, attackType) {
     if (creature.hasPreparedAttack && creature.preparedAttackType === attackType) {
         const weapon = creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon] || null) : null;
         if (!weapon) return;
-        const attack = weapon.attacks[attackType];
-        if (!attack) return;
         
         if (attackType === 'shoot' || attackType === 'thrown') {
             this.activateRangedAttackMode(creatureId, attackType);
@@ -79,6 +77,17 @@ BattleModule.activateAttackMode = function(creatureId, attackType) {
 BattleModule.activateRangedAttackMode = function(creatureId, attackType) {
     const creature = this.activeCreatures.find(c => c.id === creatureId);
     if (!creature || !creature.position) return;
+    
+    // Проверяем наличие боеприпасов для лука
+    const weapon = creature.equipment.weapon ? (window.ItemsDB?.items[creature.equipment.weapon] || null) : null;
+    if (weapon && (weapon.id?.includes('bow') || weapon.id?.includes('crossbow'))) {
+        const ammoType = weapon.id?.includes('bow') ? 'arrow' : 'bolt';
+        if (!creature.ammo) creature.ammo = {};
+        if (creature.ammo[ammoType] <= 0) {
+            alert(`Нет ${ammoType === 'arrow' ? 'стрел' : 'болтов'}!`);
+            return;
+        }
+    }
     
     this.attackModeActive = false;
     this.rangedAttackModeActive = true;
@@ -238,37 +247,6 @@ BattleModule.tryRangedAttack = function(targetHex) {
     if (this.turnActive) this.nextTurn();
 };
 
-// Выполнение атаки (расчёт урона)
-BattleModule.performAttack = function(attacker, defender, attackType) {
-    const weapon = attacker.equipment.weapon ? (window.ItemsDB?.items[attacker.equipment.weapon] || null) : null;
-    if (!weapon) return;
-    
-    const attack = weapon.attacks[attackType];
-    if (!attack) return;
-    
-    // Получаем урон из атаки для текущего металла
-    const metal = attacker.equipment.weaponMetal || 'steel';
-    let damage = attack.materialDamage?.[metal] || weapon.damage || 0;
-    
-    // Для лука добавляем урон стрелы
-    if (weapon.id?.includes('bow') && attacker.equipment.arrows > 0) {
-        damage += 5; // базовый урон стрелы
-        attacker.equipment.arrows--;
-    }
-    
-    defender.currentHp = Math.max(0, defender.currentHp - damage);
-    
-    const hex = this.hexes.find(h => h.creatureId === defender.id);
-    if (hex && defender.currentHp === 0) {
-        hex.creature = null;
-        hex.creatureId = null;
-        hex.occupied = false;
-        this.updateTurnOrder();
-    }
-    
-    this.drawGrid();
-    this.updateCreaturesList();
-};
 // Выполнение атаки (расчёт урона с учётом боеприпасов)
 BattleModule.performAttack = function(attacker, defender, attackType) {
     const weapon = attacker.equipment.weapon ? (window.ItemsDB?.items[attacker.equipment.weapon] || null) : null;
@@ -290,6 +268,8 @@ BattleModule.performAttack = function(attacker, defender, attackType) {
         const ammoType = weapon.id?.includes('bow') ? 'arrow' : 'bolt';
         if (attacker.ammo[ammoType] <= 0) {
             alert(`Нет ${ammoType === 'arrow' ? 'стрел' : 'болтов'}!`);
+            this.rangedAttackModeActive = false;
+            this.drawGrid();
             return;
         }
         // Урон стрелы/болта
@@ -309,6 +289,8 @@ BattleModule.performAttack = function(attacker, defender, attackType) {
         
         if (ammoType && attacker.ammo[ammoType] <= 0) {
             alert(`Нет ${weapon.name}!`);
+            this.rangedAttackModeActive = false;
+            this.drawGrid();
             return;
         }
         if (ammoType) {
@@ -330,10 +312,12 @@ BattleModule.performAttack = function(attacker, defender, attackType) {
     this.drawGrid();
     this.updateCreaturesList();
     
-    // Обновляем панель чтобы показать новый остаток боеприпасов
-    if (this.openEquipmentPanel && ammoUsed) {
-        const panel = document.getElementById('equipmentPanel');
-        if (panel) panel.remove();
-        this.openEquipmentPanel(attacker.id);
+    // Обновляем панель экипировки если открыта
+    if (ammoUsed) {
+        const equipPanel = document.getElementById('equipmentPanel');
+        if (equipPanel && this.openEquipmentPanel) {
+            equipPanel.remove();
+            this.openEquipmentPanel(attacker.id);
+        }
     }
 };
