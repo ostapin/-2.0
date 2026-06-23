@@ -2,6 +2,21 @@ const SAVE_KEY = 'dnd_character_data';
 
 function saveAllData() {
     try {
+        const allSkills = {};
+        document.querySelectorAll('.skill-row').forEach(row => {
+            const nameSpans = row.querySelectorAll('.skill-name span');
+            let name = '';
+            for (let span of nameSpans) {
+                const text = span.textContent.trim();
+                if (text && text !== '🎯' && text !== '🔮') {
+                    name = text;
+                    break;
+                }
+            }
+            const value = row.querySelector('.skill-value')?.textContent?.trim();
+            if (name) allSkills[name] = value;
+        });
+
         const data = {
             name: document.getElementById('characterName')?.value || '',
             surname: document.getElementById('characterSurname')?.value || '',
@@ -17,24 +32,12 @@ function saveAllData() {
             level: document.getElementById('currentLevel')?.innerText || '0',
             exp: document.getElementById('currentExp')?.value || '0',
             freePoints: document.getElementById('freePoints')?.value || '0',
-            skills: {}
+            skills: allSkills,
+            savedAt: new Date().toISOString()
         };
 
-        // Сохраняем ВСЕ навыки (автоматически находит любые)
-        document.querySelectorAll('.skill-row').forEach(row => {
-            const nameSpan = row.querySelector('.skill-name span:last-child');
-            const valueSpan = row.querySelector('.skill-value');
-            if (nameSpan && valueSpan) {
-                const name = nameSpan.textContent.trim();
-                const value = valueSpan.textContent.trim();
-                if (name && value) {
-                    data.skills[name] = value;
-                }
-            }
-        });
-
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-        console.log('✅ Сохранено! Навыков:', Object.keys(data.skills).length);
+        console.log('✅ Сохранено! Навыков:', Object.keys(allSkills).length);
         return true;
     } catch (e) {
         console.error('Ошибка сохранения:', e);
@@ -45,9 +48,13 @@ function saveAllData() {
 function loadAllData() {
     try {
         const saved = localStorage.getItem(SAVE_KEY);
-        if (!saved) return false;
+        if (!saved) {
+            console.log('Нет сохранений');
+            return false;
+        }
 
         const data = JSON.parse(saved);
+        console.log('📂 Загрузка... Навыков:', Object.keys(data.skills || {}).length);
 
         // Основные поля
         const fields = {
@@ -74,16 +81,21 @@ function loadAllData() {
         const levelEl = document.getElementById('currentLevel');
         if (levelEl) levelEl.innerText = data.level || '0';
 
-        // Загружаем ВСЕ навыки
+        // Загружаем навыки
         if (data.skills) {
             document.querySelectorAll('.skill-row').forEach(row => {
-                const nameSpan = row.querySelector('.skill-name span:last-child');
-                const valueSpan = row.querySelector('.skill-value');
-                if (nameSpan && valueSpan) {
-                    const name = nameSpan.textContent.trim();
-                    if (data.skills[name] !== undefined) {
-                        valueSpan.textContent = data.skills[name];
+                const nameSpans = row.querySelectorAll('.skill-name span');
+                let name = '';
+                for (let span of nameSpans) {
+                    const text = span.textContent.trim();
+                    if (text && text !== '🎯' && text !== '🔮') {
+                        name = text;
+                        break;
                     }
+                }
+                const valueSpan = row.querySelector('.skill-value');
+                if (name && data.skills[name] !== undefined) {
+                    valueSpan.textContent = data.skills[name];
                 }
             });
         }
@@ -96,10 +108,21 @@ function loadAllData() {
     }
 }
 
-// Запуск
-document.addEventListener('DOMContentLoaded', function() {
-    loadAllData();
+// ========== АВТОЗАГРУЗКА С ЗАДЕРЖКОЙ ==========
+function initSaveSystem() {
+    console.log('🚀 Инициализация...');
+    
+    // Ждем когда все элементы загрузятся
+    setTimeout(function() {
+        loadAllData();
+    }, 500);
+    
+    // Еще одна попытка через 1 секунду (на случай если skills еще не отрендерились)
+    setTimeout(function() {
+        loadAllData();
+    }, 1500);
 
+    // Автосохранение
     document.addEventListener('change', function(e) {
         if (e.target.matches('input, select')) saveAllData();
     });
@@ -112,8 +135,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     window.addEventListener('beforeunload', saveAllData);
-    console.log('✅ Система сохранения готова');
-});
+    console.log('✅ Система сохранения готова!');
+}
+
+// Запуск
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSaveSystem);
+} else {
+    initSaveSystem();
+}
 
 window.saveAllData = saveAllData;
 window.loadAllData = loadAllData;
