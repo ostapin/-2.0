@@ -1,40 +1,62 @@
 // ========== МОДУЛЬ НАВЫКОВ ==========
-// ДОБАВИТЬ ЭТУ ФУНКЦИЮ ДЛЯ ПРАВИЛЬНОГО ОТОБРАЖЕНИЯ НАВЫКОВ
+
+// ========== ФУНКЦИИ РАБОТЫ С НАВЫКАМИ (НОВАЯ ВЕРСИЯ - ИСПОЛЬЗУЕТ SkillsSave) ==========
 function getSkillValue(skillName) {
+    if (typeof SkillsSave !== 'undefined') {
+        return SkillsSave.get(skillName);
+    }
+    // fallback если SkillsSave не загружен
     if (!currentCharacterId || !characters[currentCharacterId]) return 5;
-    
     const character = characters[currentCharacterId];
     return character.skills?.[skillName] || 5;
 }
 
 function setSkillValue(skillName, value) {
+    if (typeof SkillsSave !== 'undefined') {
+        SkillsSave.set(skillName, value);
+        return;
+    }
+    // fallback
     if (!currentCharacterId || !characters[currentCharacterId]) return;
-    
     if (!characters[currentCharacterId].skills) {
         characters[currentCharacterId].skills = {};
     }
-    
     characters[currentCharacterId].skills[skillName] = Math.max(5, value);
     saveCharacters();
 }
 
-// ДОБАВИТЬ ЭТИ ФУНКЦИИ ДЛЯ РАБОТЫ С ОЧКАМИ
 function getFreePoints() {
+    if (typeof SkillsSave !== 'undefined') {
+        return SkillsSave.getPoints();
+    }
+    // fallback
     if (!currentCharacterId || !characters[currentCharacterId]) return 0;
     return characters[currentCharacterId].freePoints || 0;
 }
 
 function setFreePoints(value) {
+    if (typeof SkillsSave !== 'undefined') {
+        SkillsSave.setPoints(value);
+        return;
+    }
+    // fallback
     if (!currentCharacterId || !characters[currentCharacterId]) return;
     characters[currentCharacterId].freePoints = Math.max(0, value);
     updateUI();
-} 
+}
 
 function renderSkills() {
     const container = document.getElementById('skillsContainer');
     if (!container) return;
     
     container.innerHTML = '';
+
+    // Проверяем существование skillsStructure
+    if (typeof skillsStructure === 'undefined') {
+        console.error('skillsStructure не определён!');
+        container.innerHTML = '<p>Ошибка: структура навыков не загружена</p>';
+        return;
+    }
 
     for (const [groupName, skills] of Object.entries(skillsStructure)) {
         const section = document.createElement('div');
@@ -60,6 +82,8 @@ function renderSkills() {
             const lockBtnClass = isLocked ? 'btn-lock locked' : 'btn-lock';
             
             const skillValue = getSkillValue(skill);
+            const freePoints = getFreePoints();
+            
             skillRow.innerHTML = `
                 <div class="skill-name">
                     <span>🎯</span>
@@ -69,7 +93,7 @@ function renderSkills() {
                 <div class="skill-controls">
                     <button class="btn btn-minus" onclick="decreaseSkill('${skill}')" ${isLocked ? 'disabled' : (skillValue <= 5 ? 'disabled' : '')}>-</button>
                     <span class="skill-value" id="skill-${skill}">${skillValue}</span>
-                    <button class="btn btn-plus" onclick="increaseSkill('${skill}')" ${isLocked ? 'disabled' : (getFreePoints() <= 0 ? 'disabled' : '')}>+</button>
+                    <button class="btn btn-plus" onclick="increaseSkill('${skill}')" ${isLocked ? 'disabled' : (freePoints <= 0 ? 'disabled' : '')}>+</button>
                     <button class="${lockBtnClass}" onclick="toggleSkillLock('${skill}')" title="${isLocked ? 'Разблокировать' : 'Заблокировать'}">${lockBtnText}</button>
                     <button class="btn btn-roll" onclick="rollSkill('${skill}')" ${isLocked ? 'disabled' : ''}>Бросок</button>
                 </div>
@@ -91,7 +115,10 @@ function toggleSkillLock(skillName) {
     const currentlyLocked = isSkillLocked(skillName);
     
     // Список навыков, требующих разрешения мастера
-    const masterApprovalSkills = ["Руны", "Формации", "Ремесло", ...skillsStructure["🔮 МАГИЯ"]];
+    const masterApprovalSkills = ["Руны", "Формации", "Ремесло"];
+    if (typeof skillsStructure !== 'undefined' && skillsStructure["🔮 МАГИЯ"]) {
+        masterApprovalSkills.push(...skillsStructure["🔮 МАГИЯ"]);
+    }
     
     if (currentlyLocked) {
         // РАЗБЛОКИРОВКА
@@ -129,8 +156,13 @@ function increaseSkill(skillName) {
         return;
     }
     
-    const isMagicSkill = skillsStructure["🔮 МАГИЯ"].includes(skillName);
-    if (isMagicSkill && !availableMagicSchools[skillName] && getSkillValue(skillName) <= 5) {
+    // Проверка на магию
+    if (typeof skillsStructure !== 'undefined' && 
+        skillsStructure["🔮 МАГИЯ"] && 
+        skillsStructure["🔮 МАГИЯ"].includes(skillName) && 
+        !availableMagicSchools[skillName] && 
+        getSkillValue(skillName) <= 5) {
+        
         const masterPermission = confirm(
             `🔮 Вы пытаетесь изучить недоступную магию!\n\n` +
             `Навык "${skillName}" не доступен для вашей расы.\n` +
@@ -143,18 +175,32 @@ function increaseSkill(skillName) {
             setSkillValue(skillName, 5);
             updateMagicSkillsDisplay();
             updateUI();
-            renderSkills(); // ДОБАВЛЕНО - перерисовка после разблокировки
+            renderSkills();
         }
         return;
     }
     
-    const freePoints = getFreePoints();
-    if (freePoints > 0) {
-        const skillValue = getSkillValue(skillName);
-        setSkillValue(skillName, skillValue + 1);
-        setFreePoints(freePoints - 1);
-        updateUI();
-        renderSkills(); // ДОБАВЛЕНО - перерисовка после увеличения навыка
+    // ИСПОЛЬЗУЕМ НОВУЮ СИСТЕМУ СОХРАНЕНИЯ
+    if (typeof SkillsSave !== 'undefined') {
+        const result = SkillsSave.change(skillName, 1);
+        
+        if (result) {
+            // Обновляем отображение
+            updateUI();
+            renderSkills();
+        } else {
+            alert('❌ Недостаточно свободных очков навыков!');
+        }
+    } else {
+        // fallback на старую систему
+        const freePoints = getFreePoints();
+        if (freePoints > 0) {
+            const skillValue = getSkillValue(skillName);
+            setSkillValue(skillName, skillValue + 1);
+            setFreePoints(freePoints - 1);
+            updateUI();
+            renderSkills();
+        }
     }
 }
 
@@ -166,15 +212,26 @@ function decreaseSkill(skillName) {
     
     const skillValue = getSkillValue(skillName);
     if (skillValue > 5) {
-        const freePoints = getFreePoints();
-        setSkillValue(skillName, skillValue - 1);
-        setFreePoints(freePoints + 1);
+        // ИСПОЛЬЗУЕМ НОВУЮ СИСТЕМУ СОХРАНЕНИЯ
+        if (typeof SkillsSave !== 'undefined') {
+            SkillsSave.change(skillName, -1);
+        } else {
+            // fallback
+            const freePoints = getFreePoints();
+            setSkillValue(skillName, skillValue - 1);
+            setFreePoints(freePoints + 1);
+        }
+        
+        // Обновляем отображение
         updateUI();
-        renderSkills(); // ДОБАВЛЕНО - перерисовка после уменьшения навыка
+        renderSkills();
     }
 }
 
 function addToSkillHistory(skillName, rollData) {
+    if (typeof skillRollHistory === 'undefined') {
+        window.skillRollHistory = {};
+    }
     if (!skillRollHistory[skillName]) {
         skillRollHistory[skillName] = [];
     }
@@ -188,10 +245,15 @@ function addToSkillHistory(skillName, rollData) {
         skillRollHistory[skillName].pop();
     }
     
-    saveSkillRollHistory();
+    if (typeof saveSkillRollHistory === 'function') {
+        saveSkillRollHistory();
+    }
 }
 
 function getSkillHistory(skillName) {
+    if (typeof skillRollHistory === 'undefined') {
+        window.skillRollHistory = {};
+    }
     return skillRollHistory[skillName] || [];
 }
 
@@ -258,6 +320,10 @@ function showRollResult(skillName, skillValue, dice, total, resultText, resultCl
         historyHTML += `</div></div>`;
     }
     
+    // Удаляем старый попап если есть
+    const oldPopup = document.querySelector('.popup');
+    if (oldPopup) oldPopup.remove();
+    
     const popup = document.createElement('div');
     popup.className = 'popup';
     popup.innerHTML = `
@@ -281,5 +347,26 @@ function showRollResult(skillName, skillValue, dice, total, resultText, resultCl
     `;
     document.body.appendChild(popup);
 }
-// ========== БЛОКИРОВКА НАЧАЛЬНЫХ НАВЫКОВ ==========
 
+// ========== БЛОКИРОВКА НАЧАЛЬНЫХ НАВЫКОВ ==========
+// Эта функция вызывается при инициализации
+function initSkillLocks() {
+    // Если lockedSkills не определён, создаём
+    if (typeof lockedSkills === 'undefined') {
+        window.lockedSkills = {};
+    }
+    
+    // Загружаем сохранённые блокировки
+    if (typeof loadLockedSkills === 'function') {
+        loadLockedSkills();
+    }
+}
+
+// Вызываем инициализацию при загрузке
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSkillLocks);
+} else {
+    initSkillLocks();
+}
+
+console.log('✅ Модуль навыков загружен (использует SkillsSave)');
