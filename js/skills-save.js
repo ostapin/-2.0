@@ -257,3 +257,4 @@
     init();
 
 })();
+window.SkillsSave = SkillsSave;
