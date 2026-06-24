@@ -53,6 +53,7 @@ function selectCategory(category) {
     document.getElementById('creaturesSubcategory').style.display = 'none';
     document.getElementById('magicSubcategory').style.display = 'none';
     document.getElementById('systemSubcategory').style.display = 'none';
+    document.getElementById('skillsSubcategory').style.display = 'none';
     
     if (category === 'items') {
         document.getElementById('itemsSubcategory').style.display = 'block';
