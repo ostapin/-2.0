@@ -178,6 +178,30 @@ function applyFilters() {
         return;
     }
     
+    if (currentSubcategory === 'heavy_armor' || currentSubcategory === 'light_armor' || 
+        currentSubcategory === 'two_handed' || currentSubcategory === 'one_handed' ||
+        currentSubcategory === 'shooting' || currentSubcategory === 'blocking' ||
+        currentSubcategory === 'polearm' || currentSubcategory === 'hand_to_hand' ||
+        currentSubcategory === 'throwing' || currentSubcategory === 'stealth' ||
+        currentSubcategory === 'eloquence' || currentSubcategory === 'dexterity' ||
+        currentSubcategory === 'endurance' || currentSubcategory === 'hacking' ||
+        currentSubcategory === 'perception' || currentSubcategory === 'luck' ||
+        currentSubcategory === 'pickpocket' || currentSubcategory === 'alchemy' ||
+        currentSubcategory === 'smithing' || currentSubcategory === 'enchanting' ||
+        currentSubcategory === 'crafting' || currentSubcategory === 'formations' ||
+        currentSubcategory === 'runes' || currentSubcategory === 'water_magic' ||
+        currentSubcategory === 'earth_magic' || currentSubcategory === 'air_magic' ||
+        currentSubcategory === 'blood_magic' || currentSubcategory === 'fire_magic' ||
+        currentSubcategory === 'metal_magic' || currentSubcategory === 'nature_magic' ||
+        currentSubcategory === 'light_magic' || currentSubcategory === 'dark_magic' ||
+        currentSubcategory === 'inferno_magic' || currentSubcategory === 'chaos_magic' ||
+        currentSubcategory === 'mind_magic' || currentSubcategory === 'life_magic' ||
+        currentSubcategory === 'death_magic' || currentSubcategory === 'void_magic' ||
+        currentSubcategory === 'energy_magic') {
+        renderSkillDescription(currentSubcategory);
+        return;
+    }
+    
     let filtered = [...allItems];
     
     if (currentSubcategory === 'metals') {
