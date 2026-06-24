@@ -63,6 +63,8 @@ function selectCategory(category) {
         document.getElementById('magicSubcategory').style.display = 'block';
     } else if (category === 'system') {
         document.getElementById('systemSubcategory').style.display = 'block';
+    } else if (category === 'skills') {
+        document.getElementById('skillsSubcategory').style.display = 'block';
     }
     
     document.getElementById('resultsTitle').innerHTML = '📋 Выберите подкатегорию';
@@ -168,6 +170,11 @@ function applyFilters() {
         currentSubcategory === 'aimed' || currentSubcategory === 'battle' || currentSubcategory === 'gems' || 
         currentSubcategory === 'coins') {
         renderSystem();
+        return;
+    }
+    
+    if (currentSubcategory === 'skills') {
+        renderSkills();
         return;
     }
     
