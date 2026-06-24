@@ -392,6 +392,7 @@
                 <button class="btn btn-roll" onclick="selectCategory('creatures')" style="background: #8b4513; flex: 1;">🐾 Существа</button>
                  <button class="btn btn-roll" onclick="selectCategory('magic')" style="background: #8b4513; flex: 1;">🔮 Магия</button>
                 <button class="btn btn-roll" onclick="selectCategory('system')" style="background: #8b4513; flex: 1;">⚙️ Система</button>
+                <button class="btn btn-roll" onclick="selectCategory('skills')" style="background: #8b4513; flex: 1;">🎯 Навыки</button>
             </div>
         </div>
         
@@ -448,6 +449,51 @@
                 <button class="btn btn-small" onclick="selectSubcategory('smithing')" style="background: #5a3a2a;">⚒️ Кузнечное дело</button>
             </div>
         </div>
+        <!-- Подкатегории для Навыков -->
+<div id="skillsSubcategory" style="margin-bottom: 15px; display: none;">
+    <label style="color: #d4af37; display: block; margin-bottom: 5px;">Навыки:</label>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-small" onclick="selectSubcategory('heavy_armor')" style="background: #5a3a2a;">Тяжёлая броня</button>
+        <button class="btn btn-small" onclick="selectSubcategory('light_armor')" style="background: #5a3a2a;">Лёгкая броня</button>
+        <button class="btn btn-small" onclick="selectSubcategory('two_handed')" style="background: #5a3a2a;">Двуручное оружие</button>
+        <button class="btn btn-small" onclick="selectSubcategory('one_handed')" style="background: #5a3a2a;">Одноручное оружие</button>
+        <button class="btn btn-small" onclick="selectSubcategory('shooting')" style="background: #5a3a2a;">Стрельба</button>
+        <button class="btn btn-small" onclick="selectSubcategory('blocking')" style="background: #5a3a2a;">Блокирование</button>
+        <button class="btn btn-small" onclick="selectSubcategory('polearm')" style="background: #5a3a2a;">Древковое</button>
+        <button class="btn btn-small" onclick="selectSubcategory('hand_to_hand')" style="background: #5a3a2a;">Рукопашный бой</button>
+        <button class="btn btn-small" onclick="selectSubcategory('throwing')" style="background: #5a3a2a;">Метание</button>
+        <button class="btn btn-small" onclick="selectSubcategory('stealth')" style="background: #5a3a2a;">Скрытность</button>
+        <button class="btn btn-small" onclick="selectSubcategory('eloquence')" style="background: #5a3a2a;">Красноречие</button>
+        <button class="btn btn-small" onclick="selectSubcategory('dexterity')" style="background: #5a3a2a;">Ловкость</button>
+        <button class="btn btn-small" onclick="selectSubcategory('endurance')" style="background: #5a3a2a;">Выносливость</button>
+        <button class="btn btn-small" onclick="selectSubcategory('hacking')" style="background: #5a3a2a;">Взлом</button>
+        <button class="btn btn-small" onclick="selectSubcategory('perception')" style="background: #5a3a2a;">Восприятие</button>
+        <button class="btn btn-small" onclick="selectSubcategory('luck')" style="background: #5a3a2a;">Удача</button>
+        <button class="btn btn-small" onclick="selectSubcategory('pickpocket')" style="background: #5a3a2a;">Карманные кражи</button>
+        <button class="btn btn-small" onclick="selectSubcategory('alchemy')" style="background: #5a3a2a;">Алхимия</button>
+        <button class="btn btn-small" onclick="selectSubcategory('smithing')" style="background: #5a3a2a;">Кузнечное дело</button>
+        <button class="btn btn-small" onclick="selectSubcategory('enchanting')" style="background: #5a3a2a;">Зачарование</button>
+        <button class="btn btn-small" onclick="selectSubcategory('crafting')" style="background: #5a3a2a;">Ремесло</button>
+        <button class="btn btn-small" onclick="selectSubcategory('formations')" style="background: #5a3a2a;">Формации</button>
+        <button class="btn btn-small" onclick="selectSubcategory('runes')" style="background: #5a3a2a;">Руны</button>
+        <button class="btn btn-small" onclick="selectSubcategory('water_magic')" style="background: #5a3a2a;">Магия воды</button>
+        <button class="btn btn-small" onclick="selectSubcategory('earth_magic')" style="background: #5a3a2a;">Магия земли</button>
+        <button class="btn btn-small" onclick="selectSubcategory('air_magic')" style="background: #5a3a2a;">Магия воздуха</button>
+        <button class="btn btn-small" onclick="selectSubcategory('blood_magic')" style="background: #5a3a2a;">Магия крови</button>
+        <button class="btn btn-small" onclick="selectSubcategory('fire_magic')" style="background: #5a3a2a;">Магия огня</button>
+        <button class="btn btn-small" onclick="selectSubcategory('metal_magic')" style="background: #5a3a2a;">Магия металла</button>
+        <button class="btn btn-small" onclick="selectSubcategory('nature_magic')" style="background: #5a3a2a;">Магия природы</button>
+        <button class="btn btn-small" onclick="selectSubcategory('light_magic')" style="background: #5a3a2a;">Магия света</button>
+        <button class="btn btn-small" onclick="selectSubcategory('dark_magic')" style="background: #5a3a2a;">Магия тьмы</button>
+        <button class="btn btn-small" onclick="selectSubcategory('inferno_magic')" style="background: #5a3a2a;">Магия инферно</button>
+        <button class="btn btn-small" onclick="selectSubcategory('chaos_magic')" style="background: #5a3a2a;">Магия хаоса</button>
+        <button class="btn btn-small" onclick="selectSubcategory('mind_magic')" style="background: #5a3a2a;">Магия разума</button>
+        <button class="btn btn-small" onclick="selectSubcategory('life_magic')" style="background: #5a3a2a;">Магия Жизни</button>
+        <button class="btn btn-small" onclick="selectSubcategory('death_magic')" style="background: #5a3a2a;">Магия смерти</button>
+        <button class="btn btn-small" onclick="selectSubcategory('void_magic')" style="background: #5a3a2a;">Магия пустоты</button>
+        <button class="btn btn-small" onclick="selectSubcategory('energy_magic')" style="background: #5a3a2a;">Магия Энергии</button>
+    </div>
+</div>
         
         <!-- Фильтры и поиск -->
         <div id="glossaryFilters">
